@@ -1,0 +1,310 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		37D98ADF16EE411E00EDADD2 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 37D98ADD16EE411E00EDADD2 /* InfoPlist.strings */; };
+		37D98AE616EE413800EDADD2 /* ARDiscovery.m in Sources */ = {isa = PBXBuildFile; fileRef = 37D98AE516EE413800EDADD2 /* ARDiscovery.m */; };
+		37D98AE816EE426000EDADD2 /* ARDiscovery.h in Headers */ = {isa = PBXBuildFile; fileRef = 37D98AE416EE413800EDADD2 /* ARDiscovery.h */; settings = {ATTRIBUTES = (Public, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		37D98AD716EE411E00EDADD2 /* ARDiscovery.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ARDiscovery.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		37D98ADC16EE411E00EDADD2 /* ARDiscovery-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "ARDiscovery-Info.plist"; sourceTree = "<group>"; };
+		37D98ADE16EE411E00EDADD2 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		37D98AE016EE411E00EDADD2 /* ARDiscovery-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ARDiscovery-Prefix.pch"; sourceTree = "<group>"; };
+		37D98AE416EE413800EDADD2 /* ARDiscovery.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ARDiscovery.h; path = ../../../Darwin/ARDiscovery.h; sourceTree = "<group>"; };
+		37D98AE516EE413800EDADD2 /* ARDiscovery.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ARDiscovery.m; path = ../../../Darwin/ARDiscovery.m; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		37D98AD416EE411E00EDADD2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		37D98AB916EE410600EDADD2 = {
+			isa = PBXGroup;
+			children = (
+				37D98ADA16EE411E00EDADD2 /* ARDiscovery */,
+				37D98AC416EE410600EDADD2 /* Frameworks */,
+				37D98AC316EE410600EDADD2 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		37D98AC316EE410600EDADD2 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				37D98AD716EE411E00EDADD2 /* ARDiscovery.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		37D98AC416EE410600EDADD2 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		37D98ADA16EE411E00EDADD2 /* ARDiscovery */ = {
+			isa = PBXGroup;
+			children = (
+				37D98AE416EE413800EDADD2 /* ARDiscovery.h */,
+				37D98AE516EE413800EDADD2 /* ARDiscovery.m */,
+				37D98ADB16EE411E00EDADD2 /* Supporting Files */,
+			);
+			path = ARDiscovery;
+			sourceTree = "<group>";
+		};
+		37D98ADB16EE411E00EDADD2 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				37D98ADC16EE411E00EDADD2 /* ARDiscovery-Info.plist */,
+				37D98ADD16EE411E00EDADD2 /* InfoPlist.strings */,
+				37D98AE016EE411E00EDADD2 /* ARDiscovery-Prefix.pch */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		37D98AE716EE424F00EDADD2 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				37D98AE816EE426000EDADD2 /* ARDiscovery.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		37D98AD616EE411E00EDADD2 /* ARDiscovery */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 37D98AE116EE411E00EDADD2 /* Build configuration list for PBXNativeTarget "ARDiscovery" */;
+			buildPhases = (
+				37D98AD316EE411E00EDADD2 /* Sources */,
+				37D98AD416EE411E00EDADD2 /* Frameworks */,
+				37D98AE716EE424F00EDADD2 /* Headers */,
+				37D98AD516EE411E00EDADD2 /* Resources */,
+				37D98AEE16EE46AC00EDADD2 /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ARDiscovery;
+			productName = ARDiscovery;
+			productReference = 37D98AD716EE411E00EDADD2 /* ARDiscovery.framework */;
+			productType = "com.apple.product-type.bundle";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		37D98ABA16EE410600EDADD2 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0460;
+				ORGANIZATIONNAME = "Parrot S.A.";
+			};
+			buildConfigurationList = 37D98ABD16EE410600EDADD2 /* Build configuration list for PBXProject "ARDiscovery" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 37D98AB916EE410600EDADD2;
+			productRefGroup = 37D98AC316EE410600EDADD2 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				37D98AD616EE411E00EDADD2 /* ARDiscovery */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		37D98AD516EE411E00EDADD2 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				37D98ADF16EE411E00EDADD2 /* InfoPlist.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		37D98AEE16EE46AC00EDADD2 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Install dir will be the final output to the framework.\nif [ x\"${CONFIGURATION}\" = x\"Debug\" ]; then\nINSTALL_DIR=${SRCROOT}/Products/${EXECUTABLE_NAME}_dbg.framework\nelse\nINSTALL_DIR=${SRCROOT}/Products/${EXECUTABLE_NAME}.framework\nfi\n\nDEVICE_DIR=${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}\n\U0013\n# Create Products directory if non existant\nmkdir -p ${SRCROOT}/Products\n\n# Cleaning the oldest.\nif [ -d \"${INSTALL_DIR}\" ]; then\nrm -rf \"${INSTALL_DIR}\"\nfi\n\ncp -r ${DEVICE_DIR} ${INSTALL_DIR}\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		37D98AD316EE411E00EDADD2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				37D98AE616EE413800EDADD2 /* ARDiscovery.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		37D98ADD16EE411E00EDADD2 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				37D98ADE16EE411E00EDADD2 /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		37D98ACE16EE410600EDADD2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 6.1;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		37D98ACF16EE410600EDADD2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 6.1;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		37D98AE216EE411E00EDADD2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				COMBINE_HIDPI_IMAGES = YES;
+				DEAD_CODE_STRIPPING = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "ARDiscovery/ARDiscovery-Prefix.pch";
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				INFOPLIST_FILE = "ARDiscovery/ARDiscovery-Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
+				LINK_WITH_STANDARD_LIBRARIES = NO;
+				MACH_O_TYPE = mh_object;
+				MACOSX_DEPLOYMENT_TARGET = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				VALID_ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				WRAPPER_EXTENSION = framework;
+			};
+			name = Debug;
+		};
+		37D98AE316EE411E00EDADD2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				COMBINE_HIDPI_IMAGES = YES;
+				DEAD_CODE_STRIPPING = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "ARDiscovery/ARDiscovery-Prefix.pch";
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				INFOPLIST_FILE = "ARDiscovery/ARDiscovery-Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
+				LINK_WITH_STANDARD_LIBRARIES = NO;
+				MACH_O_TYPE = mh_object;
+				MACOSX_DEPLOYMENT_TARGET = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				VALID_ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				WRAPPER_EXTENSION = framework;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		37D98ABD16EE410600EDADD2 /* Build configuration list for PBXProject "ARDiscovery" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				37D98ACE16EE410600EDADD2 /* Debug */,
+				37D98ACF16EE410600EDADD2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		37D98AE116EE411E00EDADD2 /* Build configuration list for PBXNativeTarget "ARDiscovery" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				37D98AE216EE411E00EDADD2 /* Debug */,
+				37D98AE316EE411E00EDADD2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 37D98ABA16EE410600EDADD2 /* Project object */;
+}
