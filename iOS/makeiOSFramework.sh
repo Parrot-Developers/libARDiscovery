@@ -41,7 +41,8 @@ case $CONFIGURATION in
 	clean)
 		xcodebuild -project $LIBNAME/$LIBNAME.xcodeproj -configuration Release clean
 		xcodebuild -project $LIBNAME/$LIBNAME.xcodeproj -configuration Debug clean
-		rm -r $PREFIX/Frameworks/$LIBNAME*
+		rm -r $FRAMEWORK_PATH/$LIBNAME'.framework' 2>/dev/null
+		rm -r $FRAMEWORK_PATH/$LIBNAME'_dbg.framework' 2>/dev/null
 		;;
 	*)
 		echo "Unknown action <$CONFIGURATION>"
