@@ -158,7 +158,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Install dir will be the final output to the framework.\nif [ x\"${CONFIGURATION}\" = x\"Debug\" ]; then\nINSTALL_DIR=${SRCROOT}/Products/lib${EXECUTABLE_NAME}_dbg.framework\nelse\nINSTALL_DIR=${SRCROOT}/Products/lib${EXECUTABLE_NAME}.framework\nfi\n\nDEVICE_DIR=${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}\n\U0013\n# Create Products directory if non existant\nmkdir -p ${SRCROOT}/Products\n\n# Cleaning the oldest.\nif [ -d \"${INSTALL_DIR}\" ]; then\nrm -rf \"${INSTALL_DIR}\"\nfi\n\ncp -r ${DEVICE_DIR} ${INSTALL_DIR}\n\n# Renaming in debug framework\nif [x\"${CONFIGURATION}\" = x\"Debug\" ]; then\nmv ${INSTALLDIR}/${EXECUTABLE_NAME} ${INSTALLDIR}/{EXECUTABLE_NAME}_dbg\nfi\n";
+			shellScript = "# Install dir will be the final output to the framework.\nif [ x\"${CONFIGURATION}\" = x\"Debug\" ]; then\nINSTALL_DIR=${SRCROOT}/Products/lib${EXECUTABLE_NAME}_dbg.framework\nelse\nINSTALL_DIR=${SRCROOT}/Products/lib${EXECUTABLE_NAME}.framework\nfi\n\nDEVICE_DIR=${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}\n\n# Create Products directory if non existant\nmkdir -p ${SRCROOT}/Products\n\n# Cleaning the oldest.\nif [ -d \"${INSTALL_DIR}\" ]; then\nrm -rf \"${INSTALL_DIR}\"\nfi\n\ncp -r ${DEVICE_DIR} ${INSTALL_DIR}\n\n# Renaming in debug framework\nif [ x\"${CONFIGURATION}\" = x\"Debug\" ]; then\nmv ${INSTALL_DIR}/${EXECUTABLE_NAME} ${INSTALL_DIR}/${EXECUTABLE_NAME}_dbg\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

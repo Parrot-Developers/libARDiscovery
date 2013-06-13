@@ -32,11 +32,11 @@ fi
 case $CONFIGURATION in
 	release)
 		xcodebuild -project $LIBNAME/$LIBNAME.xcodeproj -configuration Release || exit 1
-		cp -r $LIBNAME/Products/$LIBNAME.framework $PREFIX/Frameworks/
+		cp -r $LIBNAME/Products/lib$LIBNAME.framework $PREFIX/Frameworks/
 		;;
 	debug)
 		xcodebuild -project $LIBNAME/$LIBNAME.xcodeproj -configuration Debug || exit 1
-		cp -r $LIBNAME/Products/$LIBNAME"_dbg.framework" $PREFIX/Frameworks/
+		cp -r $LIBNAME/Products/lib$LIBNAME"_dbg.framework" $PREFIX/Frameworks/
 		;;
 	clean)
 		xcodebuild -project $LIBNAME/$LIBNAME.xcodeproj -configuration Release clean
