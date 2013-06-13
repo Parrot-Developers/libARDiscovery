@@ -99,13 +99,13 @@
  * Resolution is queued until all previous resolutions
  * are complete, or failed
  */
-- (void)resolveService:(NSNetService *)aService;
+- (void)resolveService:(ARService *)aService;
 
 /**
  * Convert the given netservice to resolved IP
  * You must to resolve service before to Convert it to IP
  */
-- (NSString *)convertNSNetServiceToIp:(NSNetService *)service;
+- (NSString *)convertNSNetServiceToIp:(ARService *)service;
 
 #pragma mark - Publication
 

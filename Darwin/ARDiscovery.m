@@ -44,7 +44,7 @@
 @property (strong, nonatomic) NSNetService *tryPublishService;
 
 #pragma mark - Services browser / resolution
-@property (strong, nonatomic) NSNetService *currentResolutionService;
+@property (strong, nonatomic) ARService *currentResolutionService;
 @property (strong, nonatomic) NSNetServiceBrowser *controllersServiceBrowser;
 @property (strong, nonatomic) NSNetServiceBrowser *devicesServiceBrowser;
 
@@ -153,17 +153,15 @@
 }
 
 #pragma mark - Discovery
-
-- (void)resolveService:(NSNetService *)aService
+- (void)resolveService:(ARService *)aService
 {
     CHECK_VALID();
     @synchronized (self)
     {
-        [self.currentResolutionService stop];
+        [[self.currentResolutionService service] stop];
         self.currentResolutionService = aService;
-        [self.currentResolutionService setDelegate:self];
-    
-        [self.currentResolutionService resolveWithTimeout:2.0];
+        [[self.currentResolutionService service] setDelegate:self];
+        [[self.currentResolutionService service] resolveWithTimeout:2.0];
     }
 }
 
@@ -202,23 +200,30 @@
         centralManager = nil;
         
         isDiscovering = NO;
+        
+        // Remove all devices and controllers on lists
+        [devicesServicesList removeAllObjects];
+        [self sendDevicesListUpdateNotification];
+
+        [controllersServicesList removeAllObjects];
+        [self sendControllersListUpdateNotification];
     }
 }
 
-- (NSString *)convertNSNetServiceToIp:(NSNetService *)service
+- (NSString *)convertNSNetServiceToIp:(ARService *)aService
 {
     NSString *name = nil;
     NSData *address = nil;
     struct sockaddr_in *socketAddress = nil;
     NSString *ipString = nil;
     int port;
-    name = [service name];
-    address = [[service addresses] objectAtIndex: 0];
+    name = [[aService service] name];
+    address = [[[aService service] addresses] objectAtIndex: 0];
     socketAddress = (struct sockaddr_in *) [address bytes];
     ipString = [NSString stringWithFormat: @"%s",inet_ntoa(socketAddress->sin_addr)];
     port = socketAddress->sin_port;
     // This will print the IP and port for you to connect to.
-    NSLog(@"%@", [NSString stringWithFormat:@"Resolved:%@-->%@:%u\n", [service hostName], ipString, port]);
+    NSLog(@"%@", [NSString stringWithFormat:@"Resolved:%@-->%@:%u\n", [[aService service] hostName], ipString, port]);
     
     return ipString;
 }
@@ -453,7 +458,7 @@
 
 - (void)centralManager:(CBCentralManager *)central didDiscoverPeripheral:(CBPeripheral *)peripheral advertisementData:(NSDictionary *)advertisementData RSSI:(NSNumber *)RSSI
 {
-    NSLog(@"Scanning %@ => advertisement data : %@", [peripheral name], advertisementData);
+   // NSLog(@"Scanning %@ => advertisement data : %@", [peripheral name], advertisementData);
     
     if([peripheral name] != nil)
     {
