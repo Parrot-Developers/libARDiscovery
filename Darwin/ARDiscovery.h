@@ -5,8 +5,8 @@
 //  Created by Nicolas BRULEZ on 08/03/13.
 //  Copyright (c) 2013 Parrot SA. All rights reserved.
 //
-
 #import <Foundation/Foundation.h>
+#import <CoreBluetooth/CoreBluetooth.h>
 
 #pragma mark Notifications
 
@@ -42,19 +42,35 @@
  * userInfo is a NSDictionnary with the following content:
  *  - key   : kARDiscoveryServiceResolved
  *  - value : NSNetService which was resolved
- *  - key   : kARDiscoveryServiceIP
- *  - value : NSString with the resolved IP of the service
  */
 #define kARDiscoveryNotificationServiceResolved @"kARDiscoveryNotificationServiceResolved"
 #define kARDiscoveryServiceResolved @"kARDiscoveryServiceResolved"
-#define kARDiscoveryServiceIP @"kARDiscoveryServiceIP"
-
 
 #pragma mark ARDiscovery interface
+@interface ARBLEService : NSObject
+@property (nonatomic, strong) CBCentralManager *centralManager;
+@property (nonatomic, strong) CBPeripheral *peripheral;
+@end
+
+@interface ARService : NSObject
+@property (nonatomic, strong) NSString *name;
+@property (nonatomic, strong) id service; /**< Can be ARNetService or ARBLEService */
+@end
 
 @interface ARDiscovery : NSObject
 
 + (ARDiscovery *)sharedInstance;
+
+#pragma mark Start / Stop
+/**
+ * Start Discovery if it is'nt discovering
+ */
+- (void)start;
+
+/**
+ * Stop Discovery if it's discovering
+ */
+- (void)stop;
 
 #pragma mark - Getters
 
@@ -66,7 +82,7 @@
 
 /**
  * Get the current list of devices services
- * Returns a NSArray of NSNetServices
+ * Returns a NSArray of NSNetServices or ARBLEServices
  */
 - (NSArray *)getCurrentListOfDevicesServices;
 
@@ -84,6 +100,12 @@
  * are complete, or failed
  */
 - (void)resolveService:(NSNetService *)aService;
+
+/**
+ * Convert the given netservice to resolved IP
+ * You must to resolve service before to Convert it to IP
+ */
+- (NSString *)convertNSNetServiceToIp:(NSNetService *)service;
 
 #pragma mark - Publication
 

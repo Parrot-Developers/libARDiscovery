@@ -5,13 +5,14 @@
 //  Created by Nicolas BRULEZ on 08/03/13.
 //  Copyright (c) 2013 Parrot SA. All rights reserved.
 //
-
+#include <arpa/inet.h>
 #import "ARDiscovery.h"
 #import <netdb.h>
+#define kServiceNetDeviceType @"_arsdk-mk3._udp."
+#define kServiceNetControllerType @"_arsdk-ff3._udp."
+#define kServiceNetDomain @"local."
 
-#define kServiceDeviceType @"_arsdk-mk3._udp."
-#define kServiceControllerType @"_arsdk-ff3._udp."
-#define kServiceDomain @"local."
+#define kServiceBLEDeviceType @"Mykonos_BLE" // TO DO
 
 #define CHECK_VALID(DEFAULT_RETURN_VALUE)       \
     do                                          \
@@ -22,9 +23,17 @@
         }                                       \
     } while (0)
 
-#pragma mark Private part
+#pragma mark ARBLEService implmentation
+@implementation ARBLEService
 
-@interface ARDiscovery () <NSNetServiceBrowserDelegate, NSNetServiceDelegate>
+@end
+
+@implementation ARService
+
+@end
+
+#pragma mark Private part
+@interface ARDiscovery () <NSNetServiceBrowserDelegate, NSNetServiceDelegate, CBCentralManagerDelegate>
 
 #pragma mark - Controller/Devices Services list
 @property (strong, nonatomic) NSMutableArray *controllersServicesList;
@@ -36,12 +45,17 @@
 
 #pragma mark - Services browser / resolution
 @property (strong, nonatomic) NSNetService *currentResolutionService;
-@property (strong, nonatomic) NSString *currentResolutionServiceIp;
 @property (strong, nonatomic) NSNetServiceBrowser *controllersServiceBrowser;
 @property (strong, nonatomic) NSNetServiceBrowser *devicesServiceBrowser;
 
+#pragma mark - Services CoreBluetooth
+@property (strong, nonatomic) CBCentralManager *centralManager;
+
 #pragma mark - Object properly created
 @property (nonatomic) BOOL valid;
+
+#pragma mark - Object properly created
+@property (nonatomic) BOOL isDiscovering;
 
 @end
 
@@ -54,54 +68,53 @@
 @synthesize currentPublishedService;
 @synthesize tryPublishService;
 @synthesize currentResolutionService;
-@synthesize currentResolutionServiceIp;
 @synthesize controllersServiceBrowser;
 @synthesize devicesServiceBrowser;
+@synthesize centralManager;
 @synthesize valid;
-
+@synthesize isDiscovering;
 
 #pragma mark - Init
-
 + (ARDiscovery *)sharedInstance
 {
-    static ARDiscovery *sharedInstance = nil;
+    static ARDiscovery *_sharedInstance = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        sharedInstance = [[ARDiscovery alloc] init];
+        _sharedInstance = [[ARDiscovery alloc] init];
         
         /**
          * Services list init
          */
-        sharedInstance.controllersServicesList = [[NSMutableArray alloc] initWithCapacity:10];
-        sharedInstance.devicesServicesList = [[NSMutableArray alloc] initWithCapacity:10];
+        _sharedInstance.controllersServicesList = [[NSMutableArray alloc] initWithCapacity:10];
+        _sharedInstance.devicesServicesList = [[NSMutableArray alloc] initWithCapacity:10];
         
         /**
          * Current published service init
          */
-        sharedInstance.currentPublishedService = nil;
-        sharedInstance.tryPublishService = nil;
+        _sharedInstance.currentPublishedService = nil;
+        _sharedInstance.tryPublishService = nil;
         
         /**
          * Services browser / resolution init
          */
-        sharedInstance.controllersServiceBrowser = [[NSNetServiceBrowser alloc] init];
-        [sharedInstance.controllersServiceBrowser setDelegate:sharedInstance];
-        sharedInstance.devicesServiceBrowser = [[NSNetServiceBrowser alloc] init];
-        [sharedInstance.devicesServiceBrowser setDelegate:sharedInstance];
-        sharedInstance.currentResolutionService = nil;
-        
-        /**
-         * Start NSNetServiceBrowser
-         */
-        [sharedInstance.controllersServiceBrowser searchForServicesOfType:kServiceControllerType inDomain:kServiceDomain];
-        [sharedInstance.devicesServiceBrowser searchForServicesOfType:kServiceDeviceType inDomain:kServiceDomain];
+        _sharedInstance.controllersServiceBrowser = [[NSNetServiceBrowser alloc] init];
+        [_sharedInstance.controllersServiceBrowser setDelegate:_sharedInstance];
+        _sharedInstance.devicesServiceBrowser = [[NSNetServiceBrowser alloc] init];
+        [_sharedInstance.devicesServiceBrowser setDelegate:_sharedInstance];
+        _sharedInstance.currentResolutionService = nil;
         
         /**
          * Creation was done as a shared instance
          */
-        sharedInstance.valid = YES;
+        _sharedInstance.valid = YES;
+        
+        /**
+         * Discover is not in progress
+         */
+        _sharedInstance.isDiscovering = NO;
     });
-    return sharedInstance;
+    
+    return _sharedInstance;
 }
 
 #pragma mark - Getters
@@ -154,8 +167,63 @@
     }
 }
 
-#pragma mark - Publication
+- (void)start
+{
+    if(!isDiscovering)
+    {
+        /**
+         * Start NSNetServiceBrowser
+         */
+        [controllersServiceBrowser searchForServicesOfType:kServiceNetControllerType inDomain:kServiceNetDomain];
+        [devicesServiceBrowser searchForServicesOfType:kServiceNetDeviceType inDomain:kServiceNetDomain];
+        
+        /**
+         * Start CoreBluetooth discovery
+         */
+        centralManager = [[CBCentralManager alloc] initWithDelegate:self queue:nil];
+        isDiscovering = YES;
+    }
+}
 
+- (void)stop
+{
+    if(isDiscovering)
+    {
+        /**
+         * Stop NSNetServiceBrowser
+         */
+        [controllersServiceBrowser stop];
+        [devicesServiceBrowser stop];
+        
+        /**
+         * Stop CoreBluetooth discovery
+         */
+        [centralManager stopScan];
+        centralManager = nil;
+        
+        isDiscovering = NO;
+    }
+}
+
+- (NSString *)convertNSNetServiceToIp:(NSNetService *)service
+{
+    NSString *name = nil;
+    NSData *address = nil;
+    struct sockaddr_in *socketAddress = nil;
+    NSString *ipString = nil;
+    int port;
+    name = [service name];
+    address = [[service addresses] objectAtIndex: 0];
+    socketAddress = (struct sockaddr_in *) [address bytes];
+    ipString = [NSString stringWithFormat: @"%s",inet_ntoa(socketAddress->sin_addr)];
+    port = socketAddress->sin_port;
+    // This will print the IP and port for you to connect to.
+    NSLog(@"%@", [NSString stringWithFormat:@"Resolved:%@-->%@:%u\n", [service hostName], ipString, port]);
+    
+    return ipString;
+}
+
+#pragma mark - Publication
 - (NSString *)uniqueNameFromServiceName:(NSString *)sname isController:(BOOL)isController
 {
     NSString *rname = [sname copy];
@@ -196,7 +264,7 @@
     {
         NSString *uniqueName = [self uniqueNameFromServiceName:serviceName isController:NO];
         [self.tryPublishService stop];
-        self.tryPublishService = [[NSNetService alloc] initWithDomain:kServiceDomain type:kServiceDeviceType name:uniqueName port:9];
+        self.tryPublishService = [[NSNetService alloc] initWithDomain:kServiceNetDomain type:kServiceNetDeviceType name:uniqueName port:9];
         [self.tryPublishService setDelegate:self];
         [self.tryPublishService publish];
     }
@@ -209,7 +277,7 @@
     {
         NSString *uniqueName = [self uniqueNameFromServiceName:serviceName isController:YES];
         [self.tryPublishService stop];
-        self.tryPublishService = [[NSNetService alloc] initWithDomain:kServiceDomain type:kServiceControllerType name:uniqueName port:9];
+        self.tryPublishService = [[NSNetService alloc] initWithDomain:kServiceNetDomain type:kServiceNetControllerType name:uniqueName port:9];
         [self.tryPublishService setDelegate:self];
         [self.tryPublishService publish];
     }
@@ -228,22 +296,27 @@
 }
 
 #pragma mark - NSNetServiceBrowser Delegate
-
 - (void)netServiceBrowser:(NSNetServiceBrowser *)aNetServiceBrowser didFindService:(NSNetService *)aNetService moreComing:(BOOL)moreComing
 {
     @synchronized (self)
     {
-        if ([[aNetService type] isEqual:kServiceDeviceType])
+        if ([[aNetService type] isEqual:kServiceNetDeviceType])
         {
-            [self.devicesServicesList addObject:aNetService];
+            ARService *aService = [[ARService alloc] init];
+            aService.name = [aNetService name];
+            aService.service = aNetService;
+            [self.devicesServicesList addObject:aService];
             if (!moreComing)
             {
                 [self sendDevicesListUpdateNotification];
             }
         }
-        else if ([[aNetService type] isEqual:kServiceControllerType])
+        else if ([[aNetService type] isEqual:kServiceNetControllerType])
         {
-            [self.controllersServicesList addObject:aNetService];
+            ARService *aService = [[ARService alloc] init];
+            aService.name = [aNetService name];
+            aService.service = aNetService;
+            [self.controllersServicesList addObject:aService];
             if (!moreComing)
             {
                 [self sendControllersListUpdateNotification];
@@ -262,20 +335,41 @@
 {
     @synchronized (self)
     {
-        if ([[aNetService type] isEqual:kServiceDeviceType])
+        if ([[aNetService type] isEqual:kServiceNetDeviceType])
         {
-            [self.devicesServicesList removeObject:aNetService];
-            if (!moreComing)
+            NSEnumerator *enumerator = [self.devicesServicesList objectEnumerator];
+            ARService *aService = nil;
+            BOOL found = NO;
+            while(!found && ((aService = [enumerator nextObject]) != nil))
             {
-                [self sendDevicesListUpdateNotification];
+                NSLog(@"%@, %@", [aService name], [aNetService name]);
+                if([[aService name] isEqualToString:[aNetService name]])
+                {
+                    [self.devicesServicesList removeObject:aService];
+                    found = YES;
+                    if (!moreComing)
+                    {
+                        [self sendDevicesListUpdateNotification];
+                    }
+                }
             }
         }
-        else if ([[aNetService type] isEqual:kServiceControllerType])
+        else if ([[aNetService type] isEqual:kServiceNetControllerType])
         {
-            [self.controllersServicesList removeObject:aNetService];
-            if (!moreComing)
+            NSEnumerator *enumerator = [self.controllersServicesList objectEnumerator];
+            ARService *aService = nil;
+            BOOL found = NO;
+            while(!found && ((aService = [enumerator nextObject]) != nil))
             {
-                [self sendControllersListUpdateNotification];
+                if([[aService name] isEqualToString:[aNetService name]])
+                {
+                    [self.controllersServicesList removeObject:aService];
+                    found = YES;
+                    if (!moreComing)
+                    {
+                        [self sendControllersListUpdateNotification];
+                    }
+                }
             }
         }
         else
@@ -289,7 +383,7 @@
 
 #pragma mark - NSNetService Delegate
 
-- (void)netService:(NSNetService *)sender didNotPublish:(NSDictionary *)errorDict
+- (void)netService:(NSNetService *)service didNotPublish:(NSDictionary *)errorDict
 {
     @synchronized (self)
     {
@@ -298,47 +392,86 @@
     }
 }
 
-- (void)netServiceDidPublish:(NSNetService *)sender
+- (void)netServiceDidPublish:(NSNetService *)service
 {
     @synchronized (self)
     {
-        self.currentPublishedService = sender;
+        self.currentPublishedService = service;
         [self sendPublishNotification];
     }
 }
 
-- (void)netService:(NSNetService *)sender didNotResolve:(NSDictionary *)errorDict
+- (void)netService:(NSNetService *)service didNotResolve:(NSDictionary *)errorDict
 {
     @synchronized (self)
     {
-        self.currentResolutionServiceIp = nil;
         [self sendResolveNotification];
     }
 }
 
-- (void)netServiceDidResolveAddress:(NSNetService *)sender
+- (void)netServiceDidResolveAddress:(NSNetService *)service
 {
     @synchronized (self)
     {
-        self.currentResolutionServiceIp = nil;
-        struct hostent *hostInfos = gethostbyname ([[sender hostName] UTF8String]);
-        if ((hostInfos != NULL) &&
-            (hostInfos->h_length == 4))
+        [self sendResolveNotification];
+    }
+}
+
+#pragma mark - CBCentralManagerDelegate methods
+- (void)centralManagerDidUpdateState:(CBCentralManager *)central
+{
+    switch(central.state)
+    {
+        case CBCentralManagerStatePoweredOn:
+            NSLog(@"CBCentralManagerStatePoweredOn");
+            // Start scanning peripherals
+            [central scanForPeripheralsWithServices:nil options:0];
+            break;
+            
+        case CBCentralManagerStateResetting:
+            NSLog(@"CBCentralManagerStateResetting");
+            break;
+            
+        case CBCentralManagerStateUnsupported:
+            NSLog(@"CBCentralManagerStateUnsupported");
+            break;
+            
+        case CBCentralManagerStateUnauthorized:
+            NSLog(@"CBCentralManagerStateUnauthorized");
+            break;
+            
+        case CBCentralManagerStatePoweredOff:
+            NSLog(@"CBCentralManagerStatePoweredOff");
+            break;
+            
+        default:
+        case CBCentralManagerStateUnknown:
+            NSLog(@"CBCentralManagerStateUnknown");
+            break;
+    }
+}
+
+- (void)centralManager:(CBCentralManager *)central didDiscoverPeripheral:(CBPeripheral *)peripheral advertisementData:(NSDictionary *)advertisementData RSSI:(NSNumber *)RSSI
+{
+    NSLog(@"Scanning %@ => advertisement data : %@", [peripheral name], advertisementData);
+    
+    if([peripheral name] != nil)
+    {
+        if ([peripheral.name hasPrefix:kServiceBLEDeviceType])
         {
-            int cnt = 0;
-            char *addr;
-            while ((addr = hostInfos->h_addr_list[cnt++]) != NULL)
-            {
-                //NSLog (@"ADDR %d : %u.%u.%u.%u", cnt, addr[0] & 0x0ff, addr[1] & 0x0ff, addr[2] & 0x0ff, addr[3] & 0x0ff);
-                self.currentResolutionServiceIp = [NSString stringWithFormat:@"%u.%u.%u.%u", addr[0] & 0x0ff, addr[1] & 0x0ff, addr[2] & 0x0ff, addr[3] & 0x0ff];
-            }
+            ARBLEService *service = [[ARBLEService alloc] init];
+            service.centralManager = central;
+            service.peripheral = peripheral;
+            ARService *aService = [[ARService alloc] init];
+            aService.name = [service.peripheral name];
+            aService.service = service;
+            [self.devicesServicesList addObject:aService];
+            [self sendDevicesListUpdateNotification];
         }
-        [self sendResolveNotification];
     }
 }
 
-#pragma mark - Notification senders
-
+#pragma mark - Notification sender
 - (void)sendPublishNotification
 {
     NSDictionary *userInfos = @{kARDiscoveryServiceName: [self getCurrentPublishedServiceName]};
@@ -359,7 +492,7 @@
 
 - (void)sendResolveNotification
 {
-    NSDictionary *userInfos = @{kARDiscoveryServiceResolved: self.currentResolutionService, kARDiscoveryServiceIP : self.currentResolutionServiceIp};
+    NSDictionary *userInfos = @{kARDiscoveryServiceResolved: self.currentResolutionService};
     [[NSNotificationCenter defaultCenter] postNotificationName:kARDiscoveryNotificationServiceResolved object:self userInfo:userInfos];
 }
 
