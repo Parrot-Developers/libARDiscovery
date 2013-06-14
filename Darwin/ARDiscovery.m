@@ -36,8 +36,8 @@
 @interface ARDiscovery () <NSNetServiceBrowserDelegate, NSNetServiceDelegate, CBCentralManagerDelegate>
 
 #pragma mark - Controller/Devices Services list
-@property (strong, nonatomic) NSMutableArray *controllersServicesList;
-@property (strong, nonatomic) NSMutableArray *devicesServicesList;
+@property (strong, nonatomic) NSMutableDictionary *controllersServicesList;
+@property (strong, nonatomic) NSMutableDictionary *devicesServicesList;
 
 #pragma mark - Current published service
 @property (strong, nonatomic) NSNetService *currentPublishedService;
@@ -85,8 +85,8 @@
         /**
          * Services list init
          */
-        _sharedInstance.controllersServicesList = [[NSMutableArray alloc] initWithCapacity:10];
-        _sharedInstance.devicesServicesList = [[NSMutableArray alloc] initWithCapacity:10];
+        _sharedInstance.controllersServicesList = [[NSMutableDictionary alloc] init];
+        _sharedInstance.devicesServicesList = [[NSMutableDictionary alloc] init];
         
         /**
          * Current published service init
@@ -125,7 +125,7 @@
     CHECK_VALID(array);
     @synchronized (self)
     {
-        array = [self.devicesServicesList copy];
+        array = [[self.devicesServicesList allValues] copy];
     }
     return array;
 }
@@ -136,7 +136,7 @@
     CHECK_VALID(array);
     @synchronized (self)
     {
-        array = [self.controllersServicesList copy];
+        array = [[self.controllersServicesList allValues] copy];
     }
     return array;
 }
@@ -200,13 +200,6 @@
         centralManager = nil;
         
         isDiscovering = NO;
-        
-        // Remove all devices and controllers on lists
-        [devicesServicesList removeAllObjects];
-        [self sendDevicesListUpdateNotification];
-
-        [controllersServicesList removeAllObjects];
-        [self sendControllersListUpdateNotification];
     }
 }
 
@@ -305,12 +298,13 @@
 {
     @synchronized (self)
     {
-        if ([[aNetService type] isEqual:kServiceNetDeviceType])
+        ARService *aService = [[ARService alloc] init];
+        aService.name = [aNetService name];
+        aService.service = aNetService;
+         if ([[aNetService type] isEqual:kServiceNetDeviceType])
         {
-            ARService *aService = [[ARService alloc] init];
-            aService.name = [aNetService name];
-            aService.service = aNetService;
-            [self.devicesServicesList addObject:aService];
+            //NSLog(@"find %@ : %@", aService.name, NSStringFromClass([[aService service] class]));
+            [self.devicesServicesList setObject:aService forKey:aService.name];
             if (!moreComing)
             {
                 [self sendDevicesListUpdateNotification];
@@ -318,10 +312,8 @@
         }
         else if ([[aNetService type] isEqual:kServiceNetControllerType])
         {
-            ARService *aService = [[ARService alloc] init];
-            aService.name = [aNetService name];
-            aService.service = aNetService;
-            [self.controllersServicesList addObject:aService];
+            //NSLog(@"find %@ : %@", aService.name, NSStringFromClass([[aService service] class]));
+            [self.controllersServicesList setObject:aService forKey:aService.name];
             if (!moreComing)
             {
                 [self sendControllersListUpdateNotification];
@@ -342,38 +334,27 @@
     {
         if ([[aNetService type] isEqual:kServiceNetDeviceType])
         {
-            NSEnumerator *enumerator = [self.devicesServicesList objectEnumerator];
-            ARService *aService = nil;
-            BOOL found = NO;
-            while(!found && ((aService = [enumerator nextObject]) != nil))
+            ARService *aService = (ARService *)[self.devicesServicesList objectForKey:aNetService.name];
+            if(aService != nil)
             {
-                NSLog(@"%@, %@", [aService name], [aNetService name]);
-                if([[aService name] isEqualToString:[aNetService name]])
+                NSLog(@"remove %@ : %@", aService.name, NSStringFromClass([[aService service] class]));
+                [self.devicesServicesList removeObjectForKey:aService.name];
+                if (!moreComing)
                 {
-                    [self.devicesServicesList removeObject:aService];
-                    found = YES;
-                    if (!moreComing)
-                    {
-                        [self sendDevicesListUpdateNotification];
-                    }
+                    [self sendDevicesListUpdateNotification];
                 }
             }
         }
         else if ([[aNetService type] isEqual:kServiceNetControllerType])
         {
-            NSEnumerator *enumerator = [self.controllersServicesList objectEnumerator];
-            ARService *aService = nil;
-            BOOL found = NO;
-            while(!found && ((aService = [enumerator nextObject]) != nil))
+            ARService *aService = (ARService *)[self.controllersServicesList objectForKey:aNetService.name];
+            if(aService != nil)
             {
-                if([[aService name] isEqualToString:[aNetService name]])
+                NSLog(@"remove %@ : %@", aService.name, NSStringFromClass([[aService service] class]));
+                [self.controllersServicesList removeObjectForKey:aService.name];
+                if (!moreComing)
                 {
-                    [self.controllersServicesList removeObject:aService];
-                    found = YES;
-                    if (!moreComing)
-                    {
-                        [self sendControllersListUpdateNotification];
-                    }
+                    [self sendControllersListUpdateNotification];
                 }
             }
         }
@@ -470,7 +451,8 @@
             ARService *aService = [[ARService alloc] init];
             aService.name = [service.peripheral name];
             aService.service = service;
-            [self.devicesServicesList addObject:aService];
+            
+            [self.devicesServicesList setObject:aService forKey:aService.name];
             [self sendDevicesListUpdateNotification];
         }
     }
