@@ -31,7 +31,10 @@
 @end
 
 @implementation ARService
-
+- (BOOL)isEqual:(id)object
+{
+    return [self.name isEqualToString:[(ARService *)object name]];
+}
 @end
 
 #pragma mark Private part
