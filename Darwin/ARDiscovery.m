@@ -8,11 +8,13 @@
 #include <arpa/inet.h>
 #import "ARDiscovery.h"
 #import <netdb.h>
+
 #define kServiceNetDeviceType @"_arsdk-mk3._udp."
 #define kServiceNetControllerType @"_arsdk-ff3._udp."
 #define kServiceNetDomain @"local."
 
 #define kServiceBLEDeviceType @"Mykonos_BLE" // TO DO
+#define kServiceBLERefreshTime 10.f // Time in seconde
 
 #define CHECK_VALID(DEFAULT_RETURN_VALUE)       \
     do                                          \
@@ -38,6 +40,7 @@
 #pragma mark - Controller/Devices Services list
 @property (strong, nonatomic) NSMutableDictionary *controllersServicesList;
 @property (strong, nonatomic) NSMutableDictionary *devicesServicesList;
+@property (strong, nonatomic) NSMutableDictionary *devicesBLEServicesList;
 
 #pragma mark - Current published service
 @property (strong, nonatomic) NSNetService *currentPublishedService;
@@ -51,6 +54,10 @@
 #pragma mark - Services CoreBluetooth
 @property (strong, nonatomic) CBCentralManager *centralManager;
 
+#pragma mark - BLE services refresh timer
+@property (strong, nonatomic) NSTimer *refreshTimerDevicesBLEServicesList;
+@property (nonatomic) BOOL firstBLEDiscovering;
+
 #pragma mark - Object properly created
 @property (nonatomic) BOOL valid;
 
@@ -60,11 +67,10 @@
 @end
 
 #pragma mark Implementation
-
 @implementation ARDiscovery
-
 @synthesize controllersServicesList;
 @synthesize devicesServicesList;
+@synthesize devicesBLEServicesList;
 @synthesize currentPublishedService;
 @synthesize tryPublishService;
 @synthesize currentResolutionService;
@@ -72,6 +78,7 @@
 @synthesize devicesServiceBrowser;
 @synthesize centralManager;
 @synthesize valid;
+@synthesize firstBLEDiscovering;
 @synthesize isDiscovering;
 
 #pragma mark - Init
@@ -87,6 +94,7 @@
          */
         _sharedInstance.controllersServicesList = [[NSMutableDictionary alloc] init];
         _sharedInstance.devicesServicesList = [[NSMutableDictionary alloc] init];
+        _sharedInstance.devicesBLEServicesList = [[NSMutableDictionary alloc] init];
         
         /**
          * Current published service init
@@ -104,6 +112,12 @@
         _sharedInstance.currentResolutionService = nil;
         
         /**
+         * Timer to refresh BLE devices
+         */
+        _sharedInstance.refreshTimerDevicesBLEServicesList = nil;
+        _sharedInstance.firstBLEDiscovering = YES;
+        
+        /**
          * Creation was done as a shared instance
          */
         _sharedInstance.valid = YES;
@@ -118,7 +132,6 @@
 }
 
 #pragma mark - Getters
-
 - (NSArray *)getCurrentListOfDevicesServices
 {
     NSArray *array = nil;
@@ -175,11 +188,12 @@
         [controllersServiceBrowser searchForServicesOfType:kServiceNetControllerType inDomain:kServiceNetDomain];
         [devicesServiceBrowser searchForServicesOfType:kServiceNetDeviceType inDomain:kServiceNetDomain];
         
+        isDiscovering = YES;
+        
         /**
          * Start CoreBluetooth discovery
          */
         centralManager = [[CBCentralManager alloc] initWithDelegate:self queue:nil];
-        isDiscovering = YES;
     }
 }
 
@@ -196,6 +210,12 @@
         /**
          * Stop CoreBluetooth discovery
          */
+        if(self.refreshTimerDevicesBLEServicesList != nil)
+        {
+            [self.refreshTimerDevicesBLEServicesList invalidate];
+            self.refreshTimerDevicesBLEServicesList = nil;
+        }
+        
         [centralManager stopScan];
         centralManager = nil;
         
@@ -368,7 +388,6 @@
 }
 
 #pragma mark - NSNetService Delegate
-
 - (void)netService:(NSNetService *)service didNotPublish:(NSDictionary *)errorDict
 {
     @synchronized (self)
@@ -403,6 +422,45 @@
     }
 }
 
+#pragma mark - Refresh BLE services methods
+- (void)rescanForPeripherals
+{
+    NSLog(@"Rescan peripherals...");
+    @synchronized (self)
+    {
+        [centralManager stopScan];
+        
+        if(!self.firstBLEDiscovering)
+        {
+            NSEnumerator *devicesBLEServicesEnumerator = [[self getCurrentListOfDevicesServices] objectEnumerator];
+            ARService *aService = nil;
+            while((aService = [devicesBLEServicesEnumerator nextObject]) != nil)
+            {
+                if([[aService service] isKindOfClass:[ARBLEService class]])
+                {
+                    if([self.devicesBLEServicesList objectForKey:[aService name]] == nil)
+                    {
+                        [self.devicesServicesList removeObjectForKey:[aService name]];
+                    }
+                
+                    [self.devicesBLEServicesList removeObjectForKey:[aService name]];
+                }
+            }
+        
+            [self.devicesServicesList addEntriesFromDictionary:self.devicesBLEServicesList];
+            [self.devicesBLEServicesList removeAllObjects];
+            
+            [self sendDevicesListUpdateNotification];
+            
+        }
+        
+        self.firstBLEDiscovering = NO;
+        
+        self.refreshTimerDevicesBLEServicesList = [NSTimer scheduledTimerWithTimeInterval: kServiceBLERefreshTime target:self selector:@selector(rescanForPeripherals) userInfo:nil repeats:NO];
+        [centralManager scanForPeripheralsWithServices:nil options:nil];
+    }
+}
+
 #pragma mark - CBCentralManagerDelegate methods
 - (void)centralManagerDidUpdateState:(CBCentralManager *)central
 {
@@ -410,8 +468,19 @@
     {
         case CBCentralManagerStatePoweredOn:
             NSLog(@"CBCentralManagerStatePoweredOn");
-            // Start scanning peripherals
-            [central scanForPeripheralsWithServices:nil options:0];
+            if(isDiscovering)
+            {
+                if(self.refreshTimerDevicesBLEServicesList != nil)
+                {
+                    [self.refreshTimerDevicesBLEServicesList invalidate];
+                    self.refreshTimerDevicesBLEServicesList = nil;
+                }
+                
+                self.refreshTimerDevicesBLEServicesList = [NSTimer scheduledTimerWithTimeInterval:kServiceBLERefreshTime target:self selector:@selector(rescanForPeripherals) userInfo:nil repeats:NO];
+                
+                // Start scanning peripherals
+                [central scanForPeripheralsWithServices:nil options:nil];
+            }
             break;
             
         case CBCentralManagerStateResetting:
@@ -439,21 +508,31 @@
 
 - (void)centralManager:(CBCentralManager *)central didDiscoverPeripheral:(CBPeripheral *)peripheral advertisementData:(NSDictionary *)advertisementData RSSI:(NSNumber *)RSSI
 {
-   // NSLog(@"Scanning %@ => advertisement data : %@", [peripheral name], advertisementData);
-    
-    if([peripheral name] != nil)
+    //NSLog(@"Scanning %@", [peripheral name]);
+    @synchronized (self)
     {
-        if ([peripheral.name hasPrefix:kServiceBLEDeviceType])
+        if([peripheral name] != nil)
         {
-            ARBLEService *service = [[ARBLEService alloc] init];
-            service.centralManager = central;
-            service.peripheral = peripheral;
-            ARService *aService = [[ARService alloc] init];
-            aService.name = [service.peripheral name];
-            aService.service = service;
-            
-            [self.devicesServicesList setObject:aService forKey:aService.name];
-            [self sendDevicesListUpdateNotification];
+            if ([peripheral.name hasPrefix:kServiceBLEDeviceType])
+            {
+                ARBLEService *service = [[ARBLEService alloc] init];
+                service.centralManager = central;
+                service.peripheral = peripheral;
+                ARService *aService = [[ARService alloc] init];
+                aService.name = [service.peripheral name];
+                aService.service = service;
+                
+                if(self.firstBLEDiscovering)
+                {
+                    [self.devicesServicesList setObject:aService forKey:aService.name];
+                    [self.devicesBLEServicesList setObject:aService forKey:aService.name];
+                }
+                else
+                {
+                    [self.devicesBLEServicesList setObject:aService forKey:aService.name];
+                }
+                [self sendDevicesListUpdateNotification];
+            }
         }
     }
 }
