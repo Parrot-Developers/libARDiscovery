@@ -453,7 +453,7 @@
 
 - (void)centralManager:(CBCentralManager *)central didDiscoverPeripheral:(CBPeripheral *)peripheral advertisementData:(NSDictionary *)advertisementData RSSI:(NSNumber *)RSSI
 {
-    NSLog(@"Scanning %@", [peripheral name]);
+   // NSLog(@"Scanning %@", [peripheral name]);
     @synchronized (self)
     {
         if([peripheral name] != nil)
