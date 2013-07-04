@@ -31,16 +31,16 @@ fi
 # run xcodebuild with good arg
 case $CONFIGURATION in
 	release)
-		xcodebuild -project $LIBNAME/$LIBNAME.xcodeproj -configuration Release || exit 1
+		xcodebuild -project $LIBNAME.xcodeproj -configuration Release || exit 1
 		cp -r $LIBNAME/Products/lib$LIBNAME.framework $PREFIX/Frameworks/
 		;;
 	debug)
-		xcodebuild -project $LIBNAME/$LIBNAME.xcodeproj -configuration Debug || exit 1
+		xcodebuild -project $LIBNAME.xcodeproj -configuration Debug || exit 1
 		cp -r $LIBNAME/Products/lib$LIBNAME"_dbg.framework" $PREFIX/Frameworks/
 		;;
 	clean)
-		xcodebuild -project $LIBNAME/$LIBNAME.xcodeproj -configuration Release clean
-		xcodebuild -project $LIBNAME/$LIBNAME.xcodeproj -configuration Debug clean
+		xcodebuild -project $LIBNAME.xcodeproj -configuration Release clean
+		xcodebuild -project $LIBNAME.xcodeproj -configuration Debug clean
 		rm -r $FRAMEWORK_PATH/$LIBNAME'.framework' 2>/dev/null
 		rm -r $FRAMEWORK_PATH/$LIBNAME'_dbg.framework' 2>/dev/null
 		;;

@@ -7,18 +7,16 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		37D98ADF16EE411E00EDADD2 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 37D98ADD16EE411E00EDADD2 /* InfoPlist.strings */; };
 		37D98AE616EE413800EDADD2 /* ARDiscovery.m in Sources */ = {isa = PBXBuildFile; fileRef = 37D98AE516EE413800EDADD2 /* ARDiscovery.m */; };
 		37D98AE816EE426000EDADD2 /* ARDiscovery.h in Headers */ = {isa = PBXBuildFile; fileRef = 37D98AE416EE413800EDADD2 /* ARDiscovery.h */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		37D98AD716EE411E00EDADD2 /* ARDiscovery.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ARDiscovery.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		37D98ADC16EE411E00EDADD2 /* ARDiscovery-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "ARDiscovery-Info.plist"; sourceTree = "<group>"; };
-		37D98ADE16EE411E00EDADD2 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		37D98AE016EE411E00EDADD2 /* ARDiscovery-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ARDiscovery-Prefix.pch"; sourceTree = "<group>"; };
-		37D98AE416EE413800EDADD2 /* ARDiscovery.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ARDiscovery.h; path = ../../../Darwin/ARDiscovery.h; sourceTree = "<group>"; };
-		37D98AE516EE413800EDADD2 /* ARDiscovery.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ARDiscovery.m; path = ../../../Darwin/ARDiscovery.m; sourceTree = "<group>"; };
+		37D98AE416EE413800EDADD2 /* ARDiscovery.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ARDiscovery.h; path = ../Darwin/ARDiscovery.h; sourceTree = SOURCE_ROOT; };
+		37D98AE516EE413800EDADD2 /* ARDiscovery.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ARDiscovery.m; path = ../Darwin/ARDiscovery.m; sourceTree = SOURCE_ROOT; };
+		37EA8E451785AC5D00C70526 /* ARDiscovery-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "ARDiscovery-Info.plist"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -64,13 +62,12 @@
 				37D98ADB16EE411E00EDADD2 /* Supporting Files */,
 			);
 			path = ARDiscovery;
-			sourceTree = "<group>";
+			sourceTree = SOURCE_ROOT;
 		};
 		37D98ADB16EE411E00EDADD2 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				37D98ADC16EE411E00EDADD2 /* ARDiscovery-Info.plist */,
-				37D98ADD16EE411E00EDADD2 /* InfoPlist.strings */,
+				37EA8E451785AC5D00C70526 /* ARDiscovery-Info.plist */,
 				37D98AE016EE411E00EDADD2 /* ARDiscovery-Prefix.pch */,
 			);
 			name = "Supporting Files";
@@ -140,7 +137,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				37D98ADF16EE411E00EDADD2 /* InfoPlist.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -172,17 +168,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXVariantGroup section */
-		37D98ADD16EE411E00EDADD2 /* InfoPlist.strings */ = {
-			isa = PBXVariantGroup;
-			children = (
-				37D98ADE16EE411E00EDADD2 /* en */,
-			);
-			name = InfoPlist.strings;
-			sourceTree = "<group>";
-		};
-/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		37D98ACE16EE410600EDADD2 /* Debug */ = {
@@ -246,9 +231,9 @@
 				DEAD_CODE_STRIPPING = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "ARDiscovery/ARDiscovery-Prefix.pch";
+				GCC_PREFIX_HEADER = "ARDiscovery-Prefix.pch";
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				INFOPLIST_FILE = "ARDiscovery/ARDiscovery-Info.plist";
+				INFOPLIST_FILE = "ARDiscovery-Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
 				LINK_WITH_STANDARD_LIBRARIES = NO;
 				MACH_O_TYPE = mh_object;
@@ -269,9 +254,9 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "ARDiscovery/ARDiscovery-Prefix.pch";
+				GCC_PREFIX_HEADER = "ARDiscovery-Prefix.pch";
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				INFOPLIST_FILE = "ARDiscovery/ARDiscovery-Info.plist";
+				INFOPLIST_FILE = "ARDiscovery-Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
 				LINK_WITH_STANDARD_LIBRARIES = NO;
 				MACH_O_TYPE = mh_object;
