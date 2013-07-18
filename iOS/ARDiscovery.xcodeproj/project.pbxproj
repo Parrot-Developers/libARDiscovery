@@ -154,7 +154,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Install dir will be the final output to the framework.\nif [ x\"${CONFIGURATION}\" = x\"Debug\" ]; then\nINSTALL_DIR=${SRCROOT}/Products/lib${EXECUTABLE_NAME}_dbg.framework\nelse\nINSTALL_DIR=${SRCROOT}/Products/lib${EXECUTABLE_NAME}.framework\nfi\n\nDEVICE_DIR=${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}\n\n# Create Products directory if non existant\nmkdir -p ${SRCROOT}/Products\n\n# Cleaning the oldest.\nif [ -d \"${INSTALL_DIR}\" ]; then\nrm -rf \"${INSTALL_DIR}\"\nfi\n\necho \"${DEVICE_DIR} ${INSTALL_DIR}\"\ncp -r ${DEVICE_DIR} ${INSTALL_DIR}\n\n# Renaming in debug framework\nif [ x\"${CONFIGURATION}\" = x\"Debug\" ]; then\nmv ${INSTALL_DIR}/${EXECUTABLE_NAME} ${INSTALL_DIR}/lib${EXECUTABLE_NAME}_dbg\nelse\nmv ${INSTALL_DIR}/${EXECUTABLE_NAME} ${INSTALL_DIR}/lib${EXECUTABLE_NAME}\nfi\n";
+			shellScript = "# Install dir will be the final output to the framework.\nif [ x\"${CONFIGURATION}\" = x\"Debug\" ]; then\nINSTALL_DIR=${SRCROOT}/Products/${CURRENT_ARCH}/lib${EXECUTABLE_NAME}_dbg.framework\nelse\nINSTALL_DIR=${SRCROOT}/Products/${CURRENT_ARCH}/lib${EXECUTABLE_NAME}.framework\nfi\n\nDEVICE_DIR=${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}\n\n# Create Products directory if non existant\nmkdir -p ${SRCROOT}/Products/${CURRENT_ARCH}\n\n# Cleaning the oldest.\nif [ -d \"${INSTALL_DIR}\" ]; then\nrm -rf \"${INSTALL_DIR}\"\nfi\n\necho \"${DEVICE_DIR} ${INSTALL_DIR}\"\ncp -r ${DEVICE_DIR} ${INSTALL_DIR}\n\n# Renaming in debug framework\nif [ x\"${CONFIGURATION}\" = x\"Debug\" ]; then\nmv ${INSTALL_DIR}/${EXECUTABLE_NAME} ${INSTALL_DIR}/lib${EXECUTABLE_NAME}_dbg\nelse\nmv ${INSTALL_DIR}/${EXECUTABLE_NAME} ${INSTALL_DIR}/lib${EXECUTABLE_NAME}\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -195,7 +195,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 6.1;
-				ONLY_ACTIVE_ARCH = YES;
+				ONLY_ACTIVE_ARCH = NO;
 				SDKROOT = iphoneos;
 			};
 			name = Debug;

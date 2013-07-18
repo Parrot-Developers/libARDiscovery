@@ -31,16 +31,38 @@ fi
 # run xcodebuild with good arg
 case $CONFIGURATION in
 	release)
-		xcodebuild -project $LIBNAME.xcodeproj -configuration Release || exit 1
-		cp -r Products/lib$LIBNAME.framework $FRAMEWORK_PATH
+		xcodebuild -project $LIBNAME.xcodeproj -configuration Release -sdk iphoneos -arch armv7 || exit 1
+		xcodebuild -project $LIBNAME.xcodeproj -configuration Release -sdk iphoneos -arch armv7s || exit 1
+		xcodebuild -project $LIBNAME.xcodeproj -configuration Release -sdk iphonesimulator || exit 1
+		ARCHS=$(ls Products)
+		LIBS=""
+		for ARCH in $ARCHS; do
+			cp -r Products/$ARCH/lib$LIBNAME.framework $FRAMEWORK_PATH
+			AFILE=$(ls Products/$ARCH/lib$LIBNAME.framework/lib*)
+			LIBS=$LIBS" "$AFILE
+		done
+		FWLIB=$(echo $AFILE | sed 's:.*/lib\(.*\):lib\1:')
+		lipo $LIBS -create -output $FRAMEWORK_PATH/lib$LIBNAME.framework/$FWLIB
 		;;
 	debug)
-		xcodebuild -project $LIBNAME.xcodeproj -configuration Debug || exit 1
-		cp -r Products/lib$LIBNAME"_dbg.framework" $FRAMEWORK_PATH
+		xcodebuild -project $LIBNAME.xcodeproj -configuration Debug -sdk iphoneos -arch armv7 || exit 1
+		xcodebuild -project $LIBNAME.xcodeproj -configuration Debug -sdk iphoneos -arch armv7s || exit 1
+		xcodebuild -project $LIBNAME.xcodeproj -configuration Debug -sdk iphonesimulator || exit 1
+		ARCHS=$(ls Products)
+		LIBS=""
+		for ARCH in $ARCHS; do
+			cp -r Products/$ARCH/lib$LIBNAME"_dbg.framework" $FRAMEWORK_PATH
+			AFILE=$(ls Products/$ARCH/lib$LIBNAME"_dbg.framework"/lib*)
+			LIBS=$LIBS" "$AFILE
+		done
+		FWLIB=$(echo $AFILE | sed 's:.*/lib\(.*\):lib\1:')
+		lipo $LIBS -create -output $FRAMEWORK_PATH/lib$LIBNAME"_dbg.framework"/$FWLIB
 		;;
-	clean)
-		xcodebuild -project $LIBNAME.xcodeproj -configuration Release clean
-		xcodebuild -project $LIBNAME.xcodeproj -configuration Debug clean
+	clea)n
+		xcodebuild -project $LIBNAME.xcodeproj -configuration Release -sdk iphoneos clean
+		xcodebuild -project $LIBNAME.xcodeproj -configuration Release -sdk iphonesimulator clean
+		xcodebuild -project $LIBNAME.xcodeproj -configuration Debug -sdk iphoneos clean
+		xcodebuild -project $LIBNAME.xcodeproj -configuration Debug -sdk iphonesimulator clean
 		rm -r $FRAMEWORK_PATH/$LIBNAME'.framework' 2>/dev/null
 		rm -r $FRAMEWORK_PATH/$LIBNAME'_dbg.framework' 2>/dev/null
 		;;
