@@ -9,7 +9,8 @@
 #import <libARDiscovery/ARDISCOVERY_BonjourDiscovery.h>
 #import <netdb.h>
 
-#define kServiceNetDeviceType @"_arsdk-mk3._udp."
+#define kServiceNetMykonos3DeviceType @"_arsdk-mk3._udp."
+#define kServiceNetJumpingSumoDeviceType @"_arsdk-js._udp."
 #define kServiceNetControllerType @"_arsdk-ff3._udp."
 #define kServiceNetDomain @"local."
 
@@ -57,7 +58,8 @@
 #pragma mark - Services browser / resolution
 @property (strong, nonatomic) ARService *currentResolutionService;
 @property (strong, nonatomic) NSNetServiceBrowser *controllersServiceBrowser;
-@property (strong, nonatomic) NSNetServiceBrowser *devicesServiceBrowser;
+@property (strong, nonatomic) NSNetServiceBrowser *mk3DevicesServiceBrowser;
+@property (strong, nonatomic) NSNetServiceBrowser *jsDevicesServiceBrowser;
 
 #pragma mark - Services CoreBluetooth
 @property (strong, nonatomic) CBCentralManager *centralManager;
@@ -80,7 +82,8 @@
 @synthesize tryPublishService;
 @synthesize currentResolutionService;
 @synthesize controllersServiceBrowser;
-@synthesize devicesServiceBrowser;
+@synthesize mk3DevicesServiceBrowser;
+@synthesize jsDevicesServiceBrowser;
 @synthesize centralManager;
 @synthesize valid;
 @synthesize isDiscovering;
@@ -111,8 +114,11 @@
              */
             _sharedInstance.controllersServiceBrowser = [[NSNetServiceBrowser alloc] init];
             [_sharedInstance.controllersServiceBrowser setDelegate:_sharedInstance];
-            _sharedInstance.devicesServiceBrowser = [[NSNetServiceBrowser alloc] init];
-            [_sharedInstance.devicesServiceBrowser setDelegate:_sharedInstance];
+            _sharedInstance.mk3DevicesServiceBrowser = [[NSNetServiceBrowser alloc] init];
+            [_sharedInstance.mk3DevicesServiceBrowser setDelegate:_sharedInstance];
+            _sharedInstance.jsDevicesServiceBrowser = [[NSNetServiceBrowser alloc] init];
+            [_sharedInstance.jsDevicesServiceBrowser setDelegate:_sharedInstance];
+            _sharedInstance.currentResolutionService = nil;
             _sharedInstance.currentResolutionService = nil;
 
             /**
@@ -184,8 +190,9 @@
          * Start NSNetServiceBrowser
          */
         [controllersServiceBrowser searchForServicesOfType:kServiceNetControllerType inDomain:kServiceNetDomain];
-        [devicesServiceBrowser searchForServicesOfType:kServiceNetDeviceType inDomain:kServiceNetDomain];
-
+        [mk3DevicesServiceBrowser searchForServicesOfType:kServiceNetMykonos3DeviceType inDomain:kServiceNetDomain];
+        [jsDevicesServiceBrowser searchForServicesOfType:kServiceNetJumpingSumoDeviceType inDomain:kServiceNetDomain];
+        
         isDiscovering = YES;
 
         /**
@@ -203,8 +210,9 @@
          * Stop NSNetServiceBrowser
          */
         [controllersServiceBrowser stop];
-        [devicesServiceBrowser stop];
-
+        [mk3DevicesServiceBrowser stop];
+        [jsDevicesServiceBrowser stop];
+        
         [centralManager stopScan];
         centralManager = nil;
 
@@ -271,7 +279,7 @@
     {
         NSString *uniqueName = [self uniqueNameFromServiceName:serviceName isController:NO];
         [self.tryPublishService stop];
-        self.tryPublishService = [[NSNetService alloc] initWithDomain:kServiceNetDomain type:kServiceNetDeviceType name:uniqueName port:9];
+        self.tryPublishService = [[NSNetService alloc] initWithDomain:kServiceNetDomain type:kServiceNetMykonos3DeviceType name:uniqueName port:9];
         [self.tryPublishService setDelegate:self];
         [self.tryPublishService publish];
     }
@@ -310,7 +318,7 @@
         ARService *aService = [[ARService alloc] init];
         aService.name = [aNetService name];
         aService.service = aNetService;
-        if ([[aNetService type] isEqual:kServiceNetDeviceType])
+        if ([[aNetService type] isEqual:kServiceNetMykonos3DeviceType] || [[aNetService type] isEqual:kServiceNetJumpingSumoDeviceType])
         {
             //NSLog(@"find %@ : %@", aService.name, NSStringFromClass([[aService service] class]));
             [self.devicesServicesList setObject:aService forKey:aService.name];
@@ -341,7 +349,7 @@
 {
     @synchronized (self)
     {
-        if ([[aNetService type] isEqual:kServiceNetDeviceType])
+        if ([[aNetService type] isEqual:kServiceNetMykonos3DeviceType] || [[aNetService type] isEqual:kServiceNetJumpingSumoDeviceType])
         {
             ARService *aService = (ARService *)[self.devicesServicesList objectForKey:aNetService.name];
             if(aService != nil)
