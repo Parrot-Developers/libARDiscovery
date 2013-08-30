@@ -94,7 +94,8 @@ public class ARDiscoveryService extends Service
 	private final IBinder binder = new LocalBinder();
 	
 	@Override
-	public IBinder onBind(Intent intent) {
+	public IBinder onBind(Intent intent)
+	{
 		// TODO Auto-generated method stub
 		
 		ARSALPrint.d(TAG,"onBind");
@@ -105,7 +106,6 @@ public class ARDiscoveryService extends Service
 	@Override
 	public void onCreate() 
 	{
-
 		ARSALPrint.d(TAG,"onCreate");
 		jmdnsCreatorAsyncTask = new JmdnsCreatorAsyncTask(); 
 		deviceServicesArray = new ArrayList<ServiceEvent>();
@@ -119,17 +119,22 @@ public class ARDiscoveryService extends Service
         
         ARSALPrint.d(TAG,"onDestroy");
         
-        if (mDNSManager != null) {
-            if (mDNSListener != null) {
+        if (mDNSManager != null)
+        {
+            if (mDNSListener != null)
+            {
             	ARSALPrint.d(TAG,"removeServiceListener");
             	mDNSManager.removeServiceListener(ARDRONE_SERVICE_TYPE, mDNSListener);
             	mDNSListener = null;
             }
             
-            try {
+            try
+            {
             	ARSALPrint.d(TAG,"mDNSManager.close");
             	mDNSManager.close();
-            } catch (IOException e) {
+            }
+            catch (IOException e)
+            {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
@@ -162,7 +167,8 @@ public class ARDiscoveryService extends Service
 		intentCache.put(kARDiscoveryManagerNotificationServiceResolved, new Intent(kARDiscoveryManagerNotificationServiceResolved));
 	}
 	
-	private void notificationServiceDeviceAdd( ServiceEvent serviceEvent ){
+	private void notificationServiceDeviceAdd( ServiceEvent serviceEvent )
+	{
 		
 		ARSALPrint.d(TAG,"notificationServiceDeviceAdd");
 		
@@ -179,7 +185,8 @@ public class ARDiscoveryService extends Service
 
 	}
 	
-	private void notificationServicesDevicesResolved( ServiceEvent serviceEvent ){
+	private void notificationServicesDevicesResolved( ServiceEvent serviceEvent )
+	{
 		
 		ARSALPrint.d(TAG,"notificationServicesDevicesResolved");
 	
@@ -190,7 +197,8 @@ public class ARDiscoveryService extends Service
 		LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
 	}
 	
-	private void notificationServiceDeviceRemoved( ServiceEvent serviceEvent ){
+	private void notificationServiceDeviceRemoved( ServiceEvent serviceEvent )
+	{
 		
 		ARSALPrint.d(TAG,"notificationServiceDeviceRemoved");
 		
@@ -198,9 +206,11 @@ public class ARDiscoveryService extends Service
 		
 		Boolean removed = false;
 		
-		for(ServiceEvent s : deviceServicesArray){
+		for(ServiceEvent s : deviceServicesArray)
+		{
 			
-			if( s.getName().equals(serviceEvent.getName()) ){
+			if( s.getName().equals(serviceEvent.getName()) )
+			{
 				
 				ARSALPrint.d(TAG,"found");
 				
@@ -225,7 +235,8 @@ public class ARDiscoveryService extends Service
 			}
 		}
 		
-		if(removed == false){
+		if(removed == false)
+		{
 			ARSALPrint.w(TAG, "service: "+ serviceEvent.getInfo().getName() + " not known");
 		}
 
@@ -236,7 +247,8 @@ public class ARDiscoveryService extends Service
 	 * Resolution is queued until all previous resolutions
 	 * are complete, or failed
 	 */
-	public void resolveService(ServiceEvent service){
+	public void resolveService(ServiceEvent service)
+	{
 		
 		ARSALPrint.d(TAG, "resolveService");
 		
@@ -261,7 +273,8 @@ public class ARDiscoveryService extends Service
 		
 	}
 	
-	public String getServiceIP(ServiceEvent service){
+	public String getServiceIP(ServiceEvent service)
+	{
 		String serviceIP = null;
 		
 		ServiceInfo info = service.getDNS().getServiceInfo(service.getType(), service.getName());
@@ -271,7 +284,8 @@ public class ARDiscoveryService extends Service
 		return serviceIP;
 	}
 	
-	public ArrayList<ServiceEvent> getDeviceServicesArray(){
+	public ArrayList<ServiceEvent> getDeviceServicesArray()
+	{
 		ARSALPrint.d(TAG,"getDeviceServicesArray: " + deviceServicesArray);
 		return deviceServicesArray;
 	}
@@ -280,17 +294,21 @@ public class ARDiscoveryService extends Service
 	private class JmdnsCreatorAsyncTask extends AsyncTask<Object, Object, Object> { 
 		
 		@Override
-		protected Object doInBackground(Object... params) {
+		protected Object doInBackground(Object... params) 
+		{
 			
-			try {
+			try 
+			{
 				mDNSManager = JmDNS.create();
 					        	
 				ARSALPrint.d(TAG,"JmDNS.createed");
 				
-				mDNSListener = new ServiceListener() {
+				mDNSListener = new ServiceListener() 
+				{
 					
 					@Override
-					public void serviceAdded(ServiceEvent event) {
+					public void serviceAdded(ServiceEvent event) 
+					{
 						// Required to force serviceResolved to be called again (after the first search)
 				    	//mDNSManager.requestServiceInfo(event.getType(), event.getName(), true);
 				    	ARSALPrint.d(TAG,"Service Added: " + event.getName());
@@ -300,7 +318,8 @@ public class ARDiscoveryService extends Service
 					}
 				
 					@Override
-					public void serviceRemoved(ServiceEvent event) {
+					public void serviceRemoved(ServiceEvent event) 
+					{
 						ARSALPrint.d(TAG,"Service removed: " + event.getName());
 						
 						Pair<ServiceEvent,eARDISCOVERY_SERVICE_EVENT_STATUS> dataProgress = new Pair<ServiceEvent,eARDISCOVERY_SERVICE_EVENT_STATUS>(event,eARDISCOVERY_SERVICE_EVENT_STATUS.ARDISCOVERY_SERVICE_EVENT_STATUS_REMOVED);
@@ -308,7 +327,8 @@ public class ARDiscoveryService extends Service
 					}
 				
 					@Override
-					public void serviceResolved(ServiceEvent event) {
+					public void serviceResolved(ServiceEvent event) 
+					{
 						ARSALPrint.d(TAG, "Service resolved: " + event.getName());
 						
 						/* TODO: bug when a service is removed, when it is recreated, serviceAdded is not call but just serviceResolved
@@ -324,7 +344,9 @@ public class ARDiscoveryService extends Service
 					}
 				};
 
-	        } catch (IOException e) {
+	        }
+			catch (IOException e) 
+			{
 	            e.printStackTrace();
 	            return null;
 	        }
@@ -332,13 +354,14 @@ public class ARDiscoveryService extends Service
 			return null;
 		}
 		
-		protected void onProgressUpdate(Object... progress) {
-			
+		protected void onProgressUpdate(Object... progress) 
+		{
 			ARSALPrint.d(TAG,"onProgressUpdate");
 			
 			Pair<ServiceEvent,eARDISCOVERY_SERVICE_EVENT_STATUS> dataProgress = (Pair<ServiceEvent,eARDISCOVERY_SERVICE_EVENT_STATUS>) progress[0];
 			
-			switch(dataProgress.second){
+			switch(dataProgress.second)
+			{
 			
 				case ARDISCOVERY_SERVICE_EVENT_STATUS_ADD :
 					ARSALPrint.d(TAG,"ARDISCOVERY_SERVICE_EVENT_STATUS_ADD");
@@ -363,11 +386,10 @@ public class ARDiscoveryService extends Service
 			
 	    }
 		
-		protected void onPostExecute(Object result) {
+		protected void onPostExecute(Object result)
+		{
 			ARSALPrint.d(TAG,"addServiceListener: ARDRONE_SERVICE_TYPE=" + ARDRONE_SERVICE_TYPE);
 			mDNSManager.addServiceListener(ARDRONE_SERVICE_TYPE, mDNSListener);
-			
-			ARSALPrint.d(TAG,"mDNSManager2:" + mDNSManager);
 		}
 		
 	}
