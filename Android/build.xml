@@ -27,8 +27,11 @@
 
 	<!-- Compiles the java code (including the usage of library for JUnit -->
 	<target name="compile" depends="clean, makedir">
-		<echo>"project.class.path= ${project.classpath}"</echo>
 		<javac srcdir="${src.dir}" destdir="${build.dir}" includeantruntime="false" classpath="${project.classpath}"/>
+
+		<copy todir="${build.dir}">
+            <fileset dir="${src.dir}" />
+        </copy>
 		
 	</target>
 
