@@ -2,7 +2,7 @@
  * DroneControlService
  *
  *  Created on: May 5, 2011
- *      Author: Dmytro Baryskyy
+ *  Author:
  */
 
 package com.parrot.arsdk.ardiscovery;
@@ -95,6 +95,7 @@ public class ARDiscoveryService extends Service
 	private JmDNS mDNSManager;
 	private ServiceListener mDNSListener;
 	private AsyncTask<Object, Object, Object> jmdnsCreatorAsyncTask;
+	private Boolean inConnection = false;
 	
 	private String hostIp;
 	private InetAddress hostAddress;
@@ -111,7 +112,21 @@ public class ARDiscoveryService extends Service
 	public IBinder onBind(Intent intent)
 	{
 		ARSALPrint.d(TAG,"onBind");
-		connect();
+		
+		/* if the wifi is connected get its hostAddress */
+		ConnectivityManager connManager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+		NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+		if (mWifi.isConnected())
+		{
+			ARSALPrint.d(TAG," onBind wifi connected");
+			connect();
+		}
+		else
+		{
+			ARSALPrint.d(TAG," onBind wifi disconnected");
+			disconnect();
+		}
+		
 		return binder;
 	}  
 	
@@ -178,7 +193,7 @@ public class ARDiscoveryService extends Service
         
         unregisterReceiver(mNetworkStateIntentReceiver);
         
-        mdnsDestroy ();
+        disconnect ();
     }
 	
 	public void mdnsDestroy()
@@ -189,7 +204,7 @@ public class ARDiscoveryService extends Service
         {
             if (mDNSListener != null)
             {
-            	ARSALPrint.d(TAG,"removeServiceListener");
+            	ARSALPrint.d(TAG, "removeServiceListener");
             	mDNSManager.removeServiceListener(ARDRONE_SERVICE_TYPE, mDNSListener);
             	mDNSListener = null;
             }
@@ -249,8 +264,10 @@ public class ARDiscoveryService extends Service
 				
 			}
 				
-			if (! hostAddress.equals( nullAddress))
+			if (! hostAddress.equals( nullAddress) && inConnection == false)
 			{
+				inConnection = true;
+				
 				jmdnsCreatorAsyncTask = new JmdnsCreatorAsyncTask();
 				jmdnsCreatorAsyncTask.execute();
 			}
@@ -452,6 +469,8 @@ public class ARDiscoveryService extends Service
 	            e.printStackTrace();
 	            return null;
 	        }
+			
+			inConnection = false;
 			
 			return null;
 		}
