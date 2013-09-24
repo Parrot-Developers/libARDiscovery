@@ -22,7 +22,12 @@ import javax.jmdns.ServiceListener;
 import com.parrot.arsdk.arsal.ARSALPrint;
 
 import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Binder;
@@ -84,7 +89,6 @@ public class ARDiscoveryService extends Service
 	public static final String kARDiscoveryManagerServiceIP = "kARDiscoveryManagerServiceIP";
 	
 	public static final String ARDRONE_SERVICE_TYPE = "_arsdk-mk3._udp.local.";
-	//public static final String ARDRONE_SERVICE_NAME = "AR.Drone";
 	
 	private HashMap<String, Intent> intentCache;
 	
@@ -94,6 +98,10 @@ public class ARDiscoveryService extends Service
 	
 	private String hostIp;
 	private InetAddress hostAddress;
+	static private InetAddress nullAddress;
+	
+	private IntentFilter mNetworkStateChangedFilter;
+	private BroadcastReceiver mNetworkStateIntentReceiver;
 	
 	private ArrayList<ServiceEvent> deviceServicesArray;
 	
@@ -102,8 +110,6 @@ public class ARDiscoveryService extends Service
 	@Override
 	public IBinder onBind(Intent intent)
 	{
-		// TODO Auto-generated method stub
-		
 		ARSALPrint.d(TAG,"onBind");
 		connect();
 		return binder;
@@ -114,26 +120,53 @@ public class ARDiscoveryService extends Service
 	{
 		ARSALPrint.d(TAG,"onCreate");
 		
-		/* get the host address */
-		WifiManager wifi =   (WifiManager)getApplicationContext().getSystemService(android.content.Context.WIFI_SERVICE);
-		if(wifi != null)
+		try 
 		{
-			try {
-				hostIp = Formatter.formatIpAddress(wifi.getConnectionInfo().getIpAddress());
-				hostAddress = InetAddress.getByName(hostIp);
-			} catch (UnknownHostException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-			ARSALPrint.d(TAG,"hostIp: " + hostIp);
-			ARSALPrint.d(TAG,"hostAddress: " + hostAddress);
+			nullAddress = InetAddress.getByName("0.0.0.0");
+		} 
+		catch (UnknownHostException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		hostAddress = nullAddress;
+		
 		}
 		
 		
-		jmdnsCreatorAsyncTask = new JmdnsCreatorAsyncTask(); 
 		deviceServicesArray = new ArrayList<ServiceEvent>();
 		initIntents();
+		
+		mNetworkStateChangedFilter = new IntentFilter();
+		mNetworkStateChangedFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+		mNetworkStateIntentReceiver = new BroadcastReceiver()
+		{
+			@Override
+			public void onReceive(Context context, Intent intent)
+			{
+				ARSALPrint.d(TAG,"BroadcastReceiver onReceive");
+				
+				if (intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION))
+				{
+					/* if the wifi is connected get its hostAddress */
+					ConnectivityManager connManager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+					NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+					if (mWifi.isConnected())
+					{
+						ARSALPrint.d(TAG,"wifi connected");
+						connect();
+					}
+					else
+					{
+						ARSALPrint.d(TAG,"wifi disconnected");
+						disconnect();
+					}
+				}
+			}
+		};
+		
+		registerReceiver(mNetworkStateIntentReceiver, mNetworkStateChangedFilter);
+		
 	}
 
 	@Override
@@ -142,6 +175,15 @@ public class ARDiscoveryService extends Service
         super.onDestroy();
         
         ARSALPrint.d(TAG,"onDestroy");
+        
+        unregisterReceiver(mNetworkStateIntentReceiver);
+        
+        mdnsDestroy ();
+    }
+	
+	public void mdnsDestroy()
+    {
+        ARSALPrint.d(TAG,"mdnsDestroy");
         
         if (mDNSManager != null)
         {
@@ -154,7 +196,6 @@ public class ARDiscoveryService extends Service
             
             try
             {
-            	ARSALPrint.d(TAG,"mDNSManager.close");
             	mDNSManager.close();
             }
             catch (IOException e)
@@ -165,12 +206,6 @@ public class ARDiscoveryService extends Service
             mDNSManager = null;
         }
     }
-
-	protected void connect()
-	{
-		ARSALPrint.d(TAG,"connect");
-		jmdnsCreatorAsyncTask.execute();
-	}
 	
 	public class LocalBinder extends Binder
 	{
@@ -188,6 +223,54 @@ public class ARDiscoveryService extends Service
 		intentCache = new HashMap<String, Intent>();
 		intentCache.put(kARDiscoveryManagerNotificationServicesDevicesListUpdated, new Intent(kARDiscoveryManagerNotificationServicesDevicesListUpdated));
 		intentCache.put(kARDiscoveryManagerNotificationServiceResolved, new Intent(kARDiscoveryManagerNotificationServiceResolved));
+	}
+	
+	private void connect()
+	{
+		ARSALPrint.d(TAG,"connect");
+
+		if (mDNSManager == null)
+		{
+			/* get the host address */
+			WifiManager wifi =   (WifiManager)getApplicationContext().getSystemService(android.content.Context.WIFI_SERVICE);
+		
+			if(wifi != null)
+			{
+				try {
+					hostIp = Formatter.formatIpAddress(wifi.getConnectionInfo().getIpAddress());
+					hostAddress = InetAddress.getByName(hostIp);
+				} catch (UnknownHostException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+				ARSALPrint.d(TAG,"hostIp: " + hostIp);
+				ARSALPrint.d(TAG,"hostAddress: " + hostAddress);
+				
+			}
+				
+			if (! hostAddress.equals( nullAddress))
+			{
+				jmdnsCreatorAsyncTask = new JmdnsCreatorAsyncTask();
+				jmdnsCreatorAsyncTask.execute();
+			}
+		}
+	}
+	
+	private void disconnect()
+	{
+		ARSALPrint.d(TAG,"disconnect");
+		
+		/* reset */
+		hostAddress = nullAddress;
+		mdnsDestroy ();
+		
+		/* remove all services */
+		for ( ServiceEvent s : deviceServicesArray)
+		{
+			notificationServiceDeviceRemoved (s);
+		}
+		
 	}
 	
 	private void notificationServiceDeviceAdd( ServiceEvent serviceEvent )
@@ -228,7 +311,6 @@ public class ARDiscoveryService extends Service
 			notificationServiceDeviceAdd(serviceEvent);
 		}
 		
-		
 		/* broadcast the service resolved*/
 		Intent intent = intentCache.get(kARDiscoveryManagerNotificationServiceResolved);
 		intent.putExtra( kARDiscoveryManagerServiceResolved, (Serializable) serviceEvent);
@@ -240,7 +322,7 @@ public class ARDiscoveryService extends Service
 	{
 		ARSALPrint.d(TAG,"notificationServiceDeviceRemoved");
 		
-		ServiceEvent serviceEventToremoved = null;
+		ServiceEvent serviceEventToRemoved = null;
 		
 		/* look for the service removed in the array */
 		for(ServiceEvent s : deviceServicesArray)
@@ -248,20 +330,20 @@ public class ARDiscoveryService extends Service
 			if( s.getName().equals(serviceEvent.getName()) )
 			{
 				ARSALPrint.d(TAG,"found");
-				serviceEventToremoved = s;
+				serviceEventToRemoved = s;
 			}
 		}
 		
-		if(serviceEventToremoved != null)
+		if(serviceEventToRemoved != null)
 		{
 			/* send intent */
 			Intent intent = intentCache.get(kARDiscoveryManagerNotificationServicesDevicesListUpdated);
-			intent.putExtra( kARDiscoveryManagerService, (Serializable) serviceEventToremoved);
+			intent.putExtra( kARDiscoveryManagerService, (Serializable) serviceEventToRemoved);
 			intent.putExtra( kARDiscoveryManagerServiceStatus, (Serializable) eARDISCOVERY_SERVICE_EVENT_STATUS.ARDISCOVERY_SERVICE_EVENT_STATUS_REMOVED );
 			LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
 			
 			/* remove from the ServicesArray */
-			Boolean res = deviceServicesArray.remove(serviceEventToremoved);
+			Boolean res = deviceServicesArray.remove(serviceEventToRemoved);
 			if(res == false)
 			{
 				ARSALPrint.e(TAG, "remove error");
@@ -284,8 +366,11 @@ public class ARDiscoveryService extends Service
 	public void resolveService(ServiceEvent service)
 	{
 		ARSALPrint.d(TAG, "resolveService");
-
-		mDNSManager.requestServiceInfo(service.getType(), service.getName());
+		
+		if (mDNSManager != null)
+		{
+			mDNSManager.requestServiceInfo(service.getType(), service.getName());
+		}
 	}
 	
 	public String getServiceIP(ServiceEvent service)
@@ -311,15 +396,18 @@ public class ARDiscoveryService extends Service
 		@Override
 		protected Object doInBackground(Object... params) 
 		{
+			ARSALPrint.d(TAG, "doInBackground");
 			
 			try 
 			{
-				if(hostAddress != null)
+				if ( (hostAddress != null) && (! hostAddress.equals( nullAddress )) )
 				{
+					
 					mDNSManager = JmDNS.create(hostAddress);
 				}
 				else
 				{
+					
 					mDNSManager = JmDNS.create();
 				}
 					        	
