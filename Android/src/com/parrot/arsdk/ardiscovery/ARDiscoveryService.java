@@ -8,7 +8,6 @@
 package com.parrot.arsdk.ardiscovery;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -21,20 +20,27 @@ import javax.jmdns.ServiceListener;
 
 import com.parrot.arsdk.arsal.ARSALPrint;
 
+import android.annotation.TargetApi;
 import android.app.Service;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Binder;
+import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.format.Formatter;
 import android.util.Pair;
+
 
 public class ARDiscoveryService extends Service
 {
@@ -49,62 +55,35 @@ public class ARDiscoveryService extends Service
 	
 	/**
 	 * Constant for devices services list updates notification
-	 * userInfo is a NSDictionnary with the following content:
-	 *  - key   : kARDiscoveryManagerServicesList
-	 *  - value : NSArray of NSNetService
 	 */
-	public static final String kARDiscoveryManagerNotificationServicesDevicesListUpdated = "kARDiscoveryManagerNotificationServicesDevicesListUpdated";
-	public static final String kARDiscoveryManagerService = "kARDiscoveryManagerService";
-	public static final String kARDiscoveryManagerServiceStatus = "kARDiscoveryManagerServiceStatus";
+	public static final String kARDiscoveryServiceNotificationServicesDevicesListUpdated = "kARDiscoveryServiceNotificationServicesDevicesListUpdated";
 	
-	
-	/**
-	 * Constant for controller services list updates notification
-	 * userInfo is a NSDictionnary with the following content:
-	 *  - key   : kARDiscoveryManagerServicesList
-	 *  - value : NSArray of NSNetService
-	 */
-	public static final String kARDiscoveryManagerNotificationServicesControllersListUpdated = "kARDiscoveryManagerNotificationServicesControllersListUpdated";
-	
-	/**
-	 * Constant for publication notifications
-	 * userInfo is a NSDictionnary with the following content:
-	 *  - key   : kARDiscoveryManagerServiceName
-	 *  - value : NSString with the name of the published service
-	 *            or @"" if no service is published
-	 */
-	public static final String kARDiscoveryManagerNotificationServicePublished = "kARDiscoveryManagerNotificationServicePublished";
-	public static final String kARDiscoveryManagerServiceName = "kARDiscoveryManagerServiceName";
-
-	/**
-	 * Constant for service resolution notifications
-	 * userInfo is a NSDictionnary with the following content:
-	 *  - key   : kARDiscoveryManagerServiceResolved
-	 *  - value : NSNetService which was resolved
-	 *  - key   : kARDiscoveryManagerServiceIP
-	 *  - value : NSString with the resolved IP of the service
-	 */
-	public static final String kARDiscoveryManagerNotificationServiceResolved = "kARDiscoveryManagerNotificationServiceResolved";
-	public static final String kARDiscoveryManagerServiceResolved = "kARDiscoveryManagerServiceResolved";
-	public static final String kARDiscoveryManagerServiceIP = "kARDiscoveryManagerServiceIP";
-	
-	public static final String ARDRONE_SERVICE_TYPE = "_arsdk-mk3._udp.local.";
+	private static final String ARDISCOVERY_ARDRONE_SERVICE_TYPE = "_arsdk-mk3._udp.local.";
 	
 	private HashMap<String, Intent> intentCache;
 	
 	private JmDNS mDNSManager;
 	private ServiceListener mDNSListener;
+	
 	private AsyncTask<Object, Object, Object> jmdnsCreatorAsyncTask;
-	private Boolean inConnection = false;
+	private Boolean inWifiConnection = false;
 	
 	private String hostIp;
 	private InetAddress hostAddress;
 	static private InetAddress nullAddress;
 	
-	private IntentFilter mNetworkStateChangedFilter;
-	private BroadcastReceiver mNetworkStateIntentReceiver;
+	private IntentFilter networkStateChangedFilter;
+	private BroadcastReceiver networkStateIntentReceiver;
 	
-	private ArrayList<ServiceEvent> deviceServicesArray;
+	private HashMap<String, ARDiscoveryDeviceService> netDeviceServicesHmap;
+	
+	/* BLE */
+	private static final String ARDISCOVERY_BLE_PREFIX_NAME = "Mykonos_BLE";
+	private Boolean bleIsAvalaible;
+	private BluetoothAdapter bluetoothAdapter;
+	private BLEScanner bleScanner;
+	private HashMap<String, ARDiscoveryDeviceService> bleDeviceServicesHmap;
+	private Object leScanCallback;/*< Device scan callback. (BluetoothAdapter.LeScanCallback) */
 	
 	private final IBinder binder = new LocalBinder();
 	
@@ -113,20 +92,8 @@ public class ARDiscoveryService extends Service
 	{
 		ARSALPrint.d(TAG,"onBind");
 		
-		/* if the wifi is connected get its hostAddress */
-		ConnectivityManager connManager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
-		NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-		if (mWifi.isConnected())
-		{
-			ARSALPrint.d(TAG," onBind wifi connected");
-			connect();
-		}
-		else
-		{
-			ARSALPrint.d(TAG," onBind wifi disconnected");
-			disconnect();
-		}
-		
+		manageConnections();
+
 		return binder;
 	}  
 	
@@ -141,20 +108,18 @@ public class ARDiscoveryService extends Service
 		} 
 		catch (UnknownHostException e)
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		hostAddress = nullAddress;
 		
-		}
-		
-		
-		deviceServicesArray = new ArrayList<ServiceEvent>();
+		netDeviceServicesHmap = new HashMap<String, ARDiscoveryDeviceService> ();
+		bleDeviceServicesHmap = new HashMap<String, ARDiscoveryDeviceService> ();
 		initIntents();
 		
-		mNetworkStateChangedFilter = new IntentFilter();
-		mNetworkStateChangedFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
-		mNetworkStateIntentReceiver = new BroadcastReceiver()
+		networkStateChangedFilter = new IntentFilter();
+		networkStateChangedFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+		networkStateChangedFilter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+		networkStateIntentReceiver = new BroadcastReceiver()
 		{
 			@Override
 			public void onReceive(Context context, Intent intent)
@@ -165,22 +130,49 @@ public class ARDiscoveryService extends Service
 				{
 					/* if the wifi is connected get its hostAddress */
 					ConnectivityManager connManager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
-					NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-					if (mWifi.isConnected())
+					NetworkInfo wifiInfo = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+					if (wifiInfo.isConnected())
 					{
-						ARSALPrint.d(TAG,"wifi connected");
-						connect();
+						mdnsConnect();
 					}
 					else
 					{
-						ARSALPrint.d(TAG,"wifi disconnected");
-						disconnect();
+						mdnsDisconnect();
+					}
+				}
+				
+				if (intent.getAction().equals(BluetoothAdapter.ACTION_STATE_CHANGED))
+				{
+					
+					ARSALPrint.d(TAG,"ACTION_STATE_CHANGED");
+					
+					if (bleIsAvalaible)
+					{
+						int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
+						
+						switch (state)
+						{
+							case BluetoothAdapter.STATE_ON:
+								bleConnect();
+								break;
+							case BluetoothAdapter.STATE_TURNING_OFF:
+								bleDisconnect();
+								break;
+						}
 					}
 				}
 			}
 		};
 		
-		registerReceiver(mNetworkStateIntentReceiver, mNetworkStateChangedFilter);
+		bleIsAvalaible = false;
+		getBLEAvailability();
+
+		if (bleIsAvalaible)
+		{
+			initBLE();
+		}
+		
+		registerReceiver(networkStateIntentReceiver, networkStateChangedFilter);
 		
 	}
 
@@ -191,21 +183,23 @@ public class ARDiscoveryService extends Service
         
         ARSALPrint.d(TAG,"onDestroy");
         
-        unregisterReceiver(mNetworkStateIntentReceiver);
+        unregisterReceiver(networkStateIntentReceiver);
         
-        disconnect ();
+        mdnsDisconnect ();
+        bleDisconnect();
     }
 	
 	public void mdnsDestroy()
     {
         ARSALPrint.d(TAG,"mdnsDestroy");
         
+        /* if jmnds is running */
         if (mDNSManager != null)
         {
             if (mDNSListener != null)
             {
             	ARSALPrint.d(TAG, "removeServiceListener");
-            	mDNSManager.removeServiceListener(ARDRONE_SERVICE_TYPE, mDNSListener);
+            	mDNSManager.removeServiceListener(ARDISCOVERY_ARDRONE_SERVICE_TYPE, mDNSListener);
             	mDNSListener = null;
             }
             
@@ -215,7 +209,6 @@ public class ARDiscoveryService extends Service
             }
             catch (IOException e)
             {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
             mDNSManager = null;
@@ -236,14 +229,92 @@ public class ARDiscoveryService extends Service
 		ARSALPrint.d(TAG,"initIntents");
 		
 		intentCache = new HashMap<String, Intent>();
-		intentCache.put(kARDiscoveryManagerNotificationServicesDevicesListUpdated, new Intent(kARDiscoveryManagerNotificationServicesDevicesListUpdated));
-		intentCache.put(kARDiscoveryManagerNotificationServiceResolved, new Intent(kARDiscoveryManagerNotificationServiceResolved));
+		intentCache.put(kARDiscoveryServiceNotificationServicesDevicesListUpdated, new Intent(kARDiscoveryServiceNotificationServicesDevicesListUpdated));
 	}
 	
-	private void connect()
+	@Override
+	public boolean onUnbind(Intent intent)
+	{
+		ARSALPrint.d(TAG,"onUnbind");
+        
+        return true; /* ensures onRebind is called */
+	}
+	
+	@Override
+	public void onRebind(Intent intent)
+	{
+		ARSALPrint.d(TAG,"onRebind");
+	    
+		manageConnections();
+	}
+	
+	private void getBLEAvailability()
+	{
+		/* check whether BLE is supported on the device  */
+		if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE))
+		{
+			ARSALPrint.d(TAG,"BLE Is NOT Avalaible");
+			bleIsAvalaible = false;
+		}
+		else
+		{
+			ARSALPrint.d(TAG,"BLE Is Avalaible");
+			bleIsAvalaible = true;
+		}
+	}
+	
+	@TargetApi(18)
+	private void initBLE()
+	{
+		ARSALPrint.d(TAG,"initBLE");
+		
+		/* Initializes Bluetooth adapter. */
+		final BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+		bluetoothAdapter = bluetoothManager.getAdapter();
+	
+		bleScanner = new BLEScanner();
+		
+		leScanCallback = new BluetoothAdapter.LeScanCallback()
+	 	{
+	 	    @Override
+	 	    public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord)
+	 	    {
+	 	    	bleScanner.bleCallback(device);
+			}
+	 	};
+	}
+	
+	public void manageConnections()
+	{
+		ARSALPrint.d(TAG,"manageConnections");
+		
+		/* if the wifi is connected get its hostAddress */
+		ConnectivityManager connManager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+		NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+		if (mWifi.isConnected())
+		{
+			mdnsConnect();
+		}
+		else
+		{
+			mdnsDisconnect();
+		}
+
+		if ( (bleIsAvalaible == true) && bluetoothAdapter.isEnabled())
+		{
+			bleConnect();
+		}
+		else
+		{
+			bleDisconnect();
+		}
+	} 
+	
+	private void mdnsConnect()
 	{
 		ARSALPrint.d(TAG,"connect");
-
+		
+		/* if jmdns is not running yet */
 		if (mDNSManager == null)
 		{
 			/* get the host address */
@@ -251,11 +322,13 @@ public class ARDiscoveryService extends Service
 		
 			if(wifi != null)
 			{
-				try {
+				try
+				{
 					hostIp = Formatter.formatIpAddress(wifi.getConnectionInfo().getIpAddress());
 					hostAddress = InetAddress.getByName(hostIp);
-				} catch (UnknownHostException e) {
-					// TODO Auto-generated catch block
+				}
+				catch (UnknownHostException e)
+				{
 					e.printStackTrace();
 				}
 				
@@ -264,9 +337,9 @@ public class ARDiscoveryService extends Service
 				
 			}
 				
-			if (! hostAddress.equals( nullAddress) && inConnection == false)
+			if (! hostAddress.equals (nullAddress) && inWifiConnection == false)
 			{
-				inConnection = true;
+				inWifiConnection = true;
 				
 				jmdnsCreatorAsyncTask = new JmdnsCreatorAsyncTask();
 				jmdnsCreatorAsyncTask.execute();
@@ -274,7 +347,7 @@ public class ARDiscoveryService extends Service
 		}
 	}
 	
-	private void disconnect()
+	private void mdnsDisconnect()
 	{
 		ARSALPrint.d(TAG,"disconnect");
 		
@@ -282,129 +355,121 @@ public class ARDiscoveryService extends Service
 		hostAddress = nullAddress;
 		mdnsDestroy ();
 		
-		/* remove all services */
-		for ( ServiceEvent s : deviceServicesArray)
-		{
-			notificationServiceDeviceRemoved (s);
-		}
+		ArrayList<ARDiscoveryDeviceService> netDeviceServicesArray = new ArrayList<ARDiscoveryDeviceService> (netDeviceServicesHmap.values());
 		
+		/* remove all net services */
+		for ( ARDiscoveryDeviceService s : netDeviceServicesArray)
+		{
+			notificationNetServiceDeviceRemoved (s);
+		}
 	}
 	
-	private void notificationServiceDeviceAdd( ServiceEvent serviceEvent )
+	private void notificationNetServiceDeviceAdd( ServiceEvent serviceEvent )
 	{
-		
 		ARSALPrint.d(TAG,"notificationServiceDeviceAdd");
 		
-		/* add the service in the array*/
-		deviceServicesArray.add( serviceEvent );
+		/* get ip address */
+		String ip = getServiceIP(serviceEvent);
 		
-		/* broadcast the service add*/
-		Intent intent = intentCache.get(kARDiscoveryManagerNotificationServicesDevicesListUpdated);
-		
-		intent.putExtra( kARDiscoveryManagerService, (Serializable) serviceEvent);
-		intent.putExtra( kARDiscoveryManagerServiceStatus, (Serializable) eARDISCOVERY_SERVICE_EVENT_STATUS.ARDISCOVERY_SERVICE_EVENT_STATUS_ADD );
-		
-		LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
-
+		if (ip != null)
+		{
+			/* new ARDiscoveryDeviceNetService */
+			ARDiscoveryDeviceNetService deviceNetService = new ARDiscoveryDeviceNetService(serviceEvent.getName(), ip);
+			
+			/* add the service in the array*/
+			ARDiscoveryDeviceService deviceService = new ARDiscoveryDeviceService (serviceEvent.getName(), deviceNetService);
+			netDeviceServicesHmap.put(deviceService.getName(), deviceService);
+			
+			/* broadcast the new deviceServiceList */
+			broadcastDeviceServiceArrayUpdated ();
+		}
 	}
 	
-	private void notificationServicesDevicesResolved( ServiceEvent serviceEvent )
+	private void notificationNetServicesDevicesResolved( ServiceEvent serviceEvent )
 	{
 		ARSALPrint.d(TAG,"notificationServicesDevicesResolved");
 		
 		/* check if the service is known */
-		Boolean known = false;
-		for(ServiceEvent s : deviceServicesArray)
-		{
-			if( s.getName().equals(serviceEvent.getName()) )
-			{
-				known = true;
-			}
-		}
+		Boolean known = netDeviceServicesHmap.containsKey(serviceEvent.getName());
+		
 		/* add the service if it not known yet*/
 		if(!known)
 		{
 			ARSALPrint.d(TAG,"service Resolved not know : "+ serviceEvent);
-			notificationServiceDeviceAdd(serviceEvent);
+			notificationNetServiceDeviceAdd(serviceEvent);
 		}
-		
-		/* broadcast the service resolved*/
-		Intent intent = intentCache.get(kARDiscoveryManagerNotificationServiceResolved);
-		intent.putExtra( kARDiscoveryManagerServiceResolved, (Serializable) serviceEvent);
-		
-		LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
+
 	}
 	
-	private void notificationServiceDeviceRemoved( ServiceEvent serviceEvent )
+	private void notificationNetServiceDeviceRemoved( ServiceEvent serviceEvent )
 	{
 		ARSALPrint.d(TAG,"notificationServiceDeviceRemoved");
 		
-		ServiceEvent serviceEventToRemoved = null;
-		
-		/* look for the service removed in the array */
-		for(ServiceEvent s : deviceServicesArray)
+		/* remove from the deviceServicesHmap */
+		ARDiscoveryDeviceService deviceServiceRemoved = netDeviceServicesHmap.remove(serviceEvent.getName());
+
+		if(deviceServiceRemoved != null)
 		{
-			if( s.getName().equals(serviceEvent.getName()) )
-			{
-				ARSALPrint.d(TAG,"found");
-				serviceEventToRemoved = s;
-			}
-		}
-		
-		if(serviceEventToRemoved != null)
-		{
-			/* send intent */
-			Intent intent = intentCache.get(kARDiscoveryManagerNotificationServicesDevicesListUpdated);
-			intent.putExtra( kARDiscoveryManagerService, (Serializable) serviceEventToRemoved);
-			intent.putExtra( kARDiscoveryManagerServiceStatus, (Serializable) eARDISCOVERY_SERVICE_EVENT_STATUS.ARDISCOVERY_SERVICE_EVENT_STATUS_REMOVED );
-			LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
-			
-			/* remove from the ServicesArray */
-			Boolean res = deviceServicesArray.remove(serviceEventToRemoved);
-			if(res == false)
-			{
-				ARSALPrint.e(TAG, "remove error");
-			}
-			
-			ARSALPrint.d(TAG,"ok");
+			/* broadcast the new deviceServiceList */
+			broadcastDeviceServiceArrayUpdated ();
 		}
 		else
 		{
 			ARSALPrint.w(TAG, "service: "+ serviceEvent.getInfo().getName() + " not known");
 		}
-
 	}
 	
-	/**
-	 * Try to resolve the given ServiceEvent
-	 * Resolution is queued until all previous resolutions
-	 * are complete, or failed
-	 */
-	public void resolveService(ServiceEvent service)
+	private void notificationNetServiceDeviceRemoved( ARDiscoveryDeviceService deviceService )
 	{
-		ARSALPrint.d(TAG, "resolveService");
+		ARSALPrint.d(TAG,"notificationServiceDeviceRemoved");
 		
-		if (mDNSManager != null)
+		/* remove from the deviceServicesHmap */
+		ARDiscoveryDeviceService deviceServiceRemoved = netDeviceServicesHmap.remove(deviceService.getName());
+
+		if(deviceServiceRemoved != null)
 		{
-			mDNSManager.requestServiceInfo(service.getType(), service.getName());
+			/* broadcast the new deviceServiceList */
+			broadcastDeviceServiceArrayUpdated ();
+		}
+		else
+		{
+			ARSALPrint.w(TAG, "service: "+ deviceService.getName() + " not known");
 		}
 	}
 	
-	public String getServiceIP(ServiceEvent service)
+	
+	/* broadcast the deviceServicelist Updated */
+	private void broadcastDeviceServiceArrayUpdated ()
+	{	
+		ARSALPrint.d(TAG,"broadcastDeviceServiceArrayUpdated");
+		/* broadcast the service add*/
+		Intent intent = intentCache.get(kARDiscoveryServiceNotificationServicesDevicesListUpdated);
+		
+		LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
+	}
+	
+	private String getServiceIP(ServiceEvent serviceEvent)
 	{
+		ARSALPrint.d(TAG,"getServiceIP serviceEvent: " + serviceEvent);
+		
 		String serviceIP = null;
 		
-		ServiceInfo info = service.getDNS().getServiceInfo(service.getType(), service.getName());
-		if( (info != null) && (info.getInet4Addresses().length > 0) ){
+		ServiceInfo info = serviceEvent.getDNS().getServiceInfo(serviceEvent.getType(), serviceEvent.getName());
+		if( (info != null) && (info.getInet4Addresses().length > 0) )
+		{
 			serviceIP = info.getInet4Addresses()[0].getHostAddress();
 		}
+		
 		return serviceIP;
 	}
 	
-	public ArrayList<ServiceEvent> getDeviceServicesArray()
+	public ArrayList<ARDiscoveryDeviceService> getDeviceServicesArray()
 	{
+		ArrayList<ARDiscoveryDeviceService> deviceServicesArray = new ArrayList<ARDiscoveryDeviceService> ( netDeviceServicesHmap.values()  ); 
+		deviceServicesArray.addAll(bleDeviceServicesHmap.values());
+		
 		ARSALPrint.d(TAG,"getDeviceServicesArray: " + deviceServicesArray);
-		return deviceServicesArray;
+		return new ArrayList<ARDiscoveryDeviceService> (deviceServicesArray);
 	}
 	
 	// TODO: only one ...
@@ -419,12 +484,10 @@ public class ARDiscoveryService extends Service
 			{
 				if ( (hostAddress != null) && (! hostAddress.equals( nullAddress )) )
 				{
-					
 					mDNSManager = JmDNS.create(hostAddress);
 				}
 				else
 				{
-					
 					mDNSManager = JmDNS.create();
 				}
 					        	
@@ -436,8 +499,6 @@ public class ARDiscoveryService extends Service
 					@Override
 					public void serviceAdded(ServiceEvent event) 
 					{
-						// Required to force serviceResolved to be called again (after the first search)
-				    	//mDNSManager.requestServiceInfo(event.getType(), event.getName(), true);
 				    	ARSALPrint.d(TAG,"Service Added: " + event.getName());
 				    	
 				    	Pair<ServiceEvent,eARDISCOVERY_SERVICE_EVENT_STATUS> dataProgress = new Pair<ServiceEvent,eARDISCOVERY_SERVICE_EVENT_STATUS>(event,eARDISCOVERY_SERVICE_EVENT_STATUS.ARDISCOVERY_SERVICE_EVENT_STATUS_ADD);
@@ -470,7 +531,7 @@ public class ARDiscoveryService extends Service
 	            return null;
 	        }
 			
-			inConnection = false;
+			inWifiConnection = false;
 			
 			return null;
 		}
@@ -486,17 +547,17 @@ public class ARDiscoveryService extends Service
 			
 				case ARDISCOVERY_SERVICE_EVENT_STATUS_ADD :
 					ARSALPrint.d(TAG,"ARDISCOVERY_SERVICE_EVENT_STATUS_ADD");
-					notificationServiceDeviceAdd( dataProgress.first);
+					notificationNetServiceDeviceAdd( dataProgress.first);
 					break;
 					
 				case ARDISCOVERY_SERVICE_EVENT_STATUS_RESOLVED :	
 					ARSALPrint.d(TAG,"ARDISCOVERY_SERVICE_EVENT_STATUS_RESOLVED");
-					notificationServicesDevicesResolved( dataProgress.first);
+					notificationNetServicesDevicesResolved( dataProgress.first);
 					break;
 					
 				case ARDISCOVERY_SERVICE_EVENT_STATUS_REMOVED :
 					ARSALPrint.d(TAG,"ARDISCOVERY_SERVICE_EVENT_STATUS_REMOVED");
-					notificationServiceDeviceRemoved( dataProgress.first);
+					notificationNetServiceDeviceRemoved( dataProgress.first);
 					break;
 					
 				default:
@@ -508,10 +569,174 @@ public class ARDiscoveryService extends Service
 		
 		protected void onPostExecute(Object result)
 		{
-			ARSALPrint.d(TAG,"addServiceListener: ARDRONE_SERVICE_TYPE=" + ARDRONE_SERVICE_TYPE);
-			mDNSManager.addServiceListener(ARDRONE_SERVICE_TYPE, mDNSListener);
+			ARSALPrint.d(TAG,"addServiceListener: ARDRONE_SERVICE_TYPE=" + ARDISCOVERY_ARDRONE_SERVICE_TYPE);
+			mDNSManager.addServiceListener(ARDISCOVERY_ARDRONE_SERVICE_TYPE, mDNSListener);
 		}
 		
+	}
+	
+	/* BLE */
+	private void bleConnect()
+	{
+		ARSALPrint.d(TAG,"bleConnect");
+		
+		if (bleIsAvalaible)
+		{
+			bleScanner.start();
+		}
+	}
+	
+	private void bleDisconnect()
+	{
+		ARSALPrint.d(TAG,"bleDisconnect");
+		
+		if (bleIsAvalaible)
+		{
+			bleScanner.stop();
+			
+			/* remove all BLE services */
+			bleDeviceServicesHmap.clear();
+			
+			/* broadcast the new deviceServiceList */
+			broadcastDeviceServiceArrayUpdated ();
+		}
+	}
+	
+	
+	@TargetApi(18)
+	private class BLEScanner
+	{
+		private static final long ARDISCOVERY_BLE_SCAN_PERIOD = 30000;
+		private static final long ARDISCOVERY_BLE_SCAN_DURATION = 10000;
+		private boolean isStart;
+		private boolean scanning;
+		private Handler startBLEHandler;
+		private Handler stopBLEHandler;
+		private Runnable startScanningRunnable;
+		private Runnable stopScanningRunnable;
+		private HashMap<String, ARDiscoveryDeviceService> newBLEDeviceServicesHmap;
+		
+		public BLEScanner()
+		{
+			ARSALPrint.d(TAG,"BLEScanningTask constructor");
+			
+			startBLEHandler = new Handler() ;
+			stopBLEHandler = new Handler() ;
+			
+			startScanningRunnable = new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                	startScanLeDevice();
+                }
+            };
+			
+			stopScanningRunnable = new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                	periodScanLeDeviceEnd();
+                }
+            };
+		}
+		
+		public void start()
+		{
+			ARSALPrint.d(TAG,"BLEScanningTask start");
+			
+			if (! isStart)
+			{
+				isStart = true;
+				startScanningRunnable.run();
+			}
+
+		}
+			
+		private void startScanLeDevice()
+		{
+			ARSALPrint.w(TAG,"start scanLeDevice: bluetoothAdapter: " + bluetoothAdapter);
+
+			/* reset newDeviceServicesHmap */
+			newBLEDeviceServicesHmap = new HashMap<String, ARDiscoveryDeviceService>();
+			
+            /* Stops scanning after a pre-defined scan duration. */
+        	stopBLEHandler.postDelayed( stopScanningRunnable , ARDISCOVERY_BLE_SCAN_DURATION);
+
+            scanning = true;
+            bluetoothAdapter.startLeScan((BluetoothAdapter.LeScanCallback)leScanCallback);
+            
+            /* restart scanning after a pre-defined scan period. */
+            startBLEHandler.postDelayed (startScanningRunnable, ARDISCOVERY_BLE_SCAN_PERIOD);
+	    }
+		
+		public void bleCallback( BluetoothDevice bleService )
+		{
+			ARSALPrint.d(TAG,"bleCallback");
+			
+			if (bleService.getName().contains(ARDISCOVERY_BLE_PREFIX_NAME))
+ 	    	{
+	    		ARSALPrint.d(TAG,"add ble device name:" + bleService.getName());
+	    		
+	    		/* add the service in the array*/
+				ARDiscoveryDeviceService deviceService = new ARDiscoveryDeviceService (bleService.getName(), bleService);
+				
+				newBLEDeviceServicesHmap.put(deviceService.getName(), deviceService);
+	    	}
+	    }
+		
+		private void periodScanLeDeviceEnd()
+		{
+			ARSALPrint.d(TAG,"periodScanLeDeviceEnd");
+			notificationBLEServiceDeviceUpDate (newBLEDeviceServicesHmap);
+			stopScanLeDevice();
+	    }
+		
+		private void stopScanLeDevice()
+		{
+			ARSALPrint.d(TAG,"ScanLeDeviceAsyncTask stopLeScan");
+            scanning = false;
+            bluetoothAdapter.stopLeScan((BluetoothAdapter.LeScanCallback)leScanCallback);
+	    }
+
+	    public void stop()
+	    {
+	    	ARSALPrint.d(TAG,"BLEScanningTask stop");
+	    	
+	    	bluetoothAdapter.stopLeScan((BluetoothAdapter.LeScanCallback)leScanCallback);
+            startBLEHandler.removeCallbacks(startScanningRunnable);
+            stopBLEHandler.removeCallbacks(stopScanningRunnable);
+            scanning = false;
+            isStart = false;
+	    }
+	    
+	    public Boolean IsScanning()
+	    {
+	    	return scanning;
+	    }
+	    
+	    public Boolean IsStart()
+	    {
+	    	return isStart;
+	    }
+		
+	};
+	
+	@TargetApi(18)
+	private void notificationBLEServiceDeviceUpDate( HashMap<String, ARDiscoveryDeviceService> newBLEDeviceServicesHmap )
+	{
+		ARSALPrint.d(TAG,"notificationBLEServiceDeviceAdd");
+		
+		/* if the BLEDeviceServices List is changed */
+    	if (!bleDeviceServicesHmap.keySet().equals(newBLEDeviceServicesHmap.keySet()))
+    	{
+    		/* get the new BLE Device Services list */
+    		bleDeviceServicesHmap = newBLEDeviceServicesHmap;
+			
+			/* broadcast the new deviceServiceList */
+			broadcastDeviceServiceArrayUpdated ();
+    	}
 	}
 	
 };
