@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import javax.jmdns.JmDNS;
@@ -78,7 +79,10 @@ public class ARDiscoveryService extends Service
 	private HashMap<String, ARDiscoveryDeviceService> netDeviceServicesHmap;
 	
 	/* BLE */
-	private static final String ARDISCOVERY_BLE_PREFIX_NAME = "Mykonos_BLE";
+	private static final int ARDISCOVERY_BLE_VENDOR_ID = 0x0043;
+	private static final int ARDISCOVERY_BLE_PRODUCT_ID = 0x2000;
+	private static final int ARDISCOVERY_BLE_VERSION_ID = 0x0001;
+
 	private Boolean bleIsAvalaible;
 	private BluetoothAdapter bluetoothAdapter;
 	private BLEScanner bleScanner;
@@ -279,7 +283,9 @@ public class ARDiscoveryService extends Service
 	 	    @Override
 	 	    public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord)
 	 	    {
-	 	    	bleScanner.bleCallback(device);
+	 	    	ARSALPrint.d(TAG,"onLeScan");
+	 	    	
+	 	    	bleScanner.bleCallback(device, scanRecord);
 			}
 	 	};
 	}
@@ -616,6 +622,11 @@ public class ARDiscoveryService extends Service
 		private Runnable stopScanningRunnable;
 		private HashMap<String, ARDiscoveryDeviceService> newBLEDeviceServicesHmap;
 		
+		private static final int ARDISCOVERY_BLE_MANUFACTURER_DATA_LENGTH_OFFSET = 3;
+		private static final int ARDISCOVERY_BLE_MANUFACTURER_DATA_ADTYPE_OFFSET = 4;
+		private static final int ARDISCOVERY_BLE_MANUFACTURER_DATA_LENGTH_WITH_ADTYPE = 7;
+		private static final int ARDISCOVERY_BLE_MANUFACTURER_DATA_ADTYPE = 0xFF; 
+		
 		public BLEScanner()
 		{
 			ARSALPrint.d(TAG,"BLEScanningTask constructor");
@@ -671,11 +682,11 @@ public class ARDiscoveryService extends Service
             startBLEHandler.postDelayed (startScanningRunnable, ARDISCOVERY_BLE_SCAN_PERIOD);
 	    }
 		
-		public void bleCallback( BluetoothDevice bleService )
+		public void bleCallback( BluetoothDevice bleService, byte[] scanRecord)
 		{
 			ARSALPrint.d(TAG,"bleCallback");
 			
-			if (bleService.getName().contains(ARDISCOVERY_BLE_PREFIX_NAME))
+			if (isParrotBLEDevice (scanRecord))
  	    	{
 	    		ARSALPrint.d(TAG,"add ble device name:" + bleService.getName());
 	    		
@@ -685,6 +696,65 @@ public class ARDiscoveryService extends Service
 				newBLEDeviceServicesHmap.put(deviceService.getName(), deviceService);
 	    	}
 	    }
+		
+		private boolean isParrotBLEDevice(byte[] scanRecord)
+		{
+			/* read the scanRecord  to check if it is a PARROT Delos device with the good version */
+			
+			/* scanRecord :
+			* <---------------- 31 oct ------------------> 
+			* | AD Struct 1	| AD Struct 2 |  AD Struct n | 
+			* |				 \_____________________
+			* | length (1 oct)	| data (length otc) |
+			* 					|					 \_______________________
+			* 					|AD type (n oct) | AD Data ( length - n oct) |
+			* 
+			* for Delos:
+			* AD Struct 1 : (Flags)
+			* - length = 0x02
+			* - AD Type = 0x01
+			* - AD data : 
+			* 
+			* AD Struct 2 : (manufacturerData)
+			* - length = 0x07
+			* - AD Type = 0xFF
+			* - AD data : | vendorID (2 oct) | productID (2 oct) | versionID (2 oct) |
+			*/
+			
+			ARSALPrint.d(TAG,"isParrotBLEDevice");
+			
+			boolean res = false;
+			
+		    final int MASK = 0xFF;
+		    
+		    /* get the length of the manufacturerData */
+		    byte[] data = (byte[]) Arrays.copyOfRange(scanRecord, ARDISCOVERY_BLE_MANUFACTURER_DATA_LENGTH_OFFSET, ARDISCOVERY_BLE_MANUFACTURER_DATA_LENGTH_OFFSET + 1);
+		    int manufacturerDataLenght = (MASK & data[0]);
+		    
+		    /* check if it is the length expected */
+		    if (manufacturerDataLenght == ARDISCOVERY_BLE_MANUFACTURER_DATA_LENGTH_WITH_ADTYPE)
+		    {
+		    	/* get the manufacturerData */
+		    	data = (byte[]) Arrays.copyOfRange(scanRecord, ARDISCOVERY_BLE_MANUFACTURER_DATA_ADTYPE_OFFSET , ARDISCOVERY_BLE_MANUFACTURER_DATA_ADTYPE_OFFSET + manufacturerDataLenght);
+		    	int adType = (MASK & data[0]);
+		    	
+		    	/* check if it is the AD Type expected */
+		    	if (adType == ARDISCOVERY_BLE_MANUFACTURER_DATA_ADTYPE)
+		    	{
+			    	int vendorID = (data[1] & MASK) + ((data[2] & MASK) << 8);
+			    	int productID = (data[3] & MASK) + ((data[4] & MASK) << 8);
+			    	int versionID = (data[5] & MASK) + ((data[6] & MASK) << 8);
+			    	
+			    	/* check the vendorID, the productID and and the version */
+			    	if ((vendorID == ARDISCOVERY_BLE_VENDOR_ID) && (productID == ARDISCOVERY_BLE_PRODUCT_ID) && (versionID >= ARDISCOVERY_BLE_VERSION_ID) )
+			    	{
+			    		res = true;
+			    	}
+		    	}
+		    }
+		    
+		    return res;
+		}
 		
 		private void periodScanLeDeviceEnd()
 		{
