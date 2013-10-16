@@ -14,6 +14,9 @@
 #define kServiceNetDomain @"local."
 
 #define kServiceBLEDeviceType @"Mykonos_BLE"    // TO DO
+#define ARBLESERVICE_PARROT_VENDOR_ID 0X0043
+#define ARBLESERVICE_DELOS_PRODUCT_ID 0X2000
+#define ARBLESERVICE_DELOS_VERSION_ID 0X0001
 #define kServiceBLERefreshTime 10.f             // Time in seconds
 
 #define CHECK_VALID(DEFAULT_RETURN_VALUE)       \
@@ -458,7 +461,8 @@
     {
         if([peripheral name] != nil)
         {
-            if ([peripheral.name hasPrefix:kServiceBLEDeviceType])
+            
+            if ( [self isParrotBLEDevice:advertisementData] )
             {
                 ARBLEService *service = [[ARBLEService alloc] init];
                 service.centralManager = central;
@@ -481,6 +485,28 @@
             }
         }
     }
+}
+
+-(BOOL) isParrotBLEDevice:(NSDictionary *)advertisementData
+{
+    /* read the advertisement Data to check if it is a PARROT Delos device with the good version */
+    
+    BOOL res = NO;
+    NSData *manufacturerData = [advertisementData valueForKey:CBAdvertisementDataManufacturerDataKey];
+    
+    if ((manufacturerData != nil) && (manufacturerData.length == 6))
+    {
+        uint16_t *ids = (uint16_t*) manufacturerData.bytes;
+        
+        //NSLog(@"manufacturer Data: VendorID:0x%.4x ProduitID=0x%.4x versionID=0x%.4x", ids[0], ids[1], ids[2]);
+        
+        if ( (ids[0] == ARBLESERVICE_PARROT_VENDOR_ID) && (ids[1] == ARBLESERVICE_DELOS_PRODUCT_ID) && (ids[2] >=ARBLESERVICE_DELOS_VERSION_ID) )
+        {
+            res = YES;
+        }
+    }
+    
+    return res;
 }
 
 #pragma mark - Notification sender
