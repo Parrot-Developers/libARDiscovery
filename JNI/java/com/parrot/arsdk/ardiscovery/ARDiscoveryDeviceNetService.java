@@ -12,7 +12,7 @@ public class ARDiscoveryDeviceNetService implements  Parcelable
 	 * 
 	 */
 
-	private static String TAG = "ARDiscoveryDevice";
+	private static String TAG = "ARDiscoveryDeviceNetService";
 	
 	private String name;
 	private String ip;
@@ -47,13 +47,11 @@ public class ARDiscoveryDeviceNetService implements  Parcelable
 	/* Parcelling part */
     public ARDiscoveryDeviceNetService(Parcel in)
     {
-        
         this.name = in.readString();
         this.ip = in.readString();
-
     }
-    
 	
+    @Override
 	public boolean equals(Object other) 
     {
 		boolean isEqual = true;
@@ -70,7 +68,7 @@ public class ARDiscoveryDeviceNetService implements  Parcelable
         {
         	/* check */
         	ARDiscoveryDeviceNetService otherDevice = (ARDiscoveryDeviceNetService) other;
-            if (!this.name.equals(otherDevice))
+            if (!this.name.equals(otherDevice.name))
             {
                 isEqual = false;
             }

@@ -612,7 +612,7 @@ public class ARDiscoveryService extends Service
 	@TargetApi(18)
 	private class BLEScanner
 	{
-		private static final long ARDISCOVERY_BLE_SCAN_PERIOD = 30000;
+		private static final long ARDISCOVERY_BLE_SCAN_PERIOD = 20000;
 		private static final long ARDISCOVERY_BLE_SCAN_DURATION = 10000;
 		private boolean isStart;
 		private boolean scanning;
@@ -690,8 +690,10 @@ public class ARDiscoveryService extends Service
  	    	{
 	    		ARSALPrint.d(TAG,"add ble device name:" + bleService.getName());
 	    		
+	    		ARDiscoveryDeviceBLEService deviceBLEService = new ARDiscoveryDeviceBLEService(bleService);
+	    		
 	    		/* add the service in the array*/
-				ARDiscoveryDeviceService deviceService = new ARDiscoveryDeviceService (bleService.getName(), bleService);
+				ARDiscoveryDeviceService deviceService = new ARDiscoveryDeviceService (bleService.getName(), deviceBLEService);
 				
 				newBLEDeviceServicesHmap.put(deviceService.getName(), deviceService);
 	    	}
@@ -798,8 +800,8 @@ public class ARDiscoveryService extends Service
 	{
 		ARSALPrint.d(TAG,"notificationBLEServiceDeviceAdd");
 		
-		/* if the BLEDeviceServices List is changed */
-    	if (!bleDeviceServicesHmap.keySet().equals(newBLEDeviceServicesHmap.keySet()))
+		/* if the BLEDeviceServices List has changed */
+		if (bleServicesListHasChanged(newBLEDeviceServicesHmap))
     	{
     		/* get the new BLE Device Services list */
     		bleDeviceServicesHmap = newBLEDeviceServicesHmap;
@@ -807,6 +809,39 @@ public class ARDiscoveryService extends Service
 			/* broadcast the new deviceServiceList */
 			broadcastDeviceServiceArrayUpdated ();
     	}
+	}
+	
+	private boolean bleServicesListHasChanged ( HashMap<String, ARDiscoveryDeviceService> newBLEDeviceServicesHmap )
+	{
+		/* check is the list of BLE devices has changed */
+		ARSALPrint.d(TAG,"bleServicesListHasChanged");
+		
+		boolean res = false;
+		
+		if (bleDeviceServicesHmap.size() != newBLEDeviceServicesHmap.size())
+		{
+			/* if the number of devices has changed */
+			res = true;
+		}
+		else if (!bleDeviceServicesHmap.keySet().equals(newBLEDeviceServicesHmap.keySet()))
+		{
+			/* if the names of devices has changed */
+			res = true;
+		}
+		else
+		{
+			for (ARDiscoveryDeviceService bleDevice : bleDeviceServicesHmap.values())
+			{
+				/* check from the MAC address */
+				if (!newBLEDeviceServicesHmap.containsValue(bleDevice))
+				{
+					/* if one of the old devices is not present is the new list */
+					res = true;
+				}
+			}
+		}
+		
+		return res;
 	}
 	
 };

@@ -7,7 +7,6 @@
 
 package com.parrot.arsdk.ardiscovery;
 
-import android.bluetooth.BluetoothDevice;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -22,7 +21,7 @@ public class ARDiscoveryDeviceService implements Parcelable
 	private static String TAG = "ARDiscoveryDevice";
 	
 	private String name;
-	private Object device; /* can by ARDiscoveryDeviceNetService or BluetoothDevice */
+	private Object device; /* can by ARDiscoveryDeviceNetService or ARDiscoveryDeviceBLEService */
 	
 	public static final Parcelable.Creator<ARDiscoveryDeviceService> CREATOR = new Parcelable.Creator<ARDiscoveryDeviceService>()
 	{
@@ -35,7 +34,7 @@ public class ARDiscoveryDeviceService implements Parcelable
 	    @Override
 	    public ARDiscoveryDeviceService[] newArray(int size)
 	    {
-		return new ARDiscoveryDeviceService[size];
+	    	return new ARDiscoveryDeviceService[size];
 	    }
 	};
 	
@@ -66,7 +65,7 @@ public class ARDiscoveryDeviceService implements Parcelable
         		break;
         		
         	case ARDISCOVERY_DEVICE_SERVICE_TYPE_BLE:
-        		this.device = in.readParcelable(BluetoothDevice.class.getClassLoader());
+        		this.device = in.readParcelable(ARDiscoveryDeviceBLEService.class.getClassLoader());
         		break;
         		
         	default:
@@ -76,8 +75,11 @@ public class ARDiscoveryDeviceService implements Parcelable
 
     }
 	
+    @Override
 	public boolean equals(Object other) 
     {
+		ARSALPrint.d(TAG,"equals");
+		
 		boolean isEqual = true;
 	        
         if ( (other == null) || !(other instanceof ARDiscoveryDeviceService) )
@@ -92,10 +94,35 @@ public class ARDiscoveryDeviceService implements Parcelable
         {
         	/* check */
         	ARDiscoveryDeviceService otherDevice = (ARDiscoveryDeviceService) other;
-            if (!this.name.equals(otherDevice.name))
-            {
-                isEqual = false;
-            }
+        	
+        	/* check if the devices are of same class */
+        	if (this.getDevice().getClass().equals(otherDevice.getDevice().getClass()))
+        	{
+	        	if (this.getDevice() instanceof ARDiscoveryDeviceNetService)
+	        	{
+	        		/* if it is a NetDevice */
+	        		ARDiscoveryDeviceNetService deviceNetService = (ARDiscoveryDeviceNetService) this.getDevice();
+	        		ARDiscoveryDeviceNetService otherDeviceNetService = (ARDiscoveryDeviceNetService) otherDevice.getDevice();
+	        		
+		            if (!deviceNetService.equals(otherDeviceNetService))
+		            {
+		                isEqual = false;
+		            }
+	        	}
+	        	else if (this.getDevice() instanceof ARDiscoveryDeviceBLEService)
+	            {
+	        		ARSALPrint.d(TAG,"equals");
+	        		
+	        		/* if it is a BLEDevice */
+	        		ARDiscoveryDeviceBLEService deviceBLEService = (ARDiscoveryDeviceBLEService) this.getDevice();
+	        		ARDiscoveryDeviceBLEService otherDeviceBLEService = (ARDiscoveryDeviceBLEService) otherDevice.getDevice();
+	        		
+	        		if (!deviceBLEService.equals(otherDeviceBLEService))
+		            {
+		                isEqual = false;
+		            }
+	            }
+        	}
         }
         
         return isEqual;
@@ -138,7 +165,7 @@ public class ARDiscoveryDeviceService implements Parcelable
 		{
 			type = eARDISCOVERY_DEVICE_SERVICE_TYPE.ARDISCOVERY_DEVICE_SERVICE_TYPE_NET;
 		}
-		else if (device instanceof BluetoothDevice)
+		else if (device instanceof ARDiscoveryDeviceBLEService)
 		{
 			type = eARDISCOVERY_DEVICE_SERVICE_TYPE.ARDISCOVERY_DEVICE_SERVICE_TYPE_BLE;
 		}
