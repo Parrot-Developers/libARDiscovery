@@ -54,7 +54,7 @@
 
 @interface ARService : NSObject
 @property (nonatomic, strong) NSString *name;
-@property (nonatomic, strong) id service; /**< Can be ARNetService or ARBLEService */
+@property (nonatomic, strong) id service; /**< Can be NSNetService or ARBLEService */
 @end
 
 @interface ARDiscovery : NSObject
@@ -63,12 +63,12 @@
 
 #pragma mark Start / Stop
 /**
- * Start Discovery if it is'nt discovering
+ * Starts ARDiscovery if it isntt discovering
  */
 - (void)start;
 
 /**
- * Stop Discovery if it's discovering
+ * Stops ARDiscovery if it's discovering
  */
 - (void)stop;
 
@@ -92,17 +92,17 @@
  */
 - (NSString *)getCurrentPublishedServiceName;
 
-#pragma mark - Resolve 
+#pragma mark - Resolve
 
 /**
- * Try to resolve the given netservice
+ * Try to resolve the given service
  * Resolution is queued until all previous resolutions
  * are complete, or failed
  */
 - (void)resolveService:(ARService *)aService;
 
 /**
- * Convert the given netservice to resolved IP
+ * Convert the given service to resolved IP
  * You must to resolve service before to Convert it to IP
  */
 - (NSString *)convertNSNetServiceToIp:(ARService *)service;
@@ -110,7 +110,7 @@
 #pragma mark - Publication
 
 /**
- * Publish a new device netservice with the given name
+ * Publish a new device service with the given name
  * Calling this function will unpublish any previous service
  * If serviceName is not unique, it will be postfixed with a number
  *  --> "MyServiceName" will become "MyServiceName1", "MyServiceName2" ...
@@ -118,7 +118,7 @@
 - (void)publishDeviceServiceWithName:(NSString *)serviceName;
 
 /**
- * Publish a new controller netservice with the given name
+ * Publish a new controller service with the given name
  * Calling this function will unpublish any previous service
  * If serviceName is not unique, it will be postfixed with a number
  *  --> "MyServiceName" will become "MyServiceName1", "MyServiceName2" ...

@@ -6,7 +6,7 @@
 //  Copyright (c) 2013 Parrot SA. All rights reserved.
 //
 #include <arpa/inet.h>
-#import "ARDiscovery.h"
+#import <libARDiscovery/ARDISCOVERY_BonjourDiscovery.h>
 #import <netdb.h>
 
 #define kServiceNetDeviceType @"_arsdk-mk3._udp."
@@ -88,41 +88,41 @@
     static ARDiscovery *_sharedInstance = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        _sharedInstance = [[ARDiscovery alloc] init];
-        
-        /**
-         * Services list init
-         */
-        _sharedInstance.controllersServicesList = [[NSMutableDictionary alloc] init];
-        _sharedInstance.devicesServicesList = [[NSMutableDictionary alloc] init];
-        _sharedInstance.devicesBLEServicesTimerList = [[NSMutableDictionary alloc] init];
-        
-        /**
-         * Current published service init
-         */
-        _sharedInstance.currentPublishedService = nil;
-        _sharedInstance.tryPublishService = nil;
-        
-        /**
-         * Services browser / resolution init
-         */
-        _sharedInstance.controllersServiceBrowser = [[NSNetServiceBrowser alloc] init];
-        [_sharedInstance.controllersServiceBrowser setDelegate:_sharedInstance];
-        _sharedInstance.devicesServiceBrowser = [[NSNetServiceBrowser alloc] init];
-        [_sharedInstance.devicesServiceBrowser setDelegate:_sharedInstance];
-        _sharedInstance.currentResolutionService = nil;
-        
-        /**
-         * Creation was done as a shared instance
-         */
-        _sharedInstance.valid = YES;
-        
-        /**
-         * Discover is not in progress
-         */
-        _sharedInstance.isDiscovering = NO;
-    });
-    
+            _sharedInstance = [[ARDiscovery alloc] init];
+
+            /**
+             * Services list init
+             */
+            _sharedInstance.controllersServicesList = [[NSMutableDictionary alloc] init];
+            _sharedInstance.devicesServicesList = [[NSMutableDictionary alloc] init];
+            _sharedInstance.devicesBLEServicesTimerList = [[NSMutableDictionary alloc] init];
+
+            /**
+             * Current published service init
+             */
+            _sharedInstance.currentPublishedService = nil;
+            _sharedInstance.tryPublishService = nil;
+
+            /**
+             * Services browser / resolution init
+             */
+            _sharedInstance.controllersServiceBrowser = [[NSNetServiceBrowser alloc] init];
+            [_sharedInstance.controllersServiceBrowser setDelegate:_sharedInstance];
+            _sharedInstance.devicesServiceBrowser = [[NSNetServiceBrowser alloc] init];
+            [_sharedInstance.devicesServiceBrowser setDelegate:_sharedInstance];
+            _sharedInstance.currentResolutionService = nil;
+
+            /**
+             * Creation was done as a shared instance
+             */
+            _sharedInstance.valid = YES;
+
+            /**
+             * Discover is not in progress
+             */
+            _sharedInstance.isDiscovering = NO;
+        });
+
     return _sharedInstance;
 }
 
@@ -182,9 +182,9 @@
          */
         [controllersServiceBrowser searchForServicesOfType:kServiceNetControllerType inDomain:kServiceNetDomain];
         [devicesServiceBrowser searchForServicesOfType:kServiceNetDeviceType inDomain:kServiceNetDomain];
-        
+
         isDiscovering = YES;
-        
+
         /**
          * Start CoreBluetooth discovery
          */
@@ -201,10 +201,10 @@
          */
         [controllersServiceBrowser stop];
         [devicesServiceBrowser stop];
-        
+
         [centralManager stopScan];
         centralManager = nil;
-        
+
         isDiscovering = NO;
     }
 }
@@ -223,7 +223,7 @@
     port = socketAddress->sin_port;
     // This will print the IP and port for you to connect to.
     NSLog(@"%@", [NSString stringWithFormat:@"Resolved:%@-->%@:%u\n", [[aService service] hostName], ipString, port]);
-    
+
     return ipString;
 }
 
@@ -231,9 +231,9 @@
 - (NSString *)uniqueNameFromServiceName:(NSString *)sname isController:(BOOL)isController
 {
     NSString *rname = [sname copy];
-    
+
     int addCount = 1;
-    
+
     NSArray *servicesCopy;
     if (isController)
     {
@@ -307,7 +307,7 @@
         ARService *aService = [[ARService alloc] init];
         aService.name = [aNetService name];
         aService.service = aNetService;
-         if ([[aNetService type] isEqual:kServiceNetDeviceType])
+        if ([[aNetService type] isEqual:kServiceNetDeviceType])
         {
             //NSLog(@"find %@ : %@", aService.name, NSStringFromClass([[aService service] class]));
             [self.devicesServicesList setObject:aService forKey:aService.name];
@@ -422,46 +422,46 @@
 {
     switch(central.state)
     {
-        case CBCentralManagerStatePoweredOn:
-            NSLog(@"CBCentralManagerStatePoweredOn");
-            if(isDiscovering)
-            {
-                // Start scanning peripherals
-                [central scanForPeripheralsWithServices:nil options:[NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:YES], CBCentralManagerScanOptionAllowDuplicatesKey, nil]];
-            }
-            break;
-            
-        case CBCentralManagerStateResetting:
-            NSLog(@"CBCentralManagerStateResetting");
-            break;
-            
-        case CBCentralManagerStateUnsupported:
-            NSLog(@"CBCentralManagerStateUnsupported");
-            break;
-            
-        case CBCentralManagerStateUnauthorized:
-            NSLog(@"CBCentralManagerStateUnauthorized");
-            break;
-            
-        case CBCentralManagerStatePoweredOff:
-            NSLog(@"CBCentralManagerStatePoweredOff");
-            break;
-            
-        default:
-        case CBCentralManagerStateUnknown:
-            NSLog(@"CBCentralManagerStateUnknown");
-            break;
+    case CBCentralManagerStatePoweredOn:
+        NSLog(@"CBCentralManagerStatePoweredOn");
+        if(isDiscovering)
+        {
+            // Start scanning peripherals
+            [central scanForPeripheralsWithServices:nil options:[NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:YES], CBCentralManagerScanOptionAllowDuplicatesKey, nil]];
+        }
+        break;
+
+    case CBCentralManagerStateResetting:
+        NSLog(@"CBCentralManagerStateResetting");
+        break;
+
+    case CBCentralManagerStateUnsupported:
+        NSLog(@"CBCentralManagerStateUnsupported");
+        break;
+
+    case CBCentralManagerStateUnauthorized:
+        NSLog(@"CBCentralManagerStateUnauthorized");
+        break;
+
+    case CBCentralManagerStatePoweredOff:
+        NSLog(@"CBCentralManagerStatePoweredOff");
+        break;
+
+    default:
+    case CBCentralManagerStateUnknown:
+        NSLog(@"CBCentralManagerStateUnknown");
+        break;
     }
 }
 
 - (void)centralManager:(CBCentralManager *)central didDiscoverPeripheral:(CBPeripheral *)peripheral advertisementData:(NSDictionary *)advertisementData RSSI:(NSNumber *)RSSI
 {
-   // NSLog(@"Scanning %@", [peripheral name]);
+    // NSLog(@"Scanning %@", [peripheral name]);
     @synchronized (self)
     {
         if([peripheral name] != nil)
         {
-            
+
             if ( [self isParrotBLEDevice:advertisementData] )
             {
                 ARBLEService *service = [[ARBLEService alloc] init];
@@ -477,7 +477,7 @@
                     [timer invalidate];
                     timer = nil;
                 }
-                
+
                 [self.devicesServicesList setObject:aService forKey:aService.name];
                 timer = [NSTimer scheduledTimerWithTimeInterval:kServiceBLERefreshTime target:self selector:@selector(deviceBLETimeout:) userInfo:aService repeats:NO];
                 [self.devicesBLEServicesTimerList setObject:timer forKey:aService.name];
@@ -490,22 +490,22 @@
 -(BOOL) isParrotBLEDevice:(NSDictionary *)advertisementData
 {
     /* read the advertisement Data to check if it is a PARROT Delos device with the good version */
-    
+
     BOOL res = NO;
     NSData *manufacturerData = [advertisementData valueForKey:CBAdvertisementDataManufacturerDataKey];
-    
+
     if ((manufacturerData != nil) && (manufacturerData.length == 6))
     {
         uint16_t *ids = (uint16_t*) manufacturerData.bytes;
-        
+
         //NSLog(@"manufacturer Data: VendorID:0x%.4x ProduitID=0x%.4x versionID=0x%.4x", ids[0], ids[1], ids[2]);
-        
+
         if ( (ids[0] == ARBLESERVICE_PARROT_VENDOR_ID) && (ids[1] == ARBLESERVICE_DELOS_PRODUCT_ID) && (ids[2] >=ARBLESERVICE_DELOS_VERSION_ID) )
         {
             res = YES;
         }
     }
-    
+
     return res;
 }
 
