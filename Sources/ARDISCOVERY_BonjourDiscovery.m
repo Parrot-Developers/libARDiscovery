@@ -14,9 +14,11 @@
 #define kServiceNetDomain @"local."
 
 #define kServiceBLEDeviceType @"Mykonos_BLE"    // TO DO
-#define ARBLESERVICE_PARROT_VENDOR_ID 0X0043
-#define ARBLESERVICE_DELOS_PRODUCT_ID 0X2000
+#define ARBLESERVICE_PARROT_BT_VENDOR_ID 0X0043 /* Parrot Company ID registered by Bluetooth SIG (Bluetooth Specification v4.0 Requirement) */
+#define ARBLESERVICE_PARROT_USB_VENDOR_ID 0x19cf /* official Parrot USB Vendor ID */
+#define ARBLESERVICE_DELOS_USB_PRODUCT_ID 0x0900 /* Delos USB Product ID */
 #define ARBLESERVICE_DELOS_VERSION_ID 0X0001
+
 #define kServiceBLERefreshTime 10.f             // Time in seconds
 
 #define CHECK_VALID(DEFAULT_RETURN_VALUE)       \
@@ -497,10 +499,12 @@
     if ((manufacturerData != nil) && (manufacturerData.length == 6))
     {
         uint16_t *ids = (uint16_t*) manufacturerData.bytes;
-
-        //NSLog(@"manufacturer Data: VendorID:0x%.4x ProduitID=0x%.4x versionID=0x%.4x", ids[0], ids[1], ids[2]);
-
-        if ( (ids[0] == ARBLESERVICE_PARROT_VENDOR_ID) && (ids[1] == ARBLESERVICE_DELOS_PRODUCT_ID) && (ids[2] >=ARBLESERVICE_DELOS_VERSION_ID) )
+        
+#ifdef DEBUG
+        NSLog(@"manufacturer Data: BTVendorID:0x%.4x USBVendorID:0x%.4x USBProduitID=0x%.4x versionID=0x%.4x", ids[0], ids[1], ids[2], ids[3]);
+#endif
+        
+        if ( (ids[0] == ARBLESERVICE_PARROT_BT_VENDOR_ID) && (ids[1] == ARBLESERVICE_PARROT_USB_VENDOR_ID) && (ids[2] == ARBLESERVICE_DELOS_USB_PRODUCT_ID) && (ids[3] >=ARBLESERVICE_DELOS_VERSION_ID) )
         {
             res = YES;
         }
