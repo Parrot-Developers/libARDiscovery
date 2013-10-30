@@ -10,27 +10,27 @@ import android.content.Intent;
 public class ARDiscoveryServicesDevicesListUpdatedReceiver extends BroadcastReceiver
 {
 
-	private static String TAG = "ARDiscoveryServicesDevicesListUpdatedReceiver";
-	
-	private ARDiscoveryServicesDevicesListUpdatedReceiverDelegate delegate;
-			
-	
-	public ARDiscoveryServicesDevicesListUpdatedReceiver(ARDiscoveryServicesDevicesListUpdatedReceiverDelegate delegate)
-	{
-		ARSALPrint.d(TAG,"ARDiscoveryServicesDevicesListUpdatedReceiver constructor");
-		
-		this.delegate = delegate;
-	}
-	
-	@Override
-	public void onReceive(Context context, Intent intent) 
-	{
-		ARSALPrint.d(TAG,"onReceive");
-		
-		if (delegate != null)
-		{
-			delegate.onServicesDevicesListUpdated();
-		}
-	}
+    private static String TAG = "ARDiscoveryServicesDevicesListUpdatedReceiver";
+    
+    private ARDiscoveryServicesDevicesListUpdatedReceiverDelegate delegate;
+            
+    
+    public ARDiscoveryServicesDevicesListUpdatedReceiver(ARDiscoveryServicesDevicesListUpdatedReceiverDelegate delegate)
+    {
+        ARSALPrint.d(TAG,"ARDiscoveryServicesDevicesListUpdatedReceiver constructor");
+        
+        this.delegate = delegate;
+    }
+    
+    @Override
+    public void onReceive(Context context, Intent intent) 
+    {
+        ARSALPrint.d(TAG,"onReceive");
+        
+        if (delegate != null)
+        {
+            delegate.onServicesDevicesListUpdated();
+        }
+    }
 
 }
