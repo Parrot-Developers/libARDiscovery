@@ -14,6 +14,7 @@
 #define kServiceNetDomain @"local."
 
 #define kServiceBLEDeviceType @"Mykonos_BLE"    // TO DO
+#define ARBLESERVICE_BLE_MANUFACTURER_DATA_LENGHT 8
 #define ARBLESERVICE_PARROT_BT_VENDOR_ID 0X0043 /* Parrot Company ID registered by Bluetooth SIG (Bluetooth Specification v4.0 Requirement) */
 #define ARBLESERVICE_PARROT_USB_VENDOR_ID 0x19cf /* official Parrot USB Vendor ID */
 #define ARBLESERVICE_DELOS_USB_PRODUCT_ID 0x0900 /* Delos USB Product ID */
@@ -496,7 +497,7 @@
     BOOL res = NO;
     NSData *manufacturerData = [advertisementData valueForKey:CBAdvertisementDataManufacturerDataKey];
 
-    if ((manufacturerData != nil) && (manufacturerData.length == 6))
+    if ((manufacturerData != nil) && (manufacturerData.length == ARBLESERVICE_BLE_MANUFACTURER_DATA_LENGHT))
     {
         uint16_t *ids = (uint16_t*) manufacturerData.bytes;
         
