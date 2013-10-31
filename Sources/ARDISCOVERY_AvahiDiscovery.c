@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <pthread.h>
 
 #include <libARSAL/ARSAL_Print.h>
 #include <libARDiscovery/ARDISCOVERY_AvahiDiscovery.h>
@@ -23,6 +24,8 @@
 
 #define ERR(...)    ARSAL_PRINT(ARSAL_PRINT_ERROR, __TAG__, __VA_ARGS__)
 #define SAY(...)    ARSAL_PRINT(ARSAL_PRINT_WARNING, __TAG__, __VA_ARGS__)
+
+static pthread_t ARDISCOVERY_AvahiDiscovery_ThreadObj;
 
 static AvahiEntryGroup *entryGroup = NULL;
 static AvahiSimplePoll *simplePoll = NULL;
@@ -182,11 +185,12 @@ static void ARDISCOVERY_AvahiDiscovery_ClientCb(AvahiClient *c, AvahiClientState
     }
 }
 
-void ARDISCOVERY_AvahiDiscovery_Start(char* serviceType)
+void* ARDISCOVERY_AvahiDiscovery_ThreadHandler(void* data)
 {
     AvahiClient *client = NULL;
     int avahiError;
     int shouldTerminate = 0;
+    char* serviceType = (char*) data;
 
     /* Allocate main loop object */
     if (!(simplePoll = avahi_simple_poll_new()))
@@ -241,7 +245,13 @@ void ARDISCOVERY_AvahiDiscovery_Start(char* serviceType)
     avahi_free(serviceData.serviceName);
 }
 
+void ARDISCOVERY_AvahiDiscovery_Start(char* serviceType)
+{
+    pthread_create (&ARDISCOVERY_AvahiDiscovery_ThreadObj, NULL, ARDISCOVERY_AvahiDiscovery_ThreadHandler, (void*) serviceType);
+}
+
 void ARDISCOVERY_AvahiDiscovery_Stop(void)
 {
     avahi_simple_poll_quit(simplePoll);
+    pthread_join(ARDISCOVERY_AvahiDiscovery_ThreadObj, NULL);
 }
