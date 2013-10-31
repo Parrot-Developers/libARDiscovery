@@ -9,7 +9,7 @@ LOCAL_CATEGORY_PATH := mykonos3/libs
 LOCAL_MODULE := libARDiscovery
 LOCAL_DESCRIPTION := ARSDK Discovery and Connection Management Layer
 
-LOCAL_LIBRARIES := libARSAL
+LOCAL_LIBRARIES := libARSAL avahi
 LOCAL_EXPORT_LDLIBS := -lardiscovery
 
 #Autotools variables
