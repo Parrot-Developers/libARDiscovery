@@ -44,7 +44,7 @@ static char* ARDISCOVERY_AvahiDiscovery_BuildName(void)
         hostname[sizeof(hostname) - 1] = '\0';
 
         char finalname[HOST_NAME_MAX + 128];
-        snprintf(finalname, sizeof(finalname) - 1, "%s on %s", "ARDrone service", hostname);
+        snprintf(finalname, sizeof(finalname) - 1, "%s", hostname);
         finalname[sizeof(finalname) - 1] = '\0';
 
         return strdup(finalname);
