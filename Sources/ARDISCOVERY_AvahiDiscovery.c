@@ -32,7 +32,7 @@ static AvahiSimplePoll *simplePoll = NULL;
 
 static ARDISCOVERY_AvahiDiscovery_ServiceData_t serviceData;
 
-static void ARDISCOVERY_AvahiDiscovery_CreateService(AvahiClient *c);
+static void ARDISCOVERY_AvahiDiscovery_CreateService(AvahiClient *c, ARDISCOVERY_AvahiDiscovery_ServiceData_t* serviceData);
 
 static char* ARDISCOVERY_AvahiDiscovery_BuildName(void)
 {
@@ -52,18 +52,19 @@ static char* ARDISCOVERY_AvahiDiscovery_BuildName(void)
     return NULL;
 }
 
-static void ARDISCOVERY_AvahiDiscovery_EntryGroupCb(AvahiEntryGroup *g, AvahiEntryGroupState state, AVAHI_GCC_UNUSED void *userdata)
-{
+static void ARDISCOVERY_AvahiDiscovery_EntryGroupCb(AvahiEntryGroup *g, AvahiEntryGroupState state, void *userdata)
+ {
+    ARDISCOVERY_AvahiDiscovery_ServiceData_t* serviceData = (ARDISCOVERY_AvahiDiscovery_ServiceData_t*) userdata;
+
     assert(g == entryGroup || entryGroup == NULL);
 
     /* Called whenever the entry group state changes */
-
     switch (state)
     {
         case AVAHI_ENTRY_GROUP_ESTABLISHED :
         {
             /* The entry group has been established successfully */
-            SAY("Service '%s' successfully established.", serviceData.serviceName);
+            SAY("Service '%s' successfully established.", serviceData->serviceName);
             break;
         }
         case AVAHI_ENTRY_GROUP_COLLISION :
@@ -71,14 +72,14 @@ static void ARDISCOVERY_AvahiDiscovery_EntryGroupCb(AvahiEntryGroup *g, AvahiEnt
             char *n;
 
             /* A service name collision happened. Let's pick a new name */
-            n = avahi_alternative_service_name(serviceData.serviceName);
-            avahi_free(serviceData.serviceName);
-            serviceData.serviceName = n;
+            n = avahi_alternative_service_name(serviceData->serviceName);
+            avahi_free(serviceData->serviceName);
+            serviceData->serviceName = n;
 
-            ERR("Service name collision, renaming service to '%s'", serviceData.serviceName);
+            ERR("Service name collision, renaming service to '%s'", serviceData->serviceName);
 
             /* And recreate the services */
-            ARDISCOVERY_AvahiDiscovery_CreateService(avahi_entry_group_get_client(g));
+            ARDISCOVERY_AvahiDiscovery_CreateService(avahi_entry_group_get_client(g), serviceData);
             break;
         }
 
@@ -96,7 +97,7 @@ static void ARDISCOVERY_AvahiDiscovery_EntryGroupCb(AvahiEntryGroup *g, AvahiEnt
     }
 }
 
-static void ARDISCOVERY_AvahiDiscovery_CreateService(AvahiClient *c)
+static void ARDISCOVERY_AvahiDiscovery_CreateService(AvahiClient *c, ARDISCOVERY_AvahiDiscovery_ServiceData_t* serviceData)
 {
     int ret;
     int creationFailed = 0;
@@ -105,7 +106,8 @@ static void ARDISCOVERY_AvahiDiscovery_CreateService(AvahiClient *c)
     /* If this is the first time we're called, let's create a new entry group */
     if (!entryGroup)
     {
-        if (!(entryGroup = avahi_entry_group_new(c, ARDISCOVERY_AvahiDiscovery_EntryGroupCb, NULL)))
+        entryGroup = avahi_entry_group_new(c, ARDISCOVERY_AvahiDiscovery_EntryGroupCb, (void*)serviceData);
+        if (!entryGroup)
         {
             ERR("avahi_entry_group_new() failed: %s", avahi_strerror(avahi_client_errno(c)));
             creationFailed = 1;
@@ -116,19 +118,23 @@ static void ARDISCOVERY_AvahiDiscovery_CreateService(AvahiClient *c)
     {
         /* Add the service for AR.Drone */
         if ((ret = avahi_entry_group_add_service(entryGroup, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC, 0,
-                serviceData.serviceName, serviceData.serviceType, ARDISCOVERY_AVAHIDISCOVERY_DEFAULT_NETWORK, NULL,
-                ARDISCOVERY_AVAHIDISCOVERY_DEFAULT_OUTPUT_PORT, NULL, NULL)) < 0)
+                serviceData->serviceName, serviceData->serviceType, ARDISCOVERY_AVAHIDISCOVERY_DEFAULT_NETWORK, NULL,
+                ARDISCOVERY_AVAHIDISCOVERY_DEFAULT_CONNECTION_PORT, NULL, NULL)) < 0)
         {
-            ERR("Failed to add %s service: %s\n", serviceData.serviceType, avahi_strerror(ret));
+            ERR("Failed to add %s service: %s\n", serviceData->serviceType, avahi_strerror(ret));
             creationFailed = 1;
         }
     }
 
     /* Tell the server to register the service */
-    if (!creationFailed && (ret = avahi_entry_group_commit(entryGroup)) < 0)
+    if (!creationFailed)
     {
-        ERR("Failed to commit entry_group: %s", avahi_strerror(ret));
-        creationFailed = 1;
+        ret = avahi_entry_group_commit(entryGroup);
+        if (ret < 0)
+        {
+            ERR("Failed to commit entry_group: %s", avahi_strerror(ret));
+            creationFailed = 1;
+        }
     }
 
     if (creationFailed)
@@ -138,8 +144,8 @@ static void ARDISCOVERY_AvahiDiscovery_CreateService(AvahiClient *c)
     }
 }
 
-static void ARDISCOVERY_AvahiDiscovery_ClientCb(AvahiClient *c, AvahiClientState state, AVAHI_GCC_UNUSED void * userdata)
-{
+static void ARDISCOVERY_AvahiDiscovery_ClientCb(AvahiClient *c, AvahiClientState state, void * userdata)
+ {
     assert(c);
 
     /* Called whenever the client or server state changes */
@@ -152,7 +158,7 @@ static void ARDISCOVERY_AvahiDiscovery_ClientCb(AvahiClient *c, AvahiClientState
              * name on the network, so it's time to create our services */
             if (!entryGroup)
             {
-                ARDISCOVERY_AvahiDiscovery_CreateService(c);
+                ARDISCOVERY_AvahiDiscovery_CreateService(c, userdata);
             }
             break;
         }
@@ -185,12 +191,11 @@ static void ARDISCOVERY_AvahiDiscovery_ClientCb(AvahiClient *c, AvahiClientState
     }
 }
 
-void* ARDISCOVERY_AvahiDiscovery_ThreadHandler(void* data)
+void ARDISCOVERY_AvahiDiscovery_StartPublishing(ARDISCOVERY_AvahiDiscovery_ServiceData_t* serviceData)
 {
     AvahiClient *client = NULL;
     int avahiError;
     int shouldTerminate = 0;
-    char* serviceType = (char*) data;
 
     /* Allocate main loop object */
     if (!(simplePoll = avahi_simple_poll_new()))
@@ -199,11 +204,8 @@ void* ARDISCOVERY_AvahiDiscovery_ThreadHandler(void* data)
         shouldTerminate = 1;
     }
 
-    /* Service type is provided by upper config */
-    serviceData.serviceType = serviceType;
-
-    serviceData.serviceName = ARDISCOVERY_AvahiDiscovery_BuildName();
-    if (serviceData.serviceName == NULL)
+    serviceData->serviceName = ARDISCOVERY_AvahiDiscovery_BuildName();
+    if (serviceData->serviceName == NULL)
     {
         ERR("Failed to build service name.");
         shouldTerminate = 1;
@@ -212,7 +214,7 @@ void* ARDISCOVERY_AvahiDiscovery_ThreadHandler(void* data)
     if (!shouldTerminate)
     {
         /* Allocate a new client */
-        client = avahi_client_new(avahi_simple_poll_get(simplePoll), 0, ARDISCOVERY_AvahiDiscovery_ClientCb, NULL, &avahiError);
+        client = avahi_client_new(avahi_simple_poll_get(simplePoll), 0, ARDISCOVERY_AvahiDiscovery_ClientCb, serviceData, &avahiError);
 
         /* Check whether creating the client object succeeded */
         if (!client)
@@ -242,16 +244,10 @@ void* ARDISCOVERY_AvahiDiscovery_ThreadHandler(void* data)
         }
     }
 
-    avahi_free(serviceData.serviceName);
+    avahi_free(serviceData->serviceName);
 }
 
-void ARDISCOVERY_AvahiDiscovery_Start(char* serviceType)
-{
-    pthread_create (&ARDISCOVERY_AvahiDiscovery_ThreadObj, NULL, ARDISCOVERY_AvahiDiscovery_ThreadHandler, (void*) serviceType);
-}
-
-void ARDISCOVERY_AvahiDiscovery_Stop(void)
+void ARDISCOVERY_AvahiDiscovery_StopPublishing(void)
 {
     avahi_simple_poll_quit(simplePoll);
-    pthread_join(ARDISCOVERY_AvahiDiscovery_ThreadObj, NULL);
 }
