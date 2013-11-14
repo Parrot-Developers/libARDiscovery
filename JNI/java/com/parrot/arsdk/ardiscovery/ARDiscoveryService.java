@@ -59,7 +59,8 @@ public class ARDiscoveryService extends Service
      */
     public static final String kARDiscoveryServiceNotificationServicesDevicesListUpdated = "kARDiscoveryServiceNotificationServicesDevicesListUpdated";
     
-    private static final String ARDISCOVERY_ARDRONE_SERVICE_TYPE = "_arsdk-mk3._udp.local.";
+    public static final String ARDISCOVERY_ARDRONE3_SERVICE_TYPE = "_arsdk-mk3._udp.local.";
+    public static final String ARDISCOVERY_JPSUMO_SERVICE_TYPE = "_arsdk-js._udp.local.";
     
     private HashMap<String, Intent> intentCache;
     
@@ -204,7 +205,8 @@ public class ARDiscoveryService extends Service
             if (mDNSListener != null)
             {
                 ARSALPrint.d(TAG, "removeServiceListener");
-                mDNSManager.removeServiceListener(ARDISCOVERY_ARDRONE_SERVICE_TYPE, mDNSListener);
+                mDNSManager.removeServiceListener(ARDISCOVERY_ARDRONE3_SERVICE_TYPE, mDNSListener);
+                mDNSManager.removeServiceListener(ARDISCOVERY_JPSUMO_SERVICE_TYPE, mDNSListener);
                 mDNSListener = null;
             }
             
@@ -381,7 +383,7 @@ public class ARDiscoveryService extends Service
         if (ip != null)
         {
             /* new ARDiscoveryDeviceNetService */
-            ARDiscoveryDeviceNetService deviceNetService = new ARDiscoveryDeviceNetService(serviceEvent.getName(), ip);
+            ARDiscoveryDeviceNetService deviceNetService = new ARDiscoveryDeviceNetService(serviceEvent.getName(), serviceEvent.getType(), ip);
             
             /* add the service in the array*/
             ARDiscoveryDeviceService deviceService = new ARDiscoveryDeviceService (serviceEvent.getName(), deviceNetService);
@@ -576,8 +578,10 @@ public class ARDiscoveryService extends Service
         
         protected void onPostExecute(Object result)
         {
-            ARSALPrint.d(TAG,"addServiceListener: ARDRONE_SERVICE_TYPE=" + ARDISCOVERY_ARDRONE_SERVICE_TYPE);
-            mDNSManager.addServiceListener(ARDISCOVERY_ARDRONE_SERVICE_TYPE, mDNSListener);
+            ARSALPrint.d(TAG,"addServiceListener: ARDRONE3_SERVICE_TYPE=" + ARDISCOVERY_ARDRONE3_SERVICE_TYPE);
+            mDNSManager.addServiceListener(ARDISCOVERY_ARDRONE3_SERVICE_TYPE, mDNSListener);
+            ARSALPrint.d(TAG,"addServiceListener: JPSUMO_SERVICE_TYPE=" + ARDISCOVERY_JPSUMO_SERVICE_TYPE);
+            mDNSManager.addServiceListener(ARDISCOVERY_JPSUMO_SERVICE_TYPE, mDNSListener);
         }
         
     }
