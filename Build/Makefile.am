@@ -5,8 +5,10 @@ ACLOCAL_AMFLAGS                                     =   -I m4
 
 
 # Common part (Negociation and ARNetwork creation ...)
-HEADER_FILES                                        =   ../Includes/libARDiscovery/ARDISCOVERY_Connection.h # Add common .h files here
-SOURCE_FILES                                        =   ../Sources/ARDISCOVERY_Connection.c # Add common .c files here
+HEADER_FILES                                        =   ../Includes/libARDiscovery/ARDISCOVERY_Connection.h \
+                                                        ../Includes/libARDiscovery/ARDISCOVERY_Discovery.h
+SOURCE_FILES                                        =   ../Sources/ARDISCOVERY_Connection.c \
+                                                        ../Sources/ARDISCOVERY_Discovery.c
 # $(HEADER_FILES) will be added to $(SOURCE_FILES) later, in the discovery parts
 
 if HAVE_BONJOUR # Bonjour specific files (iOS/OS X)

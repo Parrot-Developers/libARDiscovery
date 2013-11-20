@@ -16,8 +16,8 @@
  *  - key   : kARDiscoveryServicesList
  *  - value : NSArray of NSNetService
  */
-#define kARDiscoveryNotificationServicesDevicesListUpdated @"kARDiscoveryNotificationServicesDevicesListUpdated"
-#define kARDiscoveryServicesList @"kARDiscoveryServicesList"
+#define kARDiscoveryNotificationServicesDevicesListUpdated      @"kARDiscoveryNotificationServicesDevicesListUpdated"
+#define kARDiscoveryServicesList                                @"kARDiscoveryServicesList"
 
 /**
  * Constant for controller services list updates notification
@@ -25,7 +25,7 @@
  *  - key   : kARDiscoveryServicesList
  *  - value : NSArray of NSNetService
  */
-#define kARDiscoveryNotificationServicesControllersListUpdated @"kARDiscoveryNotificationServicesControllersListUpdated"
+#define kARDiscoveryNotificationServicesControllersListUpdated  @"kARDiscoveryNotificationServicesControllersListUpdated"
 
 /**
  * Constant for publication notifications
@@ -34,8 +34,8 @@
  *  - value : NSString with the name of the published service
  *            or @"" if no service is published
  */
-#define kARDiscoveryNotificationServicePublished @"kARDiscoveryNotificationServicePublished"
-#define kARDiscoveryServiceName @"kARDiscoveryServiceName"
+#define kARDiscoveryNotificationServicePublished                @"kARDiscoveryNotificationServicePublished"
+#define kARDiscoveryServiceName                                 @"kARDiscoveryServiceName"
 
 /**
  * Constant for service resolution notifications
@@ -43,8 +43,14 @@
  *  - key   : kARDiscoveryServiceResolved
  *  - value : NSNetService which was resolved
  */
-#define kARDiscoveryNotificationServiceResolved @"kARDiscoveryNotificationServiceResolved"
-#define kARDiscoveryServiceResolved @"kARDiscoveryServiceResolved"
+#define kARDiscoveryNotificationServiceResolved                 @"kARDiscoveryNotificationServiceResolved"
+#define kARDiscoveryServiceResolved                             @"kARDiscoveryServiceResolved"
+
+/**
+ * Constant for service resolution notifications
+ * userInfo is always nil:
+ */
+#define kARDiscoveryNotificationServiceNotResolved              @"kARDiscoveryNotificationServiceNotResolved"
 
 #pragma mark ARDiscovery interface
 @interface ARBLEService : NSObject
@@ -53,8 +59,9 @@
 @end
 
 @interface ARService : NSObject
-@property (nonatomic, strong) NSString *name;
-@property (nonatomic, strong) id service; /**< Can be NSNetService or ARBLEService */
+@property (nonatomic, strong) NSString *name;       ///< Name of the device
+@property (nonatomic, assign) NSUInteger productID; ///< Specific product ID
+@property (nonatomic, strong) id service;           ///< Can be NSNetService or ARBLEService
 @end
 
 @interface ARDiscovery : NSObject
@@ -108,14 +115,6 @@
 - (NSString *)convertNSNetServiceToIp:(ARService *)service;
 
 #pragma mark - Publication
-
-/**
- * Publish a new device service with the given name
- * Calling this function will unpublish any previous service
- * If serviceName is not unique, it will be postfixed with a number
- *  --> "MyServiceName" will become "MyServiceName1", "MyServiceName2" ...
- */
-- (void)publishDeviceServiceWithName:(NSString *)serviceName;
 
 /**
  * Publish a new controller service with the given name

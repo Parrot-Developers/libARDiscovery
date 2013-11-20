@@ -7,21 +7,19 @@
 //
 #include <arpa/inet.h>
 #import <libARDiscovery/ARDISCOVERY_BonjourDiscovery.h>
+#import <libARDiscovery/ARDISCOVERY_Discovery.h>
 #import <netdb.h>
 
-#define kServiceNetMykonos3DeviceType @"_arsdk-mk3._udp."
-#define kServiceNetJumpingSumoDeviceType @"_arsdk-js._udp."
-#define kServiceNetControllerType @"_arsdk-ff3._udp."
-#define kServiceNetDomain @"local."
+#define kServiceNetDeviceFormat                     @"_arsdk-%04x._udp."
+#define kServiceNetControllerType                   @"_arsdk-ff3._udp."
+#define kServiceNetDomain                           @"local."
 
-#define kServiceBLEDeviceType @"Mykonos_BLE"    // TO DO
-#define ARBLESERVICE_BLE_MANUFACTURER_DATA_LENGHT 8
-#define ARBLESERVICE_PARROT_BT_VENDOR_ID 0X0043 /* Parrot Company ID registered by Bluetooth SIG (Bluetooth Specification v4.0 Requirement) */
-#define ARBLESERVICE_PARROT_USB_VENDOR_ID 0x19cf /* official Parrot USB Vendor ID */
-#define ARBLESERVICE_DELOS_USB_PRODUCT_ID 0x0900 /* Delos USB Product ID */
-#define ARBLESERVICE_DELOS_VERSION_ID 0X0001
+#define ARBLESERVICE_BLE_MANUFACTURER_DATA_LENGTH   8
+#define ARBLESERVICE_PARROT_BT_VENDOR_ID            0X0043  // Parrot Company ID registered by Bluetooth SIG (Bluetooth Specification v4.0 Requirement)
+#define ARBLESERVICE_PARROT_USB_VENDOR_ID           0x19cf  // Official Parrot USB Vendor ID
 
-#define kServiceBLERefreshTime 10.f             // Time in seconds
+#define kServiceResolutionTimeout                   5.f    // Time in seconds
+#define kServiceBLERefreshTime                      10.f    // Time in seconds
 
 #define CHECK_VALID(DEFAULT_RETURN_VALUE)       \
     do                                          \
@@ -32,16 +30,20 @@
         }                                       \
     } while (0)
 
-#pragma mark ARBLEService implmentation
+#pragma mark - ARBLEService implementation
+
 @implementation ARBLEService
 
 @end
 
 @implementation ARService
+
 - (BOOL)isEqual:(id)object
 {
-    return [self.name isEqualToString:[(ARService *)object name]];
+    ARService *otherService = (ARService *)object;
+    return ([self.name isEqualToString:[otherService name]] && (self.productID == otherService.productID));
 }
+
 @end
 
 #pragma mark Private part
@@ -58,8 +60,7 @@
 #pragma mark - Services browser / resolution
 @property (strong, nonatomic) ARService *currentResolutionService;
 @property (strong, nonatomic) NSNetServiceBrowser *controllersServiceBrowser;
-@property (strong, nonatomic) NSNetServiceBrowser *mk3DevicesServiceBrowser;
-@property (strong, nonatomic) NSNetServiceBrowser *jsDevicesServiceBrowser;
+@property (strong, nonatomic) NSMutableArray *devicesServiceBrowsers;
 
 #pragma mark - Services CoreBluetooth
 @property (strong, nonatomic) CBCentralManager *centralManager;
@@ -75,6 +76,7 @@
 
 #pragma mark Implementation
 @implementation ARDiscovery
+
 @synthesize controllersServicesList;
 @synthesize devicesServicesList;
 @synthesize devicesBLEServicesTimerList;
@@ -82,8 +84,7 @@
 @synthesize tryPublishService;
 @synthesize currentResolutionService;
 @synthesize controllersServiceBrowser;
-@synthesize mk3DevicesServiceBrowser;
-@synthesize jsDevicesServiceBrowser;
+@synthesize devicesServiceBrowsers;
 @synthesize centralManager;
 @synthesize valid;
 @synthesize isDiscovering;
@@ -114,11 +115,14 @@
              */
             _sharedInstance.controllersServiceBrowser = [[NSNetServiceBrowser alloc] init];
             [_sharedInstance.controllersServiceBrowser setDelegate:_sharedInstance];
-            _sharedInstance.mk3DevicesServiceBrowser = [[NSNetServiceBrowser alloc] init];
-            [_sharedInstance.mk3DevicesServiceBrowser setDelegate:_sharedInstance];
-            _sharedInstance.jsDevicesServiceBrowser = [[NSNetServiceBrowser alloc] init];
-            [_sharedInstance.jsDevicesServiceBrowser setDelegate:_sharedInstance];
-            _sharedInstance.currentResolutionService = nil;
+            _sharedInstance.devicesServiceBrowsers = [[NSMutableArray alloc] init];
+            for (int i = ARDISCOVERY_PRODUCT_NSNETSERVICE; i < ARDISCOVERY_PRODUCT_BLESERVICE; ++i)
+            {
+                NSNetServiceBrowser *browser = [[NSNetServiceBrowser alloc] init];
+                [browser setDelegate:_sharedInstance];
+                [_sharedInstance.devicesServiceBrowsers addObject:browser];
+            }
+
             _sharedInstance.currentResolutionService = nil;
 
             /**
@@ -170,28 +174,46 @@
 }
 
 #pragma mark - Discovery
+- (BOOL)isNetServiceValid:(NSNetService *)aNetService
+{
+    for (int i = ARDISCOVERY_PRODUCT_NSNETSERVICE; i < ARDISCOVERY_PRODUCT_BLESERVICE; ++i)
+    {
+        NSString *deviceType = [NSString stringWithFormat:kServiceNetDeviceFormat, ARDISCOVERY_getProductID(i)];
+        if ([aNetService.type isEqualToString:deviceType])
+            return YES;
+    }
+    return NO;
+}
+
 - (void)resolveService:(ARService *)aService
 {
     CHECK_VALID();
     @synchronized (self)
     {
-        [[self.currentResolutionService service] stop];
+        if(self.currentResolutionService != nil)
+        {
+            [[self.currentResolutionService service] stop];
+        }
+        
         self.currentResolutionService = aService;
         [[self.currentResolutionService service] setDelegate:self];
-        [[self.currentResolutionService service] resolveWithTimeout:2.0];
+        [[self.currentResolutionService service] resolveWithTimeout:kServiceResolutionTimeout];
     }
 }
 
 - (void)start
 {
-    if(!isDiscovering)
+    if (!isDiscovering)
     {
         /**
          * Start NSNetServiceBrowser
          */
         [controllersServiceBrowser searchForServicesOfType:kServiceNetControllerType inDomain:kServiceNetDomain];
-        [mk3DevicesServiceBrowser searchForServicesOfType:kServiceNetMykonos3DeviceType inDomain:kServiceNetDomain];
-        [jsDevicesServiceBrowser searchForServicesOfType:kServiceNetJumpingSumoDeviceType inDomain:kServiceNetDomain];
+        for (int i = 0; i < [devicesServiceBrowsers count]; ++i)
+        {
+            NSNetServiceBrowser *browser = [devicesServiceBrowsers objectAtIndex:i];
+            [browser searchForServicesOfType:[NSString stringWithFormat:kServiceNetDeviceFormat, ARDISCOVERY_getProductID(i)] inDomain:kServiceNetDomain];
+        }
         
         isDiscovering = YES;
 
@@ -204,15 +226,16 @@
 
 - (void)stop
 {
-    if(isDiscovering)
+    if (isDiscovering)
     {
         /**
          * Stop NSNetServiceBrowser
          */
         [controllersServiceBrowser stop];
-        [mk3DevicesServiceBrowser stop];
-        [jsDevicesServiceBrowser stop];
-        
+        for (NSNetServiceBrowser *browser in devicesServiceBrowsers)
+        {
+            [browser stop];
+        }
         [centralManager stopScan];
         centralManager = nil;
 
@@ -227,11 +250,13 @@
     struct sockaddr_in *socketAddress = nil;
     NSString *ipString = nil;
     int port;
+    
     name = [[aService service] name];
     address = [[[aService service] addresses] objectAtIndex: 0];
     socketAddress = (struct sockaddr_in *) [address bytes];
     ipString = [NSString stringWithFormat: @"%s",inet_ntoa(socketAddress->sin_addr)];
     port = socketAddress->sin_port;
+    
     // This will print the IP and port for you to connect to.
     NSLog(@"%@", [NSString stringWithFormat:@"Resolved:%@-->%@:%u\n", [[aService service] hostName], ipString, port]);
 
@@ -272,19 +297,6 @@
     return rname;
 }
 
-- (void)publishDeviceServiceWithName:(NSString *)serviceName
-{
-    CHECK_VALID();
-    @synchronized (self)
-    {
-        NSString *uniqueName = [self uniqueNameFromServiceName:serviceName isController:NO];
-        [self.tryPublishService stop];
-        self.tryPublishService = [[NSNetService alloc] initWithDomain:kServiceNetDomain type:kServiceNetMykonos3DeviceType name:uniqueName port:9];
-        [self.tryPublishService setDelegate:self];
-        [self.tryPublishService publish];
-    }
-}
-
 - (void)publishControllerServiceWithName:(NSString *)serviceName
 {
     CHECK_VALID();
@@ -318,18 +330,12 @@
         ARService *aService = [[ARService alloc] init];
         aService.name = [aNetService name];
         aService.service = aNetService;
-        if ([[aNetService type] isEqual:kServiceNetMykonos3DeviceType] || [[aNetService type] isEqual:kServiceNetJumpingSumoDeviceType])
+        
+        aService.productID = ARDISCOVERY_PRODUCT_MAX;
+
+        
+        if ([aNetService.type isEqualToString:kServiceNetControllerType])
         {
-            //NSLog(@"find %@ : %@", aService.name, NSStringFromClass([[aService service] class]));
-            [self.devicesServicesList setObject:aService forKey:aService.name];
-            if (!moreComing)
-            {
-                [self sendDevicesListUpdateNotification];
-            }
-        }
-        else if ([[aNetService type] isEqual:kServiceNetControllerType])
-        {
-            //NSLog(@"find %@ : %@", aService.name, NSStringFromClass([[aService service] class]));
             [self.controllersServicesList setObject:aService forKey:aService.name];
             if (!moreComing)
             {
@@ -338,9 +344,30 @@
         }
         else
         {
+            for (int i = ARDISCOVERY_PRODUCT_NSNETSERVICE; i < ARDISCOVERY_PRODUCT_BLESERVICE; ++i)
+            {
+                NSString *deviceType = [NSString stringWithFormat:kServiceNetDeviceFormat, ARDISCOVERY_getProductID(i)];
+                if ([aNetService.type isEqualToString:deviceType])
+                {
+                    aService.productID = ARDISCOVERY_getProductID(i);
+                    break;
+                }
+            }
+            
+            if (aService.productID != ARDISCOVERY_PRODUCT_MAX)
+            {
+                [self.devicesServicesList setObject:aService forKey:aService.name];
+                if (!moreComing)
+                {
+                    [self sendDevicesListUpdateNotification];
+                }
+            }
+            else
+            {
 #ifdef DEBUG
-            NSLog (@"Found an unknown service : %@", aNetService);
+                NSLog (@"Found an unknown service : %@", aNetService);
 #endif
+            }
         }
     }
 }
@@ -349,12 +376,12 @@
 {
     @synchronized (self)
     {
-        if ([[aNetService type] isEqual:kServiceNetMykonos3DeviceType] || [[aNetService type] isEqual:kServiceNetJumpingSumoDeviceType])
+        if ([self isNetServiceValid:aNetService])
         {
             ARService *aService = (ARService *)[self.devicesServicesList objectForKey:aNetService.name];
-            if(aService != nil)
+            if (aService != nil)
             {
-                NSLog(@"remove %@ : %@", aService.name, NSStringFromClass([[aService service] class]));
+                NSLog(@"Removed service %@ : %@", aService.name, NSStringFromClass([[aService service] class]));
                 [self.devicesServicesList removeObjectForKey:aService.name];
                 if (!moreComing)
                 {
@@ -365,9 +392,9 @@
         else if ([[aNetService type] isEqual:kServiceNetControllerType])
         {
             ARService *aService = (ARService *)[self.controllersServicesList objectForKey:aNetService.name];
-            if(aService != nil)
+            if (aService != nil)
             {
-                NSLog(@"remove %@ : %@", aService.name, NSStringFromClass([[aService service] class]));
+                NSLog(@"Removed service %@ : %@", aService.name, NSStringFromClass([[aService service] class]));
                 [self.controllersServicesList removeObjectForKey:aService.name];
                 if (!moreComing)
                 {
@@ -407,7 +434,8 @@
 {
     @synchronized (self)
     {
-        [self sendResolveNotification];
+        self.currentResolutionService = nil;
+        [self sendNotResolveNotification];
     }
 }
 
@@ -423,64 +451,70 @@
 - (void)deviceBLETimeout:(NSTimer *)timer
 {
     ARService *aService = [timer userInfo];
-    [self.devicesBLEServicesTimerList removeObjectForKey:aService.name];
-    [self.devicesServicesList removeObjectForKey:aService.name];
+    CBPeripheral *peripheral = ((ARBLEService *) aService.service).peripheral;
+    [self.devicesBLEServicesTimerList removeObjectForKey:[peripheral.identifier UUIDString]];
+    [self.devicesServicesList removeObjectForKey:[peripheral.identifier UUIDString]];
     [self sendDevicesListUpdateNotification];
 }
 
 #pragma mark - CBCentralManagerDelegate methods
 - (void)centralManagerDidUpdateState:(CBCentralManager *)central
 {
+    NSString *sNewState = @"New CBCentralManager state";
     switch(central.state)
     {
-    case CBCentralManagerStatePoweredOn:
-        NSLog(@"CBCentralManagerStatePoweredOn");
-        if(isDiscovering)
-        {
-            // Start scanning peripherals
-            [central scanForPeripheralsWithServices:nil options:[NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:YES], CBCentralManagerScanOptionAllowDuplicatesKey, nil]];
-        }
-        break;
-
-    case CBCentralManagerStateResetting:
-        NSLog(@"CBCentralManagerStateResetting");
-        break;
-
-    case CBCentralManagerStateUnsupported:
-        NSLog(@"CBCentralManagerStateUnsupported");
-        break;
-
-    case CBCentralManagerStateUnauthorized:
-        NSLog(@"CBCentralManagerStateUnauthorized");
-        break;
-
-    case CBCentralManagerStatePoweredOff:
-        NSLog(@"CBCentralManagerStatePoweredOff");
-        break;
-
-    default:
-    case CBCentralManagerStateUnknown:
-        NSLog(@"CBCentralManagerStateUnknown");
-        break;
+        case CBCentralManagerStatePoweredOn:
+            NSLog(@"%@ : CBCentralManagerStatePoweredOn", sNewState);
+            if (isDiscovering)
+            {
+                // Start scanning peripherals
+                [central scanForPeripheralsWithServices:nil options:[NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:YES], CBCentralManagerScanOptionAllowDuplicatesKey, nil]];
+            }
+            break;
+            
+        case CBCentralManagerStateResetting:
+            NSLog(@"%@ : CBCentralManagerStateResetting", sNewState);
+            break;
+            
+        case CBCentralManagerStateUnsupported:
+            NSLog(@"%@ : CBCentralManagerStateUnsupported", sNewState);
+            break;
+            
+        case CBCentralManagerStateUnauthorized:
+            NSLog(@"%@ : CBCentralManagerStateUnauthorized", sNewState);
+            break;
+            
+        case CBCentralManagerStatePoweredOff:
+            NSLog(@"%@ : CBCentralManagerStatePoweredOff", sNewState);
+            break;
+            
+        default:
+        case CBCentralManagerStateUnknown:
+            NSLog(@"%@ : CBCentralManagerStateUnknown", sNewState);
+            break;
     }
 }
 
 - (void)centralManager:(CBCentralManager *)central didDiscoverPeripheral:(CBPeripheral *)peripheral advertisementData:(NSDictionary *)advertisementData RSSI:(NSNumber *)RSSI
 {
-    // NSLog(@"Scanning %@", [peripheral name]);
+    NSLog(@"Scanning %@", [peripheral name]);
     @synchronized (self)
     {
         if([peripheral name] != nil)
         {
-
             if ( [self isParrotBLEDevice:advertisementData] )
             {
                 ARBLEService *service = [[ARBLEService alloc] init];
                 service.centralManager = central;
                 service.peripheral = peripheral;
+                
                 ARService *aService = [[ARService alloc] init];
                 aService.name = [service.peripheral name];
                 aService.service = service;
+                
+                NSData *manufacturerData = [advertisementData valueForKey:CBAdvertisementDataManufacturerDataKey];
+                uint16_t *ids = (uint16_t *) manufacturerData.bytes;
+                aService.productID = ids[2];
 
                 NSTimer *timer = (NSTimer *)[self.devicesBLEServicesTimerList objectForKey:aService.name];
                 if(timer != nil)
@@ -489,23 +523,23 @@
                     timer = nil;
                 }
 
-                [self.devicesServicesList setObject:aService forKey:aService.name];
+                [self.devicesServicesList setObject:aService forKey:[peripheral.identifier UUIDString]];
                 timer = [NSTimer scheduledTimerWithTimeInterval:kServiceBLERefreshTime target:self selector:@selector(deviceBLETimeout:) userInfo:aService repeats:NO];
-                [self.devicesBLEServicesTimerList setObject:timer forKey:aService.name];
+                [self.devicesBLEServicesTimerList setObject:timer forKey:[peripheral.identifier UUIDString]];
                 [self sendDevicesListUpdateNotification];
             }
         }
     }
 }
 
--(BOOL) isParrotBLEDevice:(NSDictionary *)advertisementData
+- (BOOL)isParrotBLEDevice:(NSDictionary *)advertisementData
 {
-    /* read the advertisement Data to check if it is a PARROT Delos device with the good version */
+    /* Read the advertisementData to check if it is a PARROT Delos device with the good version */
 
     BOOL res = NO;
     NSData *manufacturerData = [advertisementData valueForKey:CBAdvertisementDataManufacturerDataKey];
 
-    if ((manufacturerData != nil) && (manufacturerData.length == ARBLESERVICE_BLE_MANUFACTURER_DATA_LENGHT))
+    if ((manufacturerData != nil) && (manufacturerData.length == ARBLESERVICE_BLE_MANUFACTURER_DATA_LENGTH))
     {
         uint16_t *ids = (uint16_t*) manufacturerData.bytes;
         
@@ -513,7 +547,9 @@
         NSLog(@"manufacturer Data: BTVendorID:0x%.4x USBVendorID:0x%.4x USBProduitID=0x%.4x versionID=0x%.4x", ids[0], ids[1], ids[2], ids[3]);
 #endif
         
-        if ( (ids[0] == ARBLESERVICE_PARROT_BT_VENDOR_ID) && (ids[1] == ARBLESERVICE_PARROT_USB_VENDOR_ID) && (ids[2] == ARBLESERVICE_DELOS_USB_PRODUCT_ID) && (ids[3] >=ARBLESERVICE_DELOS_VERSION_ID) )
+        if ((ids[0] == ARBLESERVICE_PARROT_BT_VENDOR_ID) &&
+            (ids[1] == ARBLESERVICE_PARROT_USB_VENDOR_ID) &&
+            (ids[2] == ARDISCOVERY_getProductID(ARDISCOVERY_PRODUCT_ARDRONE_MINI)))
         {
             res = YES;
         }
@@ -545,6 +581,11 @@
 {
     NSDictionary *userInfos = @{kARDiscoveryServiceResolved: self.currentResolutionService};
     [[NSNotificationCenter defaultCenter] postNotificationName:kARDiscoveryNotificationServiceResolved object:self userInfo:userInfos];
+}
+
+- (void)sendNotResolveNotification
+{
+    [[NSNotificationCenter defaultCenter] postNotificationName:kARDiscoveryNotificationServiceNotResolved object:self userInfo:nil];
 }
 
 @end
