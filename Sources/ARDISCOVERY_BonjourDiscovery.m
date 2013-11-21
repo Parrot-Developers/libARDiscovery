@@ -10,7 +10,6 @@
 #import <libARDiscovery/ARDISCOVERY_Discovery.h>
 #import <netdb.h>
 
-#define kServiceNetDeviceFormat                     @"_arsdk-%04x._udp."
 #define kServiceNetControllerType                   @"_arsdk-ff3._udp."
 #define kServiceNetDomain                           @"local."
 

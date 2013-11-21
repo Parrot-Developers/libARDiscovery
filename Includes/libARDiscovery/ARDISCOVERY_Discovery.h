@@ -2,6 +2,8 @@
 #define _ARDISCOVERY_DISCOVERY_H_
 #include <inttypes.h>
 
+#define kServiceNetDeviceFormat     @"_arsdk-%04x._udp."
+
 /**
  * Enum characterizing every Parrot's product and categorizing them
  */
