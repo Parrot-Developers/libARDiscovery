@@ -69,7 +69,8 @@
 @property (nonatomic) BOOL valid;
 
 #pragma mark - Object properly created
-@property (nonatomic) BOOL isDiscovering;
+@property (nonatomic) BOOL isNSNetDiscovering;
+@property (nonatomic) BOOL isCBDiscovering;
 
 @end
 
@@ -86,7 +87,8 @@
 @synthesize devicesServiceBrowsers;
 @synthesize centralManager;
 @synthesize valid;
-@synthesize isDiscovering;
+@synthesize isNSNetDiscovering;
+@synthesize isCBDiscovering;
 
 #pragma mark - Init
 + (ARDiscovery *)sharedInstance
@@ -132,7 +134,8 @@
             /**
              * Discover is not in progress
              */
-            _sharedInstance.isDiscovering = NO;
+            _sharedInstance.isNSNetDiscovering = NO;
+            _sharedInstance.isCBDiscovering = NO;
         });
 
     return _sharedInstance;
@@ -202,7 +205,7 @@
 
 - (void)start
 {
-    if (!isDiscovering)
+    if (!isNSNetDiscovering)
     {
         /**
          * Start NSNetServiceBrowser
@@ -214,8 +217,11 @@
             [browser searchForServicesOfType:[NSString stringWithFormat:kServiceNetDeviceFormat, ARDISCOVERY_getProductID(i)] inDomain:kServiceNetDomain];
         }
         
-        isDiscovering = YES;
-
+        isNSNetDiscovering = YES;
+    }
+    
+    if (!isCBDiscovering)
+    {
         /**
          * Start CoreBluetooth discovery
          */
@@ -225,7 +231,7 @@
 
 - (void)stop
 {
-    if (isDiscovering)
+    if (isNSNetDiscovering)
     {
         /**
          * Stop NSNetServiceBrowser
@@ -235,10 +241,16 @@
         {
             [browser stop];
         }
-        [centralManager stopScan];
+        isNSNetDiscovering = NO;
+    }
+    
+    if (isCBDiscovering)
+    {
+        /**
+         * Stop CBCentralManager
+         */
         centralManager = nil;
-
-        isDiscovering = NO;
+        isCBDiscovering = NO;
     }
 }
 
@@ -459,37 +471,43 @@
 #pragma mark - CBCentralManagerDelegate methods
 - (void)centralManagerDidUpdateState:(CBCentralManager *)central
 {
-    NSString *sNewState = @"New CBCentralManager state";
+    NSString *sNewState = @"New CBCentralManager state :";
     switch(central.state)
     {
         case CBCentralManagerStatePoweredOn:
-            NSLog(@"%@ : CBCentralManagerStatePoweredOn", sNewState);
-            if (isDiscovering)
+            NSLog(@"%@ CBCentralManagerStatePoweredOn", sNewState);
+            if (!isCBDiscovering)
             {
                 // Start scanning peripherals
                 [central scanForPeripheralsWithServices:nil options:[NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:YES], CBCentralManagerScanOptionAllowDuplicatesKey, nil]];
+                isCBDiscovering = YES;
             }
             break;
             
         case CBCentralManagerStateResetting:
-            NSLog(@"%@ : CBCentralManagerStateResetting", sNewState);
+            NSLog(@"%@ CBCentralManagerStateResetting", sNewState);
+            isCBDiscovering = NO;
             break;
             
         case CBCentralManagerStateUnsupported:
-            NSLog(@"%@ : CBCentralManagerStateUnsupported", sNewState);
+            NSLog(@"%@ CBCentralManagerStateUnsupported", sNewState);
+            isCBDiscovering = NO;
             break;
             
         case CBCentralManagerStateUnauthorized:
-            NSLog(@"%@ : CBCentralManagerStateUnauthorized", sNewState);
+            NSLog(@"%@ CBCentralManagerStateUnauthorized", sNewState);
+            isCBDiscovering = NO;
             break;
             
         case CBCentralManagerStatePoweredOff:
-            NSLog(@"%@ : CBCentralManagerStatePoweredOff", sNewState);
+            NSLog(@"%@ CBCentralManagerStatePoweredOff", sNewState);
+            isCBDiscovering = NO;
             break;
             
         default:
         case CBCentralManagerStateUnknown:
-            NSLog(@"%@ : CBCentralManagerStateUnknown", sNewState);
+            NSLog(@"%@ CBCentralManagerStateUnknown", sNewState);
+            isCBDiscovering = NO;
             break;
     }
 }
