@@ -2,21 +2,119 @@
 
 #include <libARSAL/ARSAL_Print.h>
 
-#include "libARDiscovery/ARDISCOVERY_AvahiDiscovery.h"
-#include "libARDiscovery/ARDISCOVERY_Connection.h"
-#include "libARDiscovery/ARDISCOVERY_Error.h"
+#include <libARDiscovery/ARDISCOVERY_AvahiDiscovery.h>
+#include "ARDISCOVERY_AvahiDiscovery.h"
 
 #define __ARDISCOVERY_AVAHIDISCOVERY_TAG__ "ARDISCOVERY_AvahiDiscovery"
 
 #define ERR(...)    ARSAL_PRINT(ARSAL_PRINT_ERROR, __ARDISCOVERY_AVAHIDISCOVERY_TAG__, __VA_ARGS__)
 #define SAY(...)    ARSAL_PRINT(ARSAL_PRINT_WARNING, __ARDISCOVERY_AVAHIDISCOVERY_TAG__, __VA_ARGS__)
 
-static int ARDISCOVERY_AvahiDiscovery_CreateService(AvahiClient *c, ARDISCOVERY_AvahiDiscovery_ServiceData_t* serviceData);
+/*
+ * Private header
+ */
 
-static char* ARDISCOVERY_AvahiDiscovery_BuildName(void)
+/**
+ * @brief Build final name
+ * @return Pointer to name
+ */
+static uint8_t* ARDISCOVERY_AvahiDiscovery_BuildName(void);
+
+/**
+ * @brief Create service to be published
+ * @param[in] c Avahi client
+ * @param[in] serviceData service data
+ * @return error during execution
+ */
+static eARDISCOVERY_ERROR ARDISCOVERY_AvahiDiscovery_CreateService(AvahiClient *c, ARDISCOVERY_AvahiDiscovery_ServiceData_t* serviceData);
+
+/**
+ * @brief Client callback
+ * @param[in] c Avahi client
+ * @param[in] state Client state
+ * @param[in] userData service data
+ */
+static void ARDISCOVERY_AvahiDiscovery_ClientCb(AvahiClient* c, AvahiClientState state, void* userdata);
+
+/*
+ * Implementation
+ */
+
+ARDISCOVERY_AvahiDiscovery_ServiceData_t* ARDISCOVERY_AvahiDiscovery_New(uint8_t* serviceName, uint8_t* serviceType, eARDISCOVERY_ERROR* errorPtr)
 {
-    /* Get hostname and build the final name. */
-    char hostname[HOST_NAME_MAX + 1]; /* POSIX hostname max length + the null terminating byte. */
+    /*
+     * Create and initialize discovery data
+     */
+    ARDISCOVERY_AvahiDiscovery_ServiceData_t *serviceData = NULL;
+    eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
+
+    if (serviceName == NULL || serviceType == NULL)
+    {
+        ERR("Null parameter");
+        error = ARDISCOVERY_ERROR;
+    }
+
+    if (error == ARDISCOVERY_OK)
+    {
+        serviceData = malloc(sizeof(ARDISCOVERY_AvahiDiscovery_ServiceData_t));
+        if (serviceData != NULL)
+        {
+            /* Init Avahi data */
+            serviceData->entryGroup = NULL;
+            serviceData->simplePoll = NULL;
+            serviceData->devicePort = ARDISCOVERY_AVAHIDISCOVERY_DEFAULT_PUBLISHED_PORT;
+
+            /* Set Service Type */
+            if (error == ARDISCOVERY_OK)
+            {
+                serviceData->serviceType = (uint8_t *) malloc(sizeof(uint8_t) * ARDISCOVERY_AVAHIDISCOVERY_SERVICETYPE_SIZE);
+                if (serviceData->serviceType != NULL)
+                {
+                    strcpy(serviceData->serviceType, serviceType);
+                }
+                else
+                {
+                    error = ARDISCOVERY_ERROR_ALLOC;
+                }
+            }
+
+            /* Set Service Name */
+            if (error == ARDISCOVERY_OK)
+            {
+                serviceData->serviceName = (uint8_t *) malloc(sizeof(uint8_t) * ARDISCOVERY_AVAHIDISCOVERY_SERVICENAME_SIZE);
+                if (serviceData->serviceName != NULL)
+                {
+                    strcpy(serviceData->serviceName, serviceName);
+                }
+                else
+                {
+                    error = ARDISCOVERY_ERROR_ALLOC;
+                }
+            }
+        }
+    }
+
+    /* Delete connection data if an error occurred */
+    if (error != ARDISCOVERY_OK)
+    {
+        ERR("error: %s", ARDISCOVERY_Error_ToString (error));
+        ARDISCOVERY_AvahiDiscovery_Delete(&serviceData);
+    }
+
+    if (errorPtr != NULL)
+    {
+        *errorPtr = error;
+    }
+
+    return serviceData;
+}
+
+static uint8_t* ARDISCOVERY_AvahiDiscovery_BuildName(void)
+{
+    /*
+     * Get hostname and build the final name
+     */
+    uint8_t hostname[HOST_NAME_MAX + 1]; /* POSIX hostname max length + the null terminating byte. */
     int error = gethostname(hostname, sizeof(hostname));
     if (error == 0)
     {
@@ -28,11 +126,14 @@ static char* ARDISCOVERY_AvahiDiscovery_BuildName(void)
 
 static void ARDISCOVERY_AvahiDiscovery_EntryGroupCb(AvahiEntryGroup* g, AvahiEntryGroupState state, void* userdata)
 {
+    /*
+     * Avahi entry group callback
+     */
     ARDISCOVERY_AvahiDiscovery_ServiceData_t* serviceData = (ARDISCOVERY_AvahiDiscovery_ServiceData_t*) userdata;
 
     if (g == NULL || serviceData == NULL)
     {
-        ERR("Invalid parameters");
+        ERR("Null parameter");
         return;
     }
 
@@ -76,13 +177,16 @@ static void ARDISCOVERY_AvahiDiscovery_EntryGroupCb(AvahiEntryGroup* g, AvahiEnt
 
 static eARDISCOVERY_ERROR ARDISCOVERY_AvahiDiscovery_CreateService(AvahiClient* c, ARDISCOVERY_AvahiDiscovery_ServiceData_t* serviceData)
 {
+    /*
+     * Create Avahi service
+     */
     int ret;
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
 
     if (c == NULL || serviceData == NULL)
     {
-        ERR("Invalid parameters");
-        error = ARDISCOVERY_ERROR_SERVICE_CREATION;
+        ERR("Null parameter");
+        error = ARDISCOVERY_ERROR;
     }
 
     if (error == ARDISCOVERY_OK)
@@ -93,7 +197,6 @@ static eARDISCOVERY_ERROR ARDISCOVERY_AvahiDiscovery_CreateService(AvahiClient* 
             serviceData->entryGroup = avahi_entry_group_new(c, ARDISCOVERY_AvahiDiscovery_EntryGroupCb, (void*) serviceData);
             if (!serviceData->entryGroup)
             {
-                ERR("avahi_entry_group_new() failed: %s", avahi_strerror(avahi_client_errno(c)));
                 error = ARDISCOVERY_ERROR_ENTRY_GROUP;
             }
         }
@@ -106,7 +209,6 @@ static eARDISCOVERY_ERROR ARDISCOVERY_AvahiDiscovery_CreateService(AvahiClient* 
                 serviceData->serviceType, ARDISCOVERY_AVAHIDISCOVERY_DEFAULT_NETWORK, NULL, serviceData->devicePort, NULL, NULL);
         if (ret < 0)
         {
-            ERR("Failed to add %s service: %s\n", serviceData->serviceType, avahi_strerror(ret));
             error = ARDISCOVERY_ERROR_ADD_SERVICE;
         }
     }
@@ -117,14 +219,13 @@ static eARDISCOVERY_ERROR ARDISCOVERY_AvahiDiscovery_CreateService(AvahiClient* 
         ret = avahi_entry_group_commit(serviceData->entryGroup);
         if (ret < 0)
         {
-            ERR("Failed to commit entry_group: %s", avahi_strerror(ret));
             error = ARDISCOVERY_ERROR_GROUP_COMMIT;
         }
     }
 
     if (error != ARDISCOVERY_OK)
     {
-        ERR("Quitting simple poll");
+        ERR("error: %s", ARDISCOVERY_Error_ToString (error));
         avahi_simple_poll_quit(serviceData->simplePoll);
     }
 
@@ -133,16 +234,18 @@ static eARDISCOVERY_ERROR ARDISCOVERY_AvahiDiscovery_CreateService(AvahiClient* 
 
 static void ARDISCOVERY_AvahiDiscovery_ClientCb(AvahiClient* c, AvahiClientState state, void* userdata)
 {
+    /*
+     * Avahi client callback
+     * Called whenever the client or server state changes
+     */
     ARDISCOVERY_AvahiDiscovery_ServiceData_t* serviceData = (ARDISCOVERY_AvahiDiscovery_ServiceData_t*) userdata;
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
 
     if (c == NULL || serviceData == NULL)
     {
-        ERR("Invalid parameters");
+        ERR("Null parameter");
         return;
     }
-
-    /* Called whenever the client or server state changes */
 
     switch (state)
     {
@@ -153,10 +256,6 @@ static void ARDISCOVERY_AvahiDiscovery_ClientCb(AvahiClient* c, AvahiClientState
             if (!serviceData->entryGroup)
             {
                 error = ARDISCOVERY_AvahiDiscovery_CreateService(c, serviceData);
-                if (error != ARDISCOVERY_OK)
-                {
-                    ERR("Error creating service");
-                }
             }
             break;
         }
@@ -190,14 +289,6 @@ static void ARDISCOVERY_AvahiDiscovery_ClientCb(AvahiClient* c, AvahiClientState
     }
 }
 
-void ARDISCOVERY_AvahiDiscovery_Init(ARDISCOVERY_AvahiDiscovery_ServiceData_t* serviceData)
-{
-    /* Init Avahi data */
-    serviceData->entryGroup = NULL;
-    serviceData->simplePoll = NULL;
-    serviceData->devicePort = ARDISCOVERY_AVAHIDISCOVERY_DEFAULT_PUBLISHED_PORT;
-}
-
 void ARDISCOVERY_AvahiDiscovery_Publish(ARDISCOVERY_AvahiDiscovery_ServiceData_t* serviceData)
 {
     AvahiClient *client = NULL;
@@ -207,7 +298,7 @@ void ARDISCOVERY_AvahiDiscovery_Publish(ARDISCOVERY_AvahiDiscovery_ServiceData_t
 
     if (serviceData == NULL)
     {
-        ERR("Invalid parameters");
+        ERR("Null parameter");
         error = ARDISCOVERY_ERROR;
     }
 
@@ -217,7 +308,6 @@ void ARDISCOVERY_AvahiDiscovery_Publish(ARDISCOVERY_AvahiDiscovery_ServiceData_t
         serviceData->simplePoll = avahi_simple_poll_new();
         if (serviceData->simplePoll == NULL)
         {
-            ERR("Failed to create simple poll object.");
             error = ARDISCOVERY_ERROR_SIMPLE_POLL;
         }
     }
@@ -228,7 +318,6 @@ void ARDISCOVERY_AvahiDiscovery_Publish(ARDISCOVERY_AvahiDiscovery_ServiceData_t
         serviceData->serviceName = ARDISCOVERY_AvahiDiscovery_BuildName();
         if (serviceData->serviceName == NULL)
         {
-            ERR("Failed to build service name.");
             error = ARDISCOVERY_ERROR_BUILD_NAME;
         }
     }
@@ -266,9 +355,51 @@ void ARDISCOVERY_AvahiDiscovery_Publish(ARDISCOVERY_AvahiDiscovery_ServiceData_t
             avahi_free(serviceData->serviceName);
         }
     }
+
+    if (error != ARDISCOVERY_OK)
+    {
+        ERR("error: %s", ARDISCOVERY_Error_ToString (error));
+    }
 }
 
 void ARDISCOVERY_AvahiDiscovery_StopPublishing(ARDISCOVERY_AvahiDiscovery_ServiceData_t* serviceData)
 {
+    /*
+     * Stop publishing service
+     */
     avahi_simple_poll_quit(serviceData->simplePoll);
+}
+
+void ARDISCOVERY_AvahiDiscovery_Delete(ARDISCOVERY_AvahiDiscovery_ServiceData_t** serviceDataPtrAddr)
+{
+    /*
+     * Free discovery data
+     */
+    ARDISCOVERY_AvahiDiscovery_ServiceData_t *serviceDataPtr = NULL;
+
+    if (serviceDataPtrAddr)
+    {
+        serviceDataPtr = *serviceDataPtrAddr;
+
+        if (serviceDataPtr)
+        {
+            ARDISCOVERY_AvahiDiscovery_StopPublishing(serviceDataPtr);
+
+            if (serviceDataPtr->serviceName)
+            {
+                free(serviceDataPtr->serviceName);
+                serviceDataPtr->serviceName = NULL;
+            }
+            if (serviceDataPtr->serviceType)
+            {
+                free(serviceDataPtr->serviceType);
+                serviceDataPtr->serviceType = NULL;
+            }
+
+            free(serviceDataPtr);
+            serviceDataPtr = NULL;
+        }
+
+        *serviceDataPtrAddr = NULL;
+    }
 }
