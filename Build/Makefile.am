@@ -9,7 +9,8 @@ HEADER_FILES                                        =   ../Includes/libARDiscove
                                                         ../Includes/libARDiscovery/ARDISCOVERY_Discovery.h \
                                                         ../Includes/libARDiscovery/ARDISCOVERY_Error.h
 SOURCE_FILES                                        =   ../Sources/ARDISCOVERY_Connection.c \
-                                                        ../Sources/ARDISCOVERY_Discovery.c
+                                                        ../Sources/ARDISCOVERY_Discovery.c \
+                                                        ../Sources/ARDISCOVERY_Error.c
 # $(HEADER_FILES) will be added to $(SOURCE_FILES) later, in the discovery parts
 
 if HAVE_BONJOUR # Bonjour specific files (iOS/OS X)
