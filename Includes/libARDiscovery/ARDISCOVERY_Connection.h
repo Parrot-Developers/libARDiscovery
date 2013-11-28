@@ -1,65 +1,70 @@
 #ifndef _ARDISCOVERY_CONNECTION_H_
 #define _ARDISCOVERY_CONNECTION_H_
 
-#include "libARDiscovery/ARDISCOVERY_Error.h"
-
-#define ARDISCOVERY_CONNECTION_TCP_C2D_PORT 44444
-#define ARDISCOVERY_CONNECTION_TCP_D2C_PORT 44445
-
-#define ARDISCOVERY_CONNECTION_TX_BUFFER_SIZE 128
-#define ARDISCOVERY_CONNECTION_RX_BUFFER_SIZE 128
-
-#define ARDISCOVERY_CONNECTION_JSON_C2DPORT_STRING "c2d_port"
-#define ARDISCOVERY_CONNECTION_JSON_D2CPORT_STRING "d2c_port"
-
-typedef enum
-{
-    ARDISCOVERY_STATE_NONE = 0,
-    ARDISCOVERY_STATE_WAITING,
-    ARDISCOVERY_STATE_READY,
-    ARDISCOVERY_STATE_STOP
-
-} eARDISCOVERY_STATE;
+#include <libARDiscovery/ARDISCOVERY_Error.h>
 
 /**
- * @brief Connection negotiation related data
+ * @brief Init type
  */
-typedef struct ARDISCOVERY_Connection_ComData_t
-{
-    uint32_t socket;
-    uint32_t port;
-    uint8_t *buffer;
-    uint32_t size;
-
-} ARDISCOVERY_Connection_ComData_t;
+#define ARDISCOVERY_CONNECTION_INIT_AS_DEVICE       1
+#define ARDISCOVERY_CONNECTION_INIT_AS_CONTROLLER   2
 
 /**
- * @brief Structure to allow service data sharing across connection process
+ * @brief JSON strings for UDP ports extraction
+ */
+#define ARDISCOVERY_CONNECTION_JSON_C2DPORT_STRING  "c2d_port"
+#define ARDISCOVERY_CONNECTION_JSON_D2CPORT_STRING  "d2c_port"
+
+/**
+ * @brief callback use when
+ * @param[in] dataRxPtr Reception buffer
+ * @param[in] dataRxSize Reception data size
+ * @param[in] dataTxPtr Transmission buffer
+ * @param[in] dataTxSize Transmission data size
+ * @param[in] customData custom data
+ * @return error during callback execution
+ */
+typedef eARDISCOVERY_ERROR (*ARDISCOVERY_Connection_Callback_t) (void *customData, uint8_t* dataRxPtr, uint32_t* dataRxSize, uint8_t* dataTxPtr, uint32_t* dataTxSize, uint8_t* ipAddr);
+
+/**
+ * @brief Structures to allow data sharing across connection process
  */
 typedef struct ARDISCOVERY_Connection_ConnectionData_t ARDISCOVERY_Connection_ConnectionData_t;
 
-struct ARDISCOVERY_Connection_ConnectionData_t
-{
-    /* Negotiation fields */
-    ARDISCOVERY_Connection_ComData_t TxData;    //
-    ARDISCOVERY_Connection_ComData_t RxData;    //
-    eARDISCOVERY_STATE state;                   // Connection state
-    uint8_t* tempIP;                            // Device IP we're currently negociating with
-    eARDISCOVERY_ERROR (*dataCallback)(ARDISCOVERY_Connection_ConnectionData_t* data);
+/*
+ * @brief Create and initialize connection data
+ * @param[in] callback Connection data management callback
+ * @param[in] customData custom data
+ * @param[in] errorPtr Error code
+ * @return new connection data object
+ */
+ARDISCOVERY_Connection_ConnectionData_t* ARDISCOVERY_Connection_New(ARDISCOVERY_Connection_Callback_t callback, void* customData, eARDISCOVERY_ERROR* errorPtr);
 
-    /* Final data fields */
-    uint32_t d2cPort; // inbound                           // UDP connection device -> controller (known from device config)
-    uint32_t c2dPort; //outboundPort;                           // UDP connection controller -> device (got from controller)
-    uint8_t* IP;                                // IP from the one we're connected to
+/*
+ * @brief Initialize connection
+ * @param[in] connectionData Connection data
+ * @param[in] initAs Device/Controller init flag
+ * @param[in] ipAddr device IP address
+ * @return error during execution
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_Connection_Open(ARDISCOVERY_Connection_ConnectionData_t* connectionData, uint32_t initAs, uint8_t* ipAddr);
 
-};
-
-eARDISCOVERY_ERROR ARDISCOVERY_Connection_Open(ARDISCOVERY_Connection_ConnectionData_t* connectionData);
-
+/*
+ * @brief Receive frames on TCP socket and handle them
+ * @param[in] connectionData Connection data
+ */
 void ARDISCOVERY_Connection_ReceptionHandler(void* connectionData);
 
-eARDISCOVERY_ERROR ARDISCOVERY_Connection_Sending(ARDISCOVERY_Connection_ConnectionData_t* connectionData);
-
+/*
+ * @brief Close connection
+ * @param[in] connectionData Connection data
+ */
 void ARDISCOVERY_Connection_Close(ARDISCOVERY_Connection_ConnectionData_t* connectionData);
+
+/*
+ * @brief Free data structures
+ * @param[in] connectionData Connection data
+ */
+void ARDISCOVERY_Connection_Delete(ARDISCOVERY_Connection_ConnectionData_t** connectionDataPtrAddr);
 
 #endif /* _ARDISCOVERY_CONNECTION_H_ */

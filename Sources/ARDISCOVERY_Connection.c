@@ -3,32 +3,94 @@
 #include <libARSAL/ARSAL_Print.h>
 #include <libARSAL/ARSAL_Socket.h>
 
-#include "libARDiscovery/ARDISCOVERY_Connection.h"
+#include <libARDiscovery/ARDISCOVERY_Connection.h>
+#include "ARDISCOVERY_Connection.h"
 
 #define __ARDISCOVERY_CONNECTION_TAG__ "ARDISCOVERY_Connection"
 
 #define ERR(...)    ARSAL_PRINT(ARSAL_PRINT_ERROR, __ARDISCOVERY_CONNECTION_TAG__, __VA_ARGS__)
 #define SAY(...)    ARSAL_PRINT(ARSAL_PRINT_WARNING, __ARDISCOVERY_CONNECTION_TAG__, __VA_ARGS__)
 
+/*
+ * Private header
+ */
+
+/**
+ * @brief Bind TCP socket for receiving.
+ * On device, port is self known and listening is done first.
+ * On controller, port is known once received from device.
+ * @param[in] TxData Transmission data
+ * @param[in] ipAddr IP to connect to
+ * @return error during execution
+ */
 static eARDISCOVERY_ERROR ARDISCOVERY_Connection_InitTx(ARDISCOVERY_Connection_ComData_t* TxData, uint8_t* ipAddr);
+
+/**
+ * @brief Connect TCP socket for sending
+ * On controller, port is self known and connecting is done first.
+ * On device, port is known once received from controller.
+ * @param[in] RxData Reception data
+ * @param[in] ipAddr IP to connect to
+ * @return error during execution
+ */
 static eARDISCOVERY_ERROR ARDISCOVERY_Connection_InitRx(ARDISCOVERY_Connection_ComData_t* RxData, uint8_t* ipAddr);
 
-/*
- * Initialize com data, state and connections
+/**
+ * @brief Manage action regarding current connection state
+ * @param[in] connectionData connection data
+ * @param[in] ipAddr IP address of current negociation
+ * @return error during execution
  */
-eARDISCOVERY_ERROR ARDISCOVERY_Connection_Open(ARDISCOVERY_Connection_ConnectionData_t* connectionData)
+static eARDISCOVERY_ERROR ARDISCOVERY_Connection_StateMachine(ARDISCOVERY_Connection_ConnectionData_t* connectionData, uint8_t* ipAddr);
+
+/**
+ * @brief Send a connection frame
+ * @param[in] TxData Data to send
+ * @param[in] ipAddr IP address to connect to
+ * @return error during execution
+ */
+static eARDISCOVERY_ERROR ARDISCOVERY_Connection_Sending(ARDISCOVERY_Connection_ComData_t* TxData, uint8_t* ipAddr);
+
+/*
+ * Implementation
+ */
+
+ARDISCOVERY_Connection_ConnectionData_t* ARDISCOVERY_Connection_New(ARDISCOVERY_Connection_Callback_t callback, void* customData, eARDISCOVERY_ERROR* errorPtr)
 {
+    /*
+     * Create and initialize connection data
+     */
+    ARDISCOVERY_Connection_ConnectionData_t *connectionData = NULL;
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
 
-    /* Allocate IP, if not already */
-    if (error == ARDISCOVERY_OK)
+    connectionData = malloc(sizeof(ARDISCOVERY_Connection_ConnectionData_t));
+    if (connectionData != NULL)
     {
-        if (connectionData->IP == NULL)
+        connectionData->callback = callback;
+        connectionData->customData = customData;
+        connectionData->state = ARDISCOVERY_STATE_NONE;
+
+        /* Allocate reception buffer */
+        if (error == ARDISCOVERY_OK)
         {
-            connectionData->IP = (uint8_t*) malloc(sizeof(uint8_t) * 16);
-            if (connectionData->IP != NULL)
+            connectionData->RxData.buffer = (uint8_t *) malloc(sizeof(uint8_t) * ARDISCOVERY_CONNECTION_RX_BUFFER_SIZE);
+            if (connectionData->RxData.buffer != NULL)
             {
-                connectionData->IP[0] = '\0';
+                connectionData->RxData.size = 0;
+            }
+            else
+            {
+                error = ARDISCOVERY_ERROR_ALLOC;
+            }
+        }
+
+        /* Allocate transmission buffer */
+        if (error == ARDISCOVERY_OK)
+        {
+            connectionData->TxData.buffer = (uint8_t *) malloc(sizeof(uint8_t) * ARDISCOVERY_CONNECTION_TX_BUFFER_SIZE);
+            if (connectionData->TxData.buffer != NULL)
+            {
+                connectionData->TxData.size = 0;
             }
             else
             {
@@ -36,98 +98,104 @@ eARDISCOVERY_ERROR ARDISCOVERY_Connection_Open(ARDISCOVERY_Connection_Connection
             }
         }
     }
-
-    if (error == ARDISCOVERY_OK)
+    else
     {
-        if (connectionData->tempIP == NULL)
-        {
-            connectionData->tempIP = (uint8_t*) malloc(sizeof(uint8_t) * 16);
-            if (connectionData->tempIP != NULL)
-            {
-                connectionData->tempIP[0] = '\0';
-            }
-            else
-            {
-                error = ARDISCOVERY_ERROR_ALLOC;
-            }
-        }
+        error = ARDISCOVERY_ERROR_ALLOC;
     }
 
-    /* Allocate reception buffer */
-    if (error == ARDISCOVERY_OK)
+    /* Delete connection data if an error occurred */
+    if (error != ARDISCOVERY_OK)
     {
-        connectionData->RxData.buffer = (uint8_t *) malloc(sizeof(uint8_t) * ARDISCOVERY_CONNECTION_RX_BUFFER_SIZE);
-        if (connectionData->RxData.buffer != NULL)
-        {
-            connectionData->RxData.size = 0;
-        }
-        else
-        {
-            error = ARDISCOVERY_ERROR_ALLOC;
-        }
+        ERR("error: %s", ARDISCOVERY_Error_ToString (error));
+        ARDISCOVERY_Connection_Delete (&connectionData);
     }
 
-    /* Allocate transmission buffer */
-    if (error == ARDISCOVERY_OK)
+    if (errorPtr != NULL)
     {
-        connectionData->TxData.buffer = (uint8_t *) malloc(sizeof(uint8_t) * ARDISCOVERY_CONNECTION_TX_BUFFER_SIZE);
-        if (connectionData->TxData.buffer != NULL)
-        {
-            connectionData->TxData.size = 0;
-        }
-        else
-        {
-            error = ARDISCOVERY_ERROR_ALLOC;
-        }
+        *errorPtr = error;
+    }
+
+    return connectionData;
+}
+
+eARDISCOVERY_ERROR ARDISCOVERY_Connection_Open(ARDISCOVERY_Connection_ConnectionData_t* connectionData, uint32_t initAs, uint8_t* ipAddr)
+{
+    /*
+     * Initialize connection
+     */
+    eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
+
+    /* Check parameter */
+    if (connectionData == NULL)
+    {
+        ERR("Null parameter");
+        error = ARDISCOVERY_ERROR;
     }
 
     /* Connect As */
     if (error == ARDISCOVERY_OK)
     {
-        /* Device */
-        if (connectionData->RxData.port)
+        connectionData->RxData.port = ARDISCOVERY_CONNECTION_TCP_C2D_PORT;
+        connectionData->TxData.port = ARDISCOVERY_CONNECTION_TCP_D2C_PORT;
+
+        switch (initAs)
         {
-            SAY("Initiate connection as DEVICE");
-            error = ARDISCOVERY_Connection_InitRx(&connectionData->RxData, NULL);
-            if (error == ARDISCOVERY_OK)
+            case ARDISCOVERY_CONNECTION_INIT_AS_DEVICE:
             {
-                connectionData->state = ARDISCOVERY_STATE_WAITING;
+                /* Wait for any controller to contact us */
+                /* ipAddr should be null */
+                error = ARDISCOVERY_Connection_InitRx(&connectionData->RxData, ipAddr);
+                if (error == ARDISCOVERY_OK)
+                {
+                    connectionData->state = ARDISCOVERY_STATE_RX_PENDING;
+                }
+                break;
             }
-            else
+            case ARDISCOVERY_CONNECTION_INIT_AS_CONTROLLER:
             {
-                ERR("Initialization as DEVICE failed");
+                /* Start by contacting the device we're interested in */
+                error = ARDISCOVERY_Connection_InitTx(&connectionData->TxData, ipAddr);
+                if (error == ARDISCOVERY_OK)
+                {
+                    /* Send request */
+                    connectionData->state = ARDISCOVERY_STATE_TX_PENDING;
+                    error = ARDISCOVERY_Connection_StateMachine(connectionData, ipAddr);
+                }
+                break;
             }
-        }
-        /* Controller */
-        else
-        {
-            /* IP is known from device advertisement */
-            SAY("Initiate connection as CONTROLLER (DUMMY)");
-            error = ARDISCOVERY_Connection_InitTx(&connectionData->TxData, connectionData->tempIP);
-            if (error == ARDISCOVERY_OK)
+            default:
             {
-                /* Send connection request (callback knows from state) */
-                error = connectionData->dataCallback(connectionData);
-                /* Callback sets state to ARDISCOVERY_STATE_WAITING */
-                /* Callback starts reception thread */
+                error = ARDISCOVERY_ERROR_INIT;
+                break;
             }
         }
     }
 
-    return error;
+    if (error != ARDISCOVERY_OK)
+    {
+        ERR("error: %s", ARDISCOVERY_Error_ToString (error));
+    }
 
+    return error;
 }
 
-/*
- * Bind TCP socket for receiving
- * On device, port is self known and listening is done first.
- * On controller, port is known once received from device.
- */
 static eARDISCOVERY_ERROR ARDISCOVERY_Connection_InitRx(ARDISCOVERY_Connection_ComData_t* RxData, uint8_t* ipAddr)
 {
+    /*
+     * Bind TCP socket for receiving
+     * On device, port is self known and listening is done first.
+     * On controller, port is known once received from device.
+     */
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
     struct sockaddr_in recvSin;
     int errorBind, errorListen = 0;
+
+    /* Check parameters */
+    if (RxData == NULL)
+    {
+        ERR("Null parameter");
+        error = ARDISCOVERY_ERROR;
+    }
 
     /* Create TCP socket */
     if (error == ARDISCOVERY_OK)
@@ -165,6 +233,8 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_InitRx(ARDISCOVERY_Connection_C
 
         if (errorBind != 0)
         {
+            ERR("bind() failed: %s", strerror(errno));
+
             switch (errno)
             {
                 case EACCES:
@@ -181,6 +251,8 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_InitRx(ARDISCOVERY_Connection_C
 
         if (errorListen != 0)
         {
+            ERR("listen() failed: %s", strerror(errno));
+
             switch (errno)
             {
                 case EINVAL:
@@ -197,25 +269,29 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_InitRx(ARDISCOVERY_Connection_C
     return error;
 }
 
-/*
- * Connect TCP socket for sending
- * On controller, port is self known and connecting is done first.
- * On device, port is known once received from controller.
- */
 static eARDISCOVERY_ERROR ARDISCOVERY_Connection_InitTx(ARDISCOVERY_Connection_ComData_t* TxData, uint8_t* ipAddr)
 {
+    /*
+     * Connect TCP socket for sending
+     * On controller, port is self known and connecting is done first.
+     * On device, port is known once received from controller.
+     */
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
     struct sockaddr_in sendSin;
     int connectError;
+
+    /* Check parameters */
+    if (TxData == NULL || ipAddr == NULL)
+    {
+        ERR("Null parameter");
+        error = ARDISCOVERY_ERROR;
+    }
 
     /* Close socket if already existing */
     if (TxData->socket)
     {
         ARSAL_Socket_Close(TxData->socket);
     }
-
-    /* Init port */
-    TxData->port = ARDISCOVERY_CONNECTION_TCP_D2C_PORT;
 
     /* Create TCP socket */
     if (error == ARDISCOVERY_OK)
@@ -240,6 +316,8 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_InitTx(ARDISCOVERY_Connection_C
 
         if (connectError != 0)
         {
+            ERR("connect() failed: %s", strerror(errno));
+
             switch (errno)
             {
                 case EACCES:
@@ -256,11 +334,11 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_InitTx(ARDISCOVERY_Connection_C
     return error;
 }
 
-/*
- * Frame reception thread
- */
 void ARDISCOVERY_Connection_ReceptionHandler(void* data)
 {
+    /*
+     * Frame reception thread
+     */
     ARDISCOVERY_Connection_ConnectionData_t* connectionData = (ARDISCOVERY_Connection_ConnectionData_t*) data;
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
 
@@ -268,35 +346,28 @@ void ARDISCOVERY_Connection_ReceptionHandler(void* data)
     struct sockaddr_in clientAddr;
     int clientLen = sizeof(clientAddr);
 
-    if (connectionData->dataCallback == NULL)
+    if (connectionData->callback == NULL)
     {
         ERR("No callback defined for ARDiscovery use");
-        error = ARDISCOVERY_ERROR;
+        return;
+    }
+
+    if (connectionData->RxData.socket < 0)
+    {
+        ERR("No socket defined for reception");
+        return;
     }
 
     while (connectionData->state != ARDISCOVERY_STATE_STOP)
     {
         /* Wait for any incoming connection from controller */
-        clientSocket = ARSAL_Socket_Accept(connectionData->RxData.socket, (struct sockaddr*)&clientAddr, &clientLen);
+        clientSocket = ARSAL_Socket_Accept(connectionData->RxData.socket, (struct sockaddr*) &clientAddr, &clientLen);
 
         if (clientSocket < 0)
         {
-            switch (errno)
-            {
-                case EINTR:
-                    ERR("accept() operation was interrupted");
-                    break;
-
-                case EINVAL:
-                    ERR("listen() has not been called on the socket descriptor");
-                    break;
-
-                default:
-                    ERR("accept() failed");
-                    break;
-            }
-
+            ERR("accept() failed: %s", strerror(errno));
             error = ARDISCOVERY_ERROR_ACCEPT;
+            return;
         }
 
         if (error == ARDISCOVERY_OK)
@@ -308,30 +379,121 @@ void ARDISCOVERY_Connection_ReceptionHandler(void* data)
             {
                 SAY("Received \"%s\" (%d) from %s", connectionData->RxData.buffer, connectionData->RxData.size, inet_ntoa(clientAddr.sin_addr));
 
-                /* This sender address is the one we negociate with */
-                strcpy(connectionData->tempIP, inet_ntoa(clientAddr.sin_addr));
-
-                /* Upper layer manages received data */
-                error = connectionData->dataCallback(connectionData);
+                /* Manage received data */
+                error = ARDISCOVERY_Connection_StateMachine(connectionData, inet_ntoa(clientAddr.sin_addr));
             }
         }
     }
 }
 
-/*
- * Frame sending
- */
-eARDISCOVERY_ERROR ARDISCOVERY_Connection_Sending(ARDISCOVERY_Connection_ConnectionData_t* connectionData)
+static eARDISCOVERY_ERROR ARDISCOVERY_Connection_StateMachine(ARDISCOVERY_Connection_ConnectionData_t* connectionData, uint8_t* ipAddr)
 {
+    /*
+     * Manage action regarding current connection state
+     */
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
 
+    if (connectionData->callback == NULL)
+    {
+        ERR("Null parameter");
+        error = ARDISCOVERY_ERROR;
+    }
+
+    if (error == ARDISCOVERY_OK)
+    {
+        switch (connectionData->state)
+        {
+            case ARDISCOVERY_STATE_RX_PENDING:
+            {
+                /* Controller : Wainting for Device response
+                 * Device : Listening to anyone */
+
+                /* Manage received data, may get some Tx data */
+                error = connectionData->callback(connectionData->customData,
+                        connectionData->RxData.buffer, &connectionData->RxData.size,
+                        connectionData->TxData.buffer, &connectionData->TxData.size,
+                        ipAddr);
+
+                if (error == ARDISCOVERY_OK)
+                {
+                    /* We may have something to send (case of device responding) */
+                    if (connectionData->TxData.size != 0)
+                    {
+                        error = ARDISCOVERY_Connection_Sending(&connectionData->TxData, ipAddr);
+                    }
+                    /* Or not (case of controller connecting) */
+                }
+                break;
+            }
+            case ARDISCOVERY_STATE_TX_PENDING:
+            {
+                /* Controller only */
+
+                /* Generate Tx data to connect to a device */
+                error = connectionData->callback(connectionData->customData,
+                        NULL, NULL,
+                        connectionData->TxData.buffer, &connectionData->TxData.size,
+                        NULL);
+
+                if (error == ARDISCOVERY_OK)
+                {
+                    if (connectionData->TxData.size != 0)
+                    {
+                        error = ARDISCOVERY_Connection_Sending(&connectionData->TxData, ipAddr);
+                    }
+                    /* Now wait for device response */
+                    if (error == ARDISCOVERY_OK)
+                    {
+                        connectionData->state = ARDISCOVERY_STATE_RX_PENDING;
+                    }
+                }
+                break;
+            }
+            default:
+            {
+                /* This should not happen */
+                ERR("Received data in state %d", connectionData->state);
+                break;
+            }
+        }
+    }
+
+    if (error != ARDISCOVERY_OK)
+    {
+        ERR("error: %s", ARDISCOVERY_Error_ToString (error));
+    }
+
+    return error;
+}
+
+static eARDISCOVERY_ERROR ARDISCOVERY_Connection_Sending(ARDISCOVERY_Connection_ComData_t* TxData, uint8_t* ipAddr)
+{
+    /*
+     * Send data
+     */
+    eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
+
+    /* Check parameters */
+    if (TxData == NULL || ipAddr == NULL)
+    {
+        ERR("Null parameter");
+        error = ARDISCOVERY_ERROR;
+    }
+
     /* Open Tx connection */
-    error = ARDISCOVERY_Connection_InitTx(&connectionData->TxData, connectionData->tempIP);
+    if (error == ARDISCOVERY_OK)
+    {
+        error = ARDISCOVERY_Connection_InitTx(TxData, ipAddr);
+    }
 
     if (error == ARDISCOVERY_OK)
     {
         /* Send content */
-        write(connectionData->TxData.socket, connectionData->TxData.buffer, strlen(connectionData->TxData.buffer));
+        if (write(TxData->socket, TxData->buffer, TxData->size) < 0)
+        {
+            ERR("Could not write data");
+            error = ARDISCOVERY_ERROR_SEND;
+        }
     }
     else
     {
@@ -341,30 +503,45 @@ eARDISCOVERY_ERROR ARDISCOVERY_Connection_Sending(ARDISCOVERY_Connection_Connect
     return error;
 }
 
-/*
- * Free data and stop reception
- */
 void ARDISCOVERY_Connection_Close(ARDISCOVERY_Connection_ConnectionData_t* connectionData)
 {
+    /*
+     * Stop reception
+     */
     connectionData->state = ARDISCOVERY_STATE_STOP;
 
     ARSAL_Socket_Close(connectionData->TxData.socket);
-    if (connectionData->TxData.buffer)
-    {
-        free(connectionData->TxData.buffer);
-        connectionData->TxData.buffer = NULL;
-    }
-
     ARSAL_Socket_Close(connectionData->RxData.socket);
-    if (connectionData->RxData.buffer)
-    {
-        free(connectionData->RxData.buffer);
-        connectionData->RxData.buffer = NULL;
-    }
+}
 
-    if (connectionData->IP)
+void ARDISCOVERY_Connection_Delete(ARDISCOVERY_Connection_ConnectionData_t** connectionDataPtrAddr)
+{
+    /*
+     * Free connection data
+     */
+    ARDISCOVERY_Connection_ConnectionData_t *connectionDataPtr = NULL;
+
+    if (connectionDataPtrAddr)
     {
-        free(connectionData->IP);
-        connectionData->IP = NULL;
+        connectionDataPtr = *connectionDataPtrAddr;
+
+        if (connectionDataPtr)
+        {
+            if (connectionDataPtr->TxData.buffer)
+            {
+                free(connectionDataPtr->TxData.buffer);
+                connectionDataPtr->TxData.buffer = NULL;
+            }
+            if (connectionDataPtr->RxData.buffer)
+            {
+                free(connectionDataPtr->RxData.buffer);
+                connectionDataPtr->RxData.buffer = NULL;
+            }
+
+            free (connectionDataPtr);
+            connectionDataPtr = NULL;
+        }
+
+        *connectionDataPtrAddr = NULL;
     }
 }
