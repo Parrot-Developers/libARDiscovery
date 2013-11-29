@@ -40,7 +40,7 @@ static void ARDISCOVERY_AvahiDiscovery_ClientCb(AvahiClient* c, AvahiClientState
  * Implementation
  */
 
-ARDISCOVERY_AvahiDiscovery_ServiceData_t* ARDISCOVERY_AvahiDiscovery_New(uint8_t* serviceName, uint8_t* serviceType, eARDISCOVERY_ERROR* errorPtr)
+ARDISCOVERY_AvahiDiscovery_ServiceData_t* ARDISCOVERY_AvahiDiscovery_New(uint8_t* serviceName, uint8_t* serviceType, uint32_t publishedPort, eARDISCOVERY_ERROR* errorPtr)
 {
     /*
      * Create and initialize discovery data
@@ -62,7 +62,7 @@ ARDISCOVERY_AvahiDiscovery_ServiceData_t* ARDISCOVERY_AvahiDiscovery_New(uint8_t
             /* Init Avahi data */
             serviceData->entryGroup = NULL;
             serviceData->simplePoll = NULL;
-            serviceData->devicePort = ARDISCOVERY_AVAHIDISCOVERY_DEFAULT_PUBLISHED_PORT;
+            serviceData->devicePort = publishedPort;
 
             /* Set Service Type */
             if (error == ARDISCOVERY_OK)

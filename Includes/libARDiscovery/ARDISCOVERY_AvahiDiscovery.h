@@ -7,8 +7,6 @@
  * @brief Default service parameters
  */
 #define ARDISCOVERY_AVAHIDISCOVERY_DEFAULT_NETWORK "local"
-#define ARDISCOVERY_AVAHIDISCOVERY_DEFAULT_PUBLISHED_PORT 43210
-#define ARDISCOVERY_AVAHIDISCOVERY_DEFAULT_CONTROLLER_PORT 54321
 
 /**
  * @brief Structures to allow data sharing across discovery process
@@ -22,7 +20,7 @@ typedef struct ARDISCOVERY_AvahiDiscovery_ServiceData_t ARDISCOVERY_AvahiDiscove
  * @param[in] errorPtr Error during execution
  * @return Pointer to allocated service data
  */
-ARDISCOVERY_AvahiDiscovery_ServiceData_t* ARDISCOVERY_AvahiDiscovery_New(uint8_t* serviceName, uint8_t* serviceType, eARDISCOVERY_ERROR* errorPtr);
+ARDISCOVERY_AvahiDiscovery_ServiceData_t* ARDISCOVERY_AvahiDiscovery_New(uint8_t* serviceName, uint8_t* serviceType, uint32_t publishedPort, eARDISCOVERY_ERROR* errorPtr);
 
 /**
  * @brief Start Avahi process of service advertisement
