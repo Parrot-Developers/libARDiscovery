@@ -59,8 +59,8 @@ public class ARDiscoveryService extends Service
      */
     public static final String kARDiscoveryServiceNotificationServicesDevicesListUpdated = "kARDiscoveryServiceNotificationServicesDevicesListUpdated";
     
-    public static final String ARDISCOVERY_ARDRONE3_SERVICE_TYPE = "_arsdk-mk3._udp.local.";
-    public static final String ARDISCOVERY_JPSUMO_SERVICE_TYPE = "_arsdk-js._udp.local.";
+    public static final String ARDISCOVERY_ARDRONE3_SERVICE_TYPE = "_arsdk-0901._udp.local.";
+    public static final String ARDISCOVERY_JPSUMO_SERVICE_TYPE = "_arsdk-0902._udp.local.";
     
     private HashMap<String, Intent> intentCache;
     
