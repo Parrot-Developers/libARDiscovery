@@ -136,13 +136,13 @@ eARDISCOVERY_ERROR ARDISCOVERY_Connection_Open(ARDISCOVERY_Connection_Connection
     /* Connect As */
     if (error == ARDISCOVERY_OK)
     {
-        connectionData->RxData.port = ARDISCOVERY_CONNECTION_TCP_C2D_PORT;
-        connectionData->TxData.port = ARDISCOVERY_CONNECTION_TCP_D2C_PORT;
 
         switch (initAs)
         {
             case ARDISCOVERY_CONNECTION_INIT_AS_DEVICE:
             {
+                connectionData->RxData.port = ARDISCOVERY_CONNECTION_TCP_C2D_PORT;
+                connectionData->TxData.port = ARDISCOVERY_CONNECTION_TCP_D2C_PORT;
                 /* Wait for any controller to contact us */
                 /* ipAddr should be null */
                 error = ARDISCOVERY_Connection_InitRx(&connectionData->RxData, ipAddr);
@@ -154,6 +154,8 @@ eARDISCOVERY_ERROR ARDISCOVERY_Connection_Open(ARDISCOVERY_Connection_Connection
             }
             case ARDISCOVERY_CONNECTION_INIT_AS_CONTROLLER:
             {
+                connectionData->TxData.port = ARDISCOVERY_CONNECTION_TCP_C2D_PORT;
+                connectionData->RxData.port = ARDISCOVERY_CONNECTION_TCP_D2C_PORT;
                 /* Start by contacting the device we're interested in */
                 error = ARDISCOVERY_Connection_InitTx(&connectionData->TxData, ipAddr);
                 if (error == ARDISCOVERY_OK)
