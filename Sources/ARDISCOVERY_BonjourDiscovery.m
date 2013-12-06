@@ -72,6 +72,7 @@
 #pragma mark - Object properly created
 @property (nonatomic) BOOL isNSNetDiscovering;
 @property (nonatomic) BOOL isCBDiscovering;
+@property (nonatomic) BOOL askForCBDiscovering;
 @end
 
 #pragma mark Implementation
@@ -88,6 +89,7 @@
 @synthesize valid;
 @synthesize centralManager;
 @synthesize centralManagerInitialized;
+@synthesize askForCBDiscovering;
 @synthesize isNSNetDiscovering;
 @synthesize isCBDiscovering;
 
@@ -139,6 +141,7 @@
             _sharedInstance.centralManager = [[CBCentralManager alloc] initWithDelegate:_sharedInstance queue:nil];
             _sharedInstance.isNSNetDiscovering = NO;
             _sharedInstance.isCBDiscovering = NO;
+            _sharedInstance.askForCBDiscovering = NO;
         });
 
     return _sharedInstance;
@@ -223,13 +226,20 @@
         isNSNetDiscovering = YES;
     }
     
-    if (centralManagerInitialized && !isCBDiscovering)
+    if(!isCBDiscovering)
     {
-        /**
-         * Start CoreBluetooth discovery
-         */
-        [centralManager scanForPeripheralsWithServices:nil options:[NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:YES], CBCentralManagerScanOptionAllowDuplicatesKey, nil]];
-        isCBDiscovering = YES;
+        if (centralManagerInitialized)
+        {
+            /**
+             * Start CoreBluetooth discovery
+             */
+            [centralManager scanForPeripheralsWithServices:nil options:[NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:YES], CBCentralManagerScanOptionAllowDuplicatesKey, nil]];
+            isCBDiscovering = YES;
+        }
+        else
+        {
+            askForCBDiscovering = YES;
+        }
     }
 }
 
@@ -481,6 +491,11 @@
         case CBCentralManagerStatePoweredOn:
             NSLog(@"%@ CBCentralManagerStatePoweredOn", sNewState);
             centralManagerInitialized = YES;
+            if(askForCBDiscovering)
+            {
+                askForCBDiscovering = NO;
+                [self start];
+            }
             break;
             
         case CBCentralManagerStateResetting:
