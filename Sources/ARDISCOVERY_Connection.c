@@ -1,4 +1,5 @@
 #include <errno.h>
+#include <stdlib.h>
 
 #include <libARSAL/ARSAL_Print.h>
 #include <libARSAL/ARSAL_Socket.h>
@@ -224,7 +225,7 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_InitRx(ARDISCOVERY_Connection_C
         }
         else
         {
-            recvSin.sin_addr.s_addr = inet_addr(ipAddr);
+            recvSin.sin_addr.s_addr = inet_addr((const char *)ipAddr);
         }
         recvSin.sin_family = AF_INET;
         recvSin.sin_port = htons(RxData->port);
@@ -308,7 +309,7 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_InitTx(ARDISCOVERY_Connection_C
     {
         /* Server side (device) : connect to the controller we chose to respond */
         /* Client side (controller) : connect to the device we chose into list */
-        sendSin.sin_addr.s_addr = inet_addr(ipAddr);
+        sendSin.sin_addr.s_addr = inet_addr((const char *)ipAddr);
         sendSin.sin_family = AF_INET;
         sendSin.sin_port = htons(TxData->port);
 
@@ -344,7 +345,7 @@ void ARDISCOVERY_Connection_ReceptionHandler(void* data)
 
     int clientSocket = 0;
     struct sockaddr_in clientAddr;
-    int clientLen = sizeof(clientAddr);
+    socklen_t clientLen = sizeof(clientAddr);
 
     if (connectionData->callback == NULL)
     {
@@ -380,7 +381,7 @@ void ARDISCOVERY_Connection_ReceptionHandler(void* data)
                 SAY("Received \"%s\" (%d) from %s", connectionData->RxData.buffer, connectionData->RxData.size, inet_ntoa(clientAddr.sin_addr));
 
                 /* Manage received data */
-                error = ARDISCOVERY_Connection_StateMachine(connectionData, inet_ntoa(clientAddr.sin_addr));
+                error = ARDISCOVERY_Connection_StateMachine(connectionData, (uint8_t *)inet_ntoa(clientAddr.sin_addr));
             }
         }
     }

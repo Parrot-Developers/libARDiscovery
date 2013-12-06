@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <libARSAL/ARSAL_Print.h>
 
@@ -70,7 +71,7 @@ ARDISCOVERY_AvahiDiscovery_ServiceData_t* ARDISCOVERY_AvahiDiscovery_New(uint8_t
                 serviceData->serviceType = (uint8_t *) malloc(sizeof(uint8_t) * ARDISCOVERY_AVAHIDISCOVERY_SERVICETYPE_SIZE);
                 if (serviceData->serviceType != NULL)
                 {
-                    strcpy(serviceData->serviceType, serviceType);
+                    strcpy((char *)serviceData->serviceType, (char *)serviceType);
                 }
                 else
                 {
@@ -84,7 +85,7 @@ ARDISCOVERY_AvahiDiscovery_ServiceData_t* ARDISCOVERY_AvahiDiscovery_New(uint8_t
                 serviceData->serviceName = (uint8_t *) malloc(sizeof(uint8_t) * ARDISCOVERY_AVAHIDISCOVERY_SERVICENAME_SIZE);
                 if (serviceData->serviceName != NULL)
                 {
-                    strcpy(serviceData->serviceName, serviceName);
+                    strcpy((char *)serviceData->serviceName, (char *)serviceName);
                 }
                 else
                 {
@@ -115,11 +116,11 @@ static uint8_t* ARDISCOVERY_AvahiDiscovery_BuildName(void)
      * Get hostname and build the final name
      */
     uint8_t hostname[HOST_NAME_MAX + 1]; /* POSIX hostname max length + the null terminating byte. */
-    int error = gethostname(hostname, sizeof(hostname));
+    int error = gethostname((char *)hostname, sizeof(hostname));
     if (error == 0)
     {
         hostname[sizeof(hostname) - 1] = '\0';
-        return strdup(hostname);
+        return (uint8_t *)strdup((const char *)hostname);
     }
     return NULL;
 }
@@ -140,38 +141,38 @@ static void ARDISCOVERY_AvahiDiscovery_EntryGroupCb(AvahiEntryGroup* g, AvahiEnt
     /* Called whenever the entry group state changes */
     switch (state)
     {
-        case AVAHI_ENTRY_GROUP_ESTABLISHED:
-        {
-            /* The entry group has been established successfully */
-            SAY("Service '%s' successfully established.", serviceData->serviceName);
-            break;
-        }
-        case AVAHI_ENTRY_GROUP_COLLISION:
-        {
-            /* A service name collision happened. Let's pick a new name */
-            char* n = avahi_alternative_service_name(serviceData->serviceName);
-            avahi_free(serviceData->serviceName);
-            serviceData->serviceName = n;
+    case AVAHI_ENTRY_GROUP_ESTABLISHED:
+    {
+        /* The entry group has been established successfully */
+        SAY("Service '%s' successfully established.", serviceData->serviceName);
+        break;
+    }
+    case AVAHI_ENTRY_GROUP_COLLISION:
+    {
+        /* A service name collision happened. Let's pick a new name */
+        char* n = avahi_alternative_service_name((const char *)serviceData->serviceName);
+        avahi_free(serviceData->serviceName);
+        serviceData->serviceName = (uint8_t *)n;
 
-            ERR("Service name collision, renaming service to '%s'", serviceData->serviceName);
+        ERR("Service name collision, renaming service to '%s'", serviceData->serviceName);
 
-            /* And recreate the services */
-            ARDISCOVERY_AvahiDiscovery_CreateService(avahi_entry_group_get_client(g), serviceData);
-            break;
-        }
+        /* And recreate the services */
+        ARDISCOVERY_AvahiDiscovery_CreateService(avahi_entry_group_get_client(g), serviceData);
+        break;
+    }
 
-        case AVAHI_ENTRY_GROUP_FAILURE:
-        {
-            ERR( "Entry group failure: %s", avahi_strerror(avahi_client_errno(avahi_entry_group_get_client(g))));
+    case AVAHI_ENTRY_GROUP_FAILURE:
+    {
+        ERR( "Entry group failure: %s", avahi_strerror(avahi_client_errno(avahi_entry_group_get_client(g))));
 
-            /* Some kind of failure happened while we were registering our services */
-            avahi_simple_poll_quit(serviceData->simplePoll);
-            break;
-        }
-        case AVAHI_ENTRY_GROUP_UNCOMMITED:
-        case AVAHI_ENTRY_GROUP_REGISTERING:
-        default:
-            break;
+        /* Some kind of failure happened while we were registering our services */
+        avahi_simple_poll_quit(serviceData->simplePoll);
+        break;
+    }
+    case AVAHI_ENTRY_GROUP_UNCOMMITED:
+    case AVAHI_ENTRY_GROUP_REGISTERING:
+    default:
+        break;
     }
 }
 
@@ -205,8 +206,8 @@ static eARDISCOVERY_ERROR ARDISCOVERY_AvahiDiscovery_CreateService(AvahiClient* 
     if (error == ARDISCOVERY_OK)
     {
         /* Add the service for AR.Drone */
-        ret = avahi_entry_group_add_service(serviceData->entryGroup, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC, 0, serviceData->serviceName,
-                serviceData->serviceType, ARDISCOVERY_AVAHIDISCOVERY_DEFAULT_NETWORK, NULL, serviceData->devicePort, NULL, NULL);
+        ret = avahi_entry_group_add_service(serviceData->entryGroup, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC, 0, (const char *)serviceData->serviceName,
+                                            (const char *)serviceData->serviceType, ARDISCOVERY_AVAHIDISCOVERY_DEFAULT_NETWORK, NULL, serviceData->devicePort, NULL, NULL);
         if (ret < 0)
         {
             error = ARDISCOVERY_ERROR_ADD_SERVICE;
@@ -239,7 +240,6 @@ static void ARDISCOVERY_AvahiDiscovery_ClientCb(AvahiClient* c, AvahiClientState
      * Called whenever the client or server state changes
      */
     ARDISCOVERY_AvahiDiscovery_ServiceData_t* serviceData = (ARDISCOVERY_AvahiDiscovery_ServiceData_t*) userdata;
-    eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
 
     if (c == NULL || serviceData == NULL)
     {
@@ -249,43 +249,43 @@ static void ARDISCOVERY_AvahiDiscovery_ClientCb(AvahiClient* c, AvahiClientState
 
     switch (state)
     {
-        case AVAHI_CLIENT_S_RUNNING:
+    case AVAHI_CLIENT_S_RUNNING:
+    {
+        /* The server has startup successfully and registered its host
+         * name on the network, so it's time to create our services */
+        if (!serviceData->entryGroup)
         {
-            /* The server has startup successfully and registered its host
-             * name on the network, so it's time to create our services */
-            if (!serviceData->entryGroup)
-            {
-                error = ARDISCOVERY_AvahiDiscovery_CreateService(c, serviceData);
-            }
-            break;
+            ARDISCOVERY_AvahiDiscovery_CreateService(c, serviceData);
         }
-        case AVAHI_CLIENT_FAILURE:
+        break;
+    }
+    case AVAHI_CLIENT_FAILURE:
+    {
+        ERR("Client failure: %s", avahi_strerror(avahi_client_errno(c)));
+        avahi_simple_poll_quit(serviceData->simplePoll);
+        break;
+    }
+    case AVAHI_CLIENT_S_COLLISION:
+    {
+        /* Let's drop our registered services. When the server is back
+         * in AVAHI_SERVER_RUNNING state we will register them
+         * again with the new host name. */
+    }
+    case AVAHI_CLIENT_S_REGISTERING:
+    {
+        /* The server records are now being established. This
+         * might be caused by a host name change. We need to wait
+         * for our own records to register until the host name is
+         * properly esatblished. */
+        if (serviceData->entryGroup)
         {
-            ERR("Client failure: %s", avahi_strerror(avahi_client_errno(c)));
-            avahi_simple_poll_quit(serviceData->simplePoll);
-            break;
+            avahi_entry_group_reset(serviceData->entryGroup);
         }
-        case AVAHI_CLIENT_S_COLLISION:
-        {
-            /* Let's drop our registered services. When the server is back
-             * in AVAHI_SERVER_RUNNING state we will register them
-             * again with the new host name. */
-        }
-        case AVAHI_CLIENT_S_REGISTERING:
-        {
-            /* The server records are now being established. This
-             * might be caused by a host name change. We need to wait
-             * for our own records to register until the host name is
-             * properly esatblished. */
-            if (serviceData->entryGroup)
-            {
-                avahi_entry_group_reset(serviceData->entryGroup);
-            }
-            break;
-        }
-        case AVAHI_CLIENT_CONNECTING:
-        default:
-            break;
+        break;
+    }
+    case AVAHI_CLIENT_CONNECTING:
+    default:
+        break;
     }
 }
 
@@ -293,7 +293,6 @@ void ARDISCOVERY_AvahiDiscovery_Publish(ARDISCOVERY_AvahiDiscovery_ServiceData_t
 {
     AvahiClient *client = NULL;
     int avahiError;
-    int shouldTerminate = 0;
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
 
     if (serviceData == NULL)
@@ -326,7 +325,7 @@ void ARDISCOVERY_AvahiDiscovery_Publish(ARDISCOVERY_AvahiDiscovery_ServiceData_t
     {
         /* Allocate a new client */
         client = avahi_client_new(avahi_simple_poll_get(serviceData->simplePoll), 0, ARDISCOVERY_AvahiDiscovery_ClientCb, serviceData, &avahiError);
-        if (client = NULL)
+        if (client == NULL)
         {
             ERR("Failed to create client: %s\n", avahi_strerror(avahiError));
             error = ARDISCOVERY_ERROR_CLIENT;
