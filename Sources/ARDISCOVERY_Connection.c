@@ -157,7 +157,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_Connection_Open(ARDISCOVERY_Connection_Connection
                 connectionData->TxData.port = ARDISCOVERY_CONNECTION_TCP_C2D_PORT;
                 connectionData->RxData.port = ARDISCOVERY_CONNECTION_TCP_D2C_PORT;
                 /* Start by contacting the device we're interested in */
-                error = ARDISCOVERY_Connection_InitTx(&connectionData->TxData, ipAddr);
+                error = ARDISCOVERY_Connection_InitRx(&connectionData->RxData, NULL);
                 if (error == ARDISCOVERY_OK)
                 {
                     /* Send request */
@@ -380,7 +380,7 @@ void ARDISCOVERY_Connection_ReceptionHandler(void* data)
 
             if (connectionData->RxData.size > 0)
             {
-                SAY("Received \"%s\" (%d) from %s", connectionData->RxData.buffer, connectionData->RxData.size, inet_ntoa(clientAddr.sin_addr));
+                //SAY("Received \"%s\" (%d) from %s", connectionData->RxData.buffer, connectionData->RxData.size, inet_ntoa(clientAddr.sin_addr));
 
                 /* Manage received data */
                 error = ARDISCOVERY_Connection_StateMachine(connectionData, (uint8_t *)inet_ntoa(clientAddr.sin_addr));
