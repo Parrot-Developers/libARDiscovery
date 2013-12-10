@@ -10,8 +10,8 @@
 #import <libARDiscovery/ARDISCOVERY_Discovery.h>
 #import <netdb.h>
 
-#define kServiceNetControllerType                   @"_arsdk-ff3._udp."
-#define kServiceNetDomain                           @"local."
+#define kServiceNetControllerType                   @"_arsdk-ff3._udp"
+#define kServiceNetDomain                           @"local"
 
 #define ARBLESERVICE_BLE_MANUFACTURER_DATA_LENGTH   8
 #define ARBLESERVICE_PARROT_BT_VENDOR_ID            0X0043  // Parrot Company ID registered by Bluetooth SIG (Bluetooth Specification v4.0 Requirement)
@@ -211,6 +211,7 @@
 
 - (void)start
 {
+    NSLog(@"%s:%d", __FUNCTION__, __LINE__);
     if (!isNSNetDiscovering)
     {
         /**
@@ -220,7 +221,7 @@
         for (int i = 0; i < [devicesServiceBrowsers count]; ++i)
         {
             NSNetServiceBrowser *browser = [devicesServiceBrowsers objectAtIndex:i];
-            [browser searchForServicesOfType:[NSString stringWithFormat:kServiceNetDeviceFormat, ARDISCOVERY_getProductID(i)] inDomain:kServiceNetDomain];
+            [browser searchForServicesOfType:[NSString stringWithFormat:kServiceNetDeviceFormat, ARDISCOVERY_getProductID(ARDISCOVERY_PRODUCT_NSNETSERVICE + i)] inDomain:kServiceNetDomain];
         }
         
         isNSNetDiscovering = YES;
@@ -245,6 +246,7 @@
 
 - (void)stop
 {
+    NSLog(@"%s:%d", __FUNCTION__, __LINE__);
     if (isNSNetDiscovering)
     {
         /**
@@ -348,8 +350,24 @@
 }
 
 #pragma mark - NSNetServiceBrowser Delegate
+- (void)netServiceBrowser:(NSNetServiceBrowser *)aNetServiceBrowser didNotSearch:(NSDictionary *)errorDict
+{
+    NSLog(@"%s:%d => %@", __FUNCTION__, __LINE__, errorDict);
+}
+
+- (void)netServiceBrowserDidStopSearch:(NSNetServiceBrowser *)netServiceBrowser
+{
+    NSLog(@"%s:%d", __FUNCTION__, __LINE__);
+}
+
+- (void)netServiceBrowserWillSearch:(NSNetServiceBrowser *)netServiceBrowser
+{
+    NSLog(@"%s:%d", __FUNCTION__, __LINE__);
+}
+
 - (void)netServiceBrowser:(NSNetServiceBrowser *)aNetServiceBrowser didFindService:(NSNetService *)aNetService moreComing:(BOOL)moreComing
 {
+    NSLog(@"Service found : %@, %@", aNetService.name, aNetService.type);
     @synchronized (self)
     {
         ARService *aService = [[ARService alloc] init];
