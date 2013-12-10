@@ -139,38 +139,38 @@ eARDISCOVERY_ERROR ARDISCOVERY_Connection_Open(ARDISCOVERY_Connection_Connection
 
         switch (initAs)
         {
-            case ARDISCOVERY_CONNECTION_INIT_AS_DEVICE:
+        case ARDISCOVERY_CONNECTION_INIT_AS_DEVICE:
+        {
+            connectionData->RxData.port = ARDISCOVERY_CONNECTION_TCP_C2D_PORT;
+            connectionData->TxData.port = ARDISCOVERY_CONNECTION_TCP_D2C_PORT;
+            /* Wait for any controller to contact us */
+            /* ipAddr should be null */
+            error = ARDISCOVERY_Connection_InitRx(&connectionData->RxData, ipAddr);
+            if (error == ARDISCOVERY_OK)
             {
-                connectionData->RxData.port = ARDISCOVERY_CONNECTION_TCP_C2D_PORT;
-                connectionData->TxData.port = ARDISCOVERY_CONNECTION_TCP_D2C_PORT;
-                /* Wait for any controller to contact us */
-                /* ipAddr should be null */
-                error = ARDISCOVERY_Connection_InitRx(&connectionData->RxData, ipAddr);
-                if (error == ARDISCOVERY_OK)
-                {
-                    connectionData->state = ARDISCOVERY_STATE_RX_PENDING;
-                }
-                break;
+                connectionData->state = ARDISCOVERY_STATE_RX_PENDING;
             }
-            case ARDISCOVERY_CONNECTION_INIT_AS_CONTROLLER:
+            break;
+        }
+        case ARDISCOVERY_CONNECTION_INIT_AS_CONTROLLER:
+        {
+            connectionData->TxData.port = ARDISCOVERY_CONNECTION_TCP_C2D_PORT;
+            connectionData->RxData.port = ARDISCOVERY_CONNECTION_TCP_D2C_PORT;
+            /* Start by contacting the device we're interested in */
+            error = ARDISCOVERY_Connection_InitRx(&connectionData->RxData, NULL);
+            if (error == ARDISCOVERY_OK)
             {
-                connectionData->TxData.port = ARDISCOVERY_CONNECTION_TCP_C2D_PORT;
-                connectionData->RxData.port = ARDISCOVERY_CONNECTION_TCP_D2C_PORT;
-                /* Start by contacting the device we're interested in */
-                error = ARDISCOVERY_Connection_InitRx(&connectionData->RxData, NULL);
-                if (error == ARDISCOVERY_OK)
-                {
-                    /* Send request */
-                    connectionData->state = ARDISCOVERY_STATE_TX_PENDING;
-                    error = ARDISCOVERY_Connection_StateMachine(connectionData, ipAddr);
-                }
-                break;
+                /* Send request */
+                connectionData->state = ARDISCOVERY_STATE_TX_PENDING;
+                error = ARDISCOVERY_Connection_StateMachine(connectionData, ipAddr);
             }
-            default:
-            {
-                error = ARDISCOVERY_ERROR_INIT;
-                break;
-            }
+            break;
+        }
+        default:
+        {
+            error = ARDISCOVERY_ERROR_INIT;
+            break;
+        }
         }
     }
 
@@ -240,13 +240,13 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_InitRx(ARDISCOVERY_Connection_C
 
             switch (errno)
             {
-                case EACCES:
-                    error = ARDISCOVERY_ERROR_SOCKET_PERMISSION_DENIED;
-                    break;
+            case EACCES:
+                error = ARDISCOVERY_ERROR_SOCKET_PERMISSION_DENIED;
+                break;
 
-                default:
-                    error = ARDISCOVERY_ERROR;
-                    break;
+            default:
+                error = ARDISCOVERY_ERROR;
+                break;
             }
         }
 
@@ -258,13 +258,13 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_InitRx(ARDISCOVERY_Connection_C
 
             switch (errno)
             {
-                case EINVAL:
-                    error = ARDISCOVERY_ERROR_SOCKET_ALREADY_CONNECTED;
-                    break;
+            case EINVAL:
+                error = ARDISCOVERY_ERROR_SOCKET_ALREADY_CONNECTED;
+                break;
 
-                default:
-                    error = ARDISCOVERY_ERROR;
-                    break;
+            default:
+                error = ARDISCOVERY_ERROR;
+                break;
             }
         }
     }
@@ -323,13 +323,13 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_InitTx(ARDISCOVERY_Connection_C
 
             switch (errno)
             {
-                case EACCES:
-                    error = ARDISCOVERY_ERROR_SOCKET_PERMISSION_DENIED;
-                    break;
+            case EACCES:
+                error = ARDISCOVERY_ERROR_SOCKET_PERMISSION_DENIED;
+                break;
 
-                default:
-                    error = ARDISCOVERY_ERROR;
-                    break;
+            default:
+                error = ARDISCOVERY_ERROR;
+                break;
             }
         }
     }
@@ -406,58 +406,58 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_StateMachine(ARDISCOVERY_Connec
     {
         switch (connectionData->state)
         {
-            case ARDISCOVERY_STATE_RX_PENDING:
+        case ARDISCOVERY_STATE_RX_PENDING:
+        {
+            /* Controller : Wainting for Device response
+             * Device : Listening to anyone */
+
+            /* Manage received data, may get some Tx data */
+            error = connectionData->callback(connectionData->customData,
+                                             connectionData->RxData.buffer, &connectionData->RxData.size,
+                                             connectionData->TxData.buffer, &connectionData->TxData.size,
+                                             ipAddr);
+
+            if (error == ARDISCOVERY_OK)
             {
-                /* Controller : Wainting for Device response
-                 * Device : Listening to anyone */
+                /* We may have something to send (case of device responding) */
+                if (connectionData->TxData.size != 0)
+                {
+                    error = ARDISCOVERY_Connection_Sending(&connectionData->TxData, ipAddr);
+                }
+                /* Or not (case of controller connecting) */
+            }
+            break;
+        }
+        case ARDISCOVERY_STATE_TX_PENDING:
+        {
+            /* Controller only */
 
-                /* Manage received data, may get some Tx data */
-                error = connectionData->callback(connectionData->customData,
-                        connectionData->RxData.buffer, &connectionData->RxData.size,
-                        connectionData->TxData.buffer, &connectionData->TxData.size,
-                        ipAddr);
+            /* Generate Tx data to connect to a device */
+            error = connectionData->callback(connectionData->customData,
+                                             NULL, NULL,
+                                             connectionData->TxData.buffer, &connectionData->TxData.size,
+                                             NULL);
 
+            if (error == ARDISCOVERY_OK)
+            {
+                if (connectionData->TxData.size != 0)
+                {
+                    error = ARDISCOVERY_Connection_Sending(&connectionData->TxData, ipAddr);
+                }
+                /* Now wait for device response */
                 if (error == ARDISCOVERY_OK)
                 {
-                    /* We may have something to send (case of device responding) */
-                    if (connectionData->TxData.size != 0)
-                    {
-                        error = ARDISCOVERY_Connection_Sending(&connectionData->TxData, ipAddr);
-                    }
-                    /* Or not (case of controller connecting) */
+                    connectionData->state = ARDISCOVERY_STATE_RX_PENDING;
                 }
-                break;
             }
-            case ARDISCOVERY_STATE_TX_PENDING:
-            {
-                /* Controller only */
-
-                /* Generate Tx data to connect to a device */
-                error = connectionData->callback(connectionData->customData,
-                        NULL, NULL,
-                        connectionData->TxData.buffer, &connectionData->TxData.size,
-                        NULL);
-
-                if (error == ARDISCOVERY_OK)
-                {
-                    if (connectionData->TxData.size != 0)
-                    {
-                        error = ARDISCOVERY_Connection_Sending(&connectionData->TxData, ipAddr);
-                    }
-                    /* Now wait for device response */
-                    if (error == ARDISCOVERY_OK)
-                    {
-                        connectionData->state = ARDISCOVERY_STATE_RX_PENDING;
-                    }
-                }
-                break;
-            }
-            default:
-            {
-                /* This should not happen */
-                ERR("Received data in state %d", connectionData->state);
-                break;
-            }
+            break;
+        }
+        default:
+        {
+            /* This should not happen */
+            ERR("Received data in state %d", connectionData->state);
+            break;
+        }
         }
     }
 
@@ -508,6 +508,10 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_Sending(ARDISCOVERY_Connection_
 
 void ARDISCOVERY_Connection_Close(ARDISCOVERY_Connection_ConnectionData_t* connectionData)
 {
+    if (connectionData == NULL)
+    {
+        return;
+    }
     /*
      * Stop reception
      */
@@ -524,11 +528,11 @@ void ARDISCOVERY_Connection_Delete(ARDISCOVERY_Connection_ConnectionData_t** con
      */
     ARDISCOVERY_Connection_ConnectionData_t *connectionDataPtr = NULL;
 
-    if (connectionDataPtrAddr)
+    if (connectionDataPtrAddr != NULL)
     {
         connectionDataPtr = *connectionDataPtrAddr;
 
-        if (connectionDataPtr)
+        if (connectionDataPtr != NULL)
         {
             if (connectionDataPtr->TxData.buffer)
             {

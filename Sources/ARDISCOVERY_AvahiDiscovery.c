@@ -363,6 +363,10 @@ void ARDISCOVERY_AvahiDiscovery_Publish(ARDISCOVERY_AvahiDiscovery_ServiceData_t
 
 void ARDISCOVERY_AvahiDiscovery_StopPublishing(ARDISCOVERY_AvahiDiscovery_ServiceData_t* serviceData)
 {
+    if (serviceData == NULL)
+    {
+        return;
+    }
     /*
      * Stop publishing service
      */
@@ -376,11 +380,11 @@ void ARDISCOVERY_AvahiDiscovery_Delete(ARDISCOVERY_AvahiDiscovery_ServiceData_t*
      */
     ARDISCOVERY_AvahiDiscovery_ServiceData_t *serviceDataPtr = NULL;
 
-    if (serviceDataPtrAddr)
+    if (serviceDataPtrAddr != NULL)
     {
         serviceDataPtr = *serviceDataPtrAddr;
 
-        if (serviceDataPtr)
+        if (serviceDataPtr != NULL)
         {
             ARDISCOVERY_AvahiDiscovery_StopPublishing(serviceDataPtr);
 
