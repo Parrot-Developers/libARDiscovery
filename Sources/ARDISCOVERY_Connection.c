@@ -214,6 +214,15 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_InitRx(ARDISCOVERY_Connection_C
         {
             error = ARDISCOVERY_ERROR_SOCKET_CREATION;
         }
+        else
+        {
+            int optval = 1;
+            if (setsockopt (RxData->socket, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval) != 0)
+            {
+                error = ARDISCOVERY_ERROR_SOCKET_PERMISSION_DENIED;
+            }
+        }
+
     }
 
     /* Init socket */
@@ -303,6 +312,14 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_InitTx(ARDISCOVERY_Connection_C
         if (TxData->socket < 0)
         {
             error = ARDISCOVERY_ERROR_SOCKET_CREATION;
+        }
+        else
+        {
+            int optval = 1;
+            if (setsockopt (TxData->socket, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval) != 0)
+            {
+                error = ARDISCOVERY_ERROR_SOCKET_PERMISSION_DENIED;
+            }
         }
     }
 
