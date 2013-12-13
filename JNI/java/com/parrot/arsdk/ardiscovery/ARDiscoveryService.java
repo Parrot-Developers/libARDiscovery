@@ -13,6 +13,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
@@ -47,6 +48,9 @@ public class ARDiscoveryService extends Service
 {
     private static String TAG = "ARDiscoveryService";
     
+    /* Native Functions */
+    private static native int nativeGetProductID (int product);
+    
     public enum eARDISCOVERY_SERVICE_EVENT_STATUS
     {
         ARDISCOVERY_SERVICE_EVENT_STATUS_ADD, 
@@ -59,13 +63,13 @@ public class ARDiscoveryService extends Service
      */
     public static final String kARDiscoveryServiceNotificationServicesDevicesListUpdated = "kARDiscoveryServiceNotificationServicesDevicesListUpdated";
     
-    public static final String ARDISCOVERY_ARDRONE3_SERVICE_TYPE = "_arsdk-0901._udp.local.";
-    public static final String ARDISCOVERY_JPSUMO_SERVICE_TYPE = "_arsdk-0902._udp.local.";
+    public static final String ARDISCOVERY_SERVICE_NET_DEVICE_FORMAT = "_arsdk-%04x._udp.local.";
     
     private HashMap<String, Intent> intentCache;
     
     private JmDNS mDNSManager;
     private ServiceListener mDNSListener;
+    private List<String> devicesServiceArray;
     
     private AsyncTask<Object, Object, Object> jmdnsCreatorAsyncTask;
     private Boolean inWifiConnection = false;
@@ -82,8 +86,6 @@ public class ARDiscoveryService extends Service
     /* BLE */
     private static final int ARDISCOVERY_BT_VENDOR_ID = 0x0043; /* Parrot Company ID registered by Bluetooth SIG (Bluetooth Specification v4.0 Requirement) */
     private static final int ARDISCOVERY_USB_VENDOR_ID = 0x19cf; /* official Parrot USB Vendor ID */
-    private static final int ARDISCOVERY_DELOS_USB_PRODUCT_ID = 0x0900; /* Delos USB Product ID */
-    private static final int ARDISCOVERY_DELOS_VERSION_ID = 0x0001;
 
     private Boolean bleIsAvalaible;
     private BluetoothAdapter bluetoothAdapter;
@@ -117,6 +119,17 @@ public class ARDiscoveryService extends Service
             e.printStackTrace();
         }
         hostAddress = nullAddress;
+        
+        /**
+         * devicesServiceArray init
+         */
+        devicesServiceArray = new ArrayList<String>();
+        for (int i = ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_NSNETSERVICE.getValue() ; i < ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_BLESERVICE.getValue(); ++i)
+        {
+            String devicesService = String.format (ARDISCOVERY_SERVICE_NET_DEVICE_FORMAT, nativeGetProductID(i));
+            
+            devicesServiceArray.add(devicesService);
+        }
         
         netDeviceServicesHmap = new HashMap<String, ARDiscoveryDeviceService> ();
         bleDeviceServicesHmap = new HashMap<String, ARDiscoveryDeviceService> ();
@@ -204,9 +217,14 @@ public class ARDiscoveryService extends Service
         {
             if (mDNSListener != null)
             {
-                ARSALPrint.d(TAG, "removeServiceListener");
-                mDNSManager.removeServiceListener(ARDISCOVERY_ARDRONE3_SERVICE_TYPE, mDNSListener);
-                mDNSManager.removeServiceListener(ARDISCOVERY_JPSUMO_SERVICE_TYPE, mDNSListener);
+                
+                /* remove the net service listeners */
+                for (String devicesService : devicesServiceArray)
+                {
+                    ARSALPrint.d(TAG,"removeServiceListener:" + devicesService);
+                    mDNSManager.removeServiceListener(devicesService, mDNSListener);
+                }
+
                 mDNSListener = null;
             }
             
@@ -377,6 +395,8 @@ public class ARDiscoveryService extends Service
     {
         ARSALPrint.d(TAG,"notificationServiceDeviceAdd");
         
+        int productID = 0;
+        
         /* get ip address */
         String ip = getServiceIP(serviceEvent);
         
@@ -385,12 +405,30 @@ public class ARDiscoveryService extends Service
             /* new ARDiscoveryDeviceNetService */
             ARDiscoveryDeviceNetService deviceNetService = new ARDiscoveryDeviceNetService(serviceEvent.getName(), serviceEvent.getType(), ip);
             
-            /* add the service in the array*/
-            ARDiscoveryDeviceService deviceService = new ARDiscoveryDeviceService (serviceEvent.getName(), deviceNetService);
-            netDeviceServicesHmap.put(deviceService.getName(), deviceService);
+            /* find device type */
+            for (int i = ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_NSNETSERVICE.getValue(); i < ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_BLESERVICE.getValue(); ++i)
+            {
+                if (deviceNetService.getType().equals(devicesServiceArray.get(i)))
+                {
+                    productID = nativeGetProductID(i);
+                    break;
+                }
+            }
             
-            /* broadcast the new deviceServiceList */
-            broadcastDeviceServiceArrayUpdated ();
+            if (productID != 0)
+            {
+                /* add the service in the array */
+                ARDiscoveryDeviceService deviceService = new ARDiscoveryDeviceService (serviceEvent.getName(), deviceNetService, productID);
+                netDeviceServicesHmap.put(deviceService.getName(), deviceService);
+                
+                /* broadcast the new deviceServiceList */
+                broadcastDeviceServiceArrayUpdated ();
+            }
+            else
+            {
+                ARSALPrint.d(TAG,"Found an unknown service : " + deviceNetService);
+            }
+            
         }
     }
     
@@ -578,10 +616,12 @@ public class ARDiscoveryService extends Service
         
         protected void onPostExecute(Object result)
         {
-            ARSALPrint.d(TAG,"addServiceListener: ARDRONE3_SERVICE_TYPE=" + ARDISCOVERY_ARDRONE3_SERVICE_TYPE);
-            mDNSManager.addServiceListener(ARDISCOVERY_ARDRONE3_SERVICE_TYPE, mDNSListener);
-            ARSALPrint.d(TAG,"addServiceListener: JPSUMO_SERVICE_TYPE=" + ARDISCOVERY_JPSUMO_SERVICE_TYPE);
-            mDNSManager.addServiceListener(ARDISCOVERY_JPSUMO_SERVICE_TYPE, mDNSListener);
+            /* add the net service listeners */
+            for (String devicesService : devicesServiceArray)
+            {
+                ARSALPrint.d(TAG,"addServiceListener:" + devicesService);
+                mDNSManager.addServiceListener(devicesService, mDNSListener);
+            }
         }
         
     }
@@ -617,8 +657,8 @@ public class ARDiscoveryService extends Service
     @TargetApi(18)
     private class BLEScanner
     {
-        private static final long ARDISCOVERY_BLE_SCAN_PERIOD = 20000;
-        private static final long ARDISCOVERY_BLE_SCAN_DURATION = 10000;
+        private static final long ARDISCOVERY_BLE_SCAN_PERIOD = 10000;
+        private static final long ARDISCOVERY_BLE_SCAN_DURATION = 5000;
         private boolean isStart;
         private boolean scanning;
         private Handler startBLEHandler;
@@ -672,7 +712,7 @@ public class ARDiscoveryService extends Service
             
         private void startScanLeDevice()
         {
-            ARSALPrint.w(TAG,"start scanLeDevice: bluetoothAdapter: " + bluetoothAdapter);
+            ARSALPrint.d(TAG,"start scanLeDevice: bluetoothAdapter: " + bluetoothAdapter);
 
             /* reset newDeviceServicesHmap */
             newBLEDeviceServicesHmap = new HashMap<String, ARDiscoveryDeviceService>();
@@ -687,24 +727,29 @@ public class ARDiscoveryService extends Service
             startBLEHandler.postDelayed (startScanningRunnable, ARDISCOVERY_BLE_SCAN_PERIOD);
         }
         
-        public void bleCallback( BluetoothDevice bleService, byte[] scanRecord)
+        public void bleCallback (BluetoothDevice bleService, byte[] scanRecord)
         {
             ARSALPrint.d(TAG,"bleCallback");
             
-            if (isParrotBLEDevice (scanRecord))
+            int productID = getParrotProductID (scanRecord);
+            
+            if (productID != 0)
              {
-                ARSALPrint.d(TAG,"add ble device name:" + bleService.getName());
-                
                 ARDiscoveryDeviceBLEService deviceBLEService = new ARDiscoveryDeviceBLEService(bleService);
                 
                 /* add the service in the array*/
-                ARDiscoveryDeviceService deviceService = new ARDiscoveryDeviceService (bleService.getName(), deviceBLEService);
+                ARDiscoveryDeviceService deviceService = new ARDiscoveryDeviceService (bleService.getName(), deviceBLEService, productID);
                 
                 newBLEDeviceServicesHmap.put(deviceService.getName(), deviceService);
             }
         }
         
-        private boolean isParrotBLEDevice(byte[] scanRecord)
+        /**
+         * @brief get the parrot product id from the BLE scanRecord
+         * @param scanRecord BLE scanRecord
+         * @return the product ID of the parrot BLE device. return "0" if it is not a parrot device
+         */
+        private int getParrotProductID (byte[] scanRecord)
         {
             /* read the scanRecord  to check if it is a PARROT Delos device with the good version */
             
@@ -728,9 +773,7 @@ public class ARDiscoveryService extends Service
             * - AD data : | BTVendorID (2 oct) | USBVendorID (2 oct) | USBProductID (2 oct) | VersionID (2 oct) |
             */
             
-            ARSALPrint.d(TAG,"isParrotBLEDevice ...");
-            
-            boolean res = false;
+            int parrotProductID = 0;
             
             final int MASK = 0xFF;
             
@@ -751,17 +794,18 @@ public class ARDiscoveryService extends Service
                     int btVendorID = (data[1] & MASK) + ((data[2] & MASK) << 8);
                     int usbVendorID = (data[3] & MASK) + ((data[4] & MASK) << 8);
                     int usbProductID = (data[5] & MASK) + ((data[6] & MASK) << 8);
-                    int versionID = (data[7] & MASK) + ((data[8] & MASK) << 8);
                     
-                    /* check the vendorID, the productID and and the version */
-                    if ((btVendorID == ARDISCOVERY_BT_VENDOR_ID) && (usbVendorID == ARDISCOVERY_USB_VENDOR_ID) && (usbProductID == ARDISCOVERY_DELOS_USB_PRODUCT_ID) && (versionID >= ARDISCOVERY_DELOS_VERSION_ID) )
+                    /* check the vendorID, the usbVendorID end the productID */
+                    if ((btVendorID == ARDISCOVERY_BT_VENDOR_ID) && 
+                        (usbVendorID == ARDISCOVERY_USB_VENDOR_ID) && 
+                        (usbProductID == getProductID(ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_ARDRONE_MINI)) )
                     {
-                        res = true;
+                        parrotProductID = usbProductID;
                     }
                 }
             }
             
-            return res;
+            return parrotProductID;
         }
         
         private void periodScanLeDeviceEnd()
@@ -850,5 +894,16 @@ public class ARDiscoveryService extends Service
         return res;
     }
     
+    /**
+     * @brief Converts a product enumerator in product ID
+     * This function is the only one knowing the correspondance
+     * between the enumerator and the products' IDs.
+     * @param product The product's enumerator
+     * @return The corresponding product ID
+     */
+    static int getProductID (ARDISCOVERY_PRODUCT_ENUM product)
+    {
+        return nativeGetProductID (product.getValue());
+    }
 };
 

@@ -54,7 +54,7 @@ public class ARDiscoveryDeviceBLEService implements Parcelable
     @Override
     public boolean equals(Object other) 
     {
-        ARSALPrint.d(TAG,"equals");
+        ARSALPrint.d(TAG, "equals");
         
         boolean isEqual = true;
             

@@ -20,8 +20,9 @@ public class ARDiscoveryDeviceService implements Parcelable
 
     private static String TAG = "ARDiscoveryDevice";
     
-    private String name;
-    private Object device; /* can by ARDiscoveryDeviceNetService or ARDiscoveryDeviceBLEService */
+    private String name; /**< Name of the device */
+    private int productID; /**< Specific product ID */
+    private Object device; /**< can by ARDiscoveryDeviceNetService or ARDiscoveryDeviceBLEService */
     
     public static final Parcelable.Creator<ARDiscoveryDeviceService> CREATOR = new Parcelable.Creator<ARDiscoveryDeviceService>()
     {
@@ -42,12 +43,14 @@ public class ARDiscoveryDeviceService implements Parcelable
     {
         name = "";
         setDevice (null);
+        productID = 0;
     }
     
-    public ARDiscoveryDeviceService (String name, Object device)
+    public ARDiscoveryDeviceService (String name, Object device, int productID)
     {
         this.name = name;
         this.setDevice(device);
+        this.productID = productID;
     }
     
     // Parcelling part
@@ -145,6 +148,16 @@ public class ARDiscoveryDeviceService implements Parcelable
     public void setDevice (Object device)
     {
         this.device = device;
+    }
+    
+    public Object getProductID ()
+    {
+        return productID;
+    }
+
+    public void setProductID (int productID)
+    {
+        this.productID = productID;
     }
 
     @Override
