@@ -33,7 +33,7 @@ typedef enum
  */
 typedef struct ARDISCOVERY_Connection_ComData_t
 {
-    uint32_t socket;
+    int32_t socket;
     uint32_t port;
     uint8_t *buffer;
     uint32_t size;

@@ -210,7 +210,7 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_InitRx(ARDISCOVERY_Connection_C
         }
 
         RxData->socket = ARSAL_Socket_Create(AF_INET, SOCK_STREAM, 0);
-        if (RxData->socket < 0)
+        if ((int)RxData->socket < 0)
         {
             error = ARDISCOVERY_ERROR_SOCKET_CREATION;
         }
