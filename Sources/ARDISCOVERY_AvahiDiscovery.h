@@ -21,7 +21,7 @@
 /**
  * @brief structure to allow service data sharing across discovery process
  */
-struct ARDISCOVERY_AvahiDiscovery_ServiceData_t
+struct ARDISCOVERY_AvahiDiscovery_PublisherData_t
 {
     uint8_t* serviceName;           // Specific to each device ("ARDrone_21452365")
     uint8_t* serviceType;           // Specific to each platform ("_ardrone3._ucp")

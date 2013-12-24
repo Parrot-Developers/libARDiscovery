@@ -27,7 +27,7 @@ static uint8_t* ARDISCOVERY_AvahiDiscovery_BuildName(void);
  * @param[in] serviceData service data
  * @return error during execution
  */
-static eARDISCOVERY_ERROR ARDISCOVERY_AvahiDiscovery_CreateService(AvahiClient *c, ARDISCOVERY_AvahiDiscovery_ServiceData_t* serviceData);
+static eARDISCOVERY_ERROR ARDISCOVERY_AvahiDiscovery_CreateService(AvahiClient *c, ARDISCOVERY_AvahiDiscovery_PublisherData_t* serviceData);
 
 /**
  * @brief Client callback
@@ -38,15 +38,15 @@ static eARDISCOVERY_ERROR ARDISCOVERY_AvahiDiscovery_CreateService(AvahiClient *
 static void ARDISCOVERY_AvahiDiscovery_ClientCb(AvahiClient* c, AvahiClientState state, void* userdata);
 
 /*
- * Implementation
+ * Publisher
  */
 
-ARDISCOVERY_AvahiDiscovery_ServiceData_t* ARDISCOVERY_AvahiDiscovery_New(uint8_t* serviceName, uint8_t* serviceType, uint32_t publishedPort, eARDISCOVERY_ERROR* errorPtr)
+ARDISCOVERY_AvahiDiscovery_PublisherData_t* ARDISCOVERY_AvahiDiscovery_Publisher_New(uint8_t* serviceName, uint8_t* serviceType, uint32_t publishedPort, eARDISCOVERY_ERROR* errorPtr)
 {
     /*
      * Create and initialize discovery data
      */
-    ARDISCOVERY_AvahiDiscovery_ServiceData_t *serviceData = NULL;
+    ARDISCOVERY_AvahiDiscovery_PublisherData_t *serviceData = NULL;
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
 
     if (serviceName == NULL || serviceType == NULL)
@@ -57,7 +57,7 @@ ARDISCOVERY_AvahiDiscovery_ServiceData_t* ARDISCOVERY_AvahiDiscovery_New(uint8_t
 
     if (error == ARDISCOVERY_OK)
     {
-        serviceData = malloc(sizeof(ARDISCOVERY_AvahiDiscovery_ServiceData_t));
+        serviceData = malloc(sizeof(ARDISCOVERY_AvahiDiscovery_PublisherData_t));
         if (serviceData != NULL)
         {
             /* Init Avahi data */
@@ -99,7 +99,7 @@ ARDISCOVERY_AvahiDiscovery_ServiceData_t* ARDISCOVERY_AvahiDiscovery_New(uint8_t
     if (error != ARDISCOVERY_OK)
     {
         ERR("error: %s", ARDISCOVERY_Error_ToString (error));
-        ARDISCOVERY_AvahiDiscovery_Delete(&serviceData);
+        ARDISCOVERY_AvahiDiscovery_Publisher_Delete(&serviceData);
     }
 
     if (errorPtr != NULL)
@@ -130,7 +130,7 @@ static void ARDISCOVERY_AvahiDiscovery_EntryGroupCb(AvahiEntryGroup* g, AvahiEnt
     /*
      * Avahi entry group callback
      */
-    ARDISCOVERY_AvahiDiscovery_ServiceData_t* serviceData = (ARDISCOVERY_AvahiDiscovery_ServiceData_t*) userdata;
+    ARDISCOVERY_AvahiDiscovery_PublisherData_t* serviceData = (ARDISCOVERY_AvahiDiscovery_PublisherData_t*) userdata;
 
     if (g == NULL || serviceData == NULL)
     {
@@ -176,7 +176,7 @@ static void ARDISCOVERY_AvahiDiscovery_EntryGroupCb(AvahiEntryGroup* g, AvahiEnt
     }
 }
 
-static eARDISCOVERY_ERROR ARDISCOVERY_AvahiDiscovery_CreateService(AvahiClient* c, ARDISCOVERY_AvahiDiscovery_ServiceData_t* serviceData)
+static eARDISCOVERY_ERROR ARDISCOVERY_AvahiDiscovery_CreateService(AvahiClient* c, ARDISCOVERY_AvahiDiscovery_PublisherData_t* serviceData)
 {
     /*
      * Create Avahi service
@@ -239,7 +239,7 @@ static void ARDISCOVERY_AvahiDiscovery_ClientCb(AvahiClient* c, AvahiClientState
      * Avahi client callback
      * Called whenever the client or server state changes
      */
-    ARDISCOVERY_AvahiDiscovery_ServiceData_t* serviceData = (ARDISCOVERY_AvahiDiscovery_ServiceData_t*) userdata;
+    ARDISCOVERY_AvahiDiscovery_PublisherData_t* serviceData = (ARDISCOVERY_AvahiDiscovery_PublisherData_t*) userdata;
 
     if (c == NULL || serviceData == NULL)
     {
@@ -289,7 +289,7 @@ static void ARDISCOVERY_AvahiDiscovery_ClientCb(AvahiClient* c, AvahiClientState
     }
 }
 
-void ARDISCOVERY_AvahiDiscovery_Publish(ARDISCOVERY_AvahiDiscovery_ServiceData_t* serviceData)
+void ARDISCOVERY_AvahiDiscovery_Publish(ARDISCOVERY_AvahiDiscovery_PublisherData_t* serviceData)
 {
     AvahiClient *client = NULL;
     int avahiError;
@@ -361,7 +361,7 @@ void ARDISCOVERY_AvahiDiscovery_Publish(ARDISCOVERY_AvahiDiscovery_ServiceData_t
     }
 }
 
-void ARDISCOVERY_AvahiDiscovery_StopPublishing(ARDISCOVERY_AvahiDiscovery_ServiceData_t* serviceData)
+void ARDISCOVERY_AvahiDiscovery_StopPublishing(ARDISCOVERY_AvahiDiscovery_PublisherData_t* serviceData)
 {
     if (serviceData == NULL)
     {
@@ -373,12 +373,12 @@ void ARDISCOVERY_AvahiDiscovery_StopPublishing(ARDISCOVERY_AvahiDiscovery_Servic
     avahi_simple_poll_quit(serviceData->simplePoll);
 }
 
-void ARDISCOVERY_AvahiDiscovery_Delete(ARDISCOVERY_AvahiDiscovery_ServiceData_t** serviceDataPtrAddr)
+void ARDISCOVERY_AvahiDiscovery_Publisher_Delete(ARDISCOVERY_AvahiDiscovery_PublisherData_t** serviceDataPtrAddr)
 {
     /*
      * Free discovery data
      */
-    ARDISCOVERY_AvahiDiscovery_ServiceData_t *serviceDataPtr = NULL;
+    ARDISCOVERY_AvahiDiscovery_PublisherData_t *serviceDataPtr = NULL;
 
     if (serviceDataPtrAddr != NULL)
     {
@@ -406,3 +406,7 @@ void ARDISCOVERY_AvahiDiscovery_Delete(ARDISCOVERY_AvahiDiscovery_ServiceData_t*
         *serviceDataPtrAddr = NULL;
     }
 }
+
+/*
+ * Browser
+ */

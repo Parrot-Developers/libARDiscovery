@@ -11,7 +11,7 @@
 /**
  * @brief Structures to allow data sharing across discovery process
  */
-typedef struct ARDISCOVERY_AvahiDiscovery_ServiceData_t ARDISCOVERY_AvahiDiscovery_ServiceData_t;
+typedef struct ARDISCOVERY_AvahiDiscovery_PublisherData_t ARDISCOVERY_AvahiDiscovery_PublisherData_t;
 
 /**
  * @brief Initialize Avahi data
@@ -20,24 +20,24 @@ typedef struct ARDISCOVERY_AvahiDiscovery_ServiceData_t ARDISCOVERY_AvahiDiscove
  * @param[in] errorPtr Error during execution
  * @return Pointer to allocated service data
  */
-ARDISCOVERY_AvahiDiscovery_ServiceData_t* ARDISCOVERY_AvahiDiscovery_New(uint8_t* serviceName, uint8_t* serviceType, uint32_t publishedPort, eARDISCOVERY_ERROR* errorPtr);
+ARDISCOVERY_AvahiDiscovery_PublisherData_t* ARDISCOVERY_AvahiDiscovery_Publisher_New(uint8_t* serviceName, uint8_t* serviceType, uint32_t publishedPort, eARDISCOVERY_ERROR* errorPtr);
 
 /**
  * @brief Start Avahi process of service advertisement
  * @param[in] serviceData Service data
  */
-void ARDISCOVERY_AvahiDiscovery_Publish(ARDISCOVERY_AvahiDiscovery_ServiceData_t* serviceData);
+void ARDISCOVERY_AvahiDiscovery_Publish(ARDISCOVERY_AvahiDiscovery_PublisherData_t* serviceData);
 
 /**
  * @brief Stop Avahi process of service advertisement
  * @param[in] serviceData Service data
  */
-void ARDISCOVERY_AvahiDiscovery_StopPublishing(ARDISCOVERY_AvahiDiscovery_ServiceData_t* serviceData);
+void ARDISCOVERY_AvahiDiscovery_StopPublishing(ARDISCOVERY_AvahiDiscovery_PublisherData_t* serviceData);
 
 /*
  * @brief Free data structures
  * @param[in] serviceDataPtrAddr Pointer to Service data
  */
-void ARDISCOVERY_AvahiDiscovery_Delete(ARDISCOVERY_AvahiDiscovery_ServiceData_t** serviceDataPtrAddr);
+void ARDISCOVERY_AvahiDiscovery_Publisher_Delete(ARDISCOVERY_AvahiDiscovery_PublisherData_t** serviceDataPtrAddr);
 
 #endif /* _ARDISCOVERY_AVAHIDISCOVERY_H_ */
