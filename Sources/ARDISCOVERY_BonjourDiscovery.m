@@ -12,6 +12,7 @@
 
 #define kServiceNetControllerType                   @"_arsdk-ff3._udp"
 #define kServiceNetDomain                           @"local"
+#define kServiceNetDeviceFormat                     @ARDISCOVERY_SERVICE_NET_DEVICE_FORMAT"."
 
 #define ARBLESERVICE_BLE_MANUFACTURER_DATA_LENGTH   8
 #define ARBLESERVICE_PARROT_BT_VENDOR_ID            0X0043  // Parrot Company ID registered by Bluetooth SIG (Bluetooth Specification v4.0 Requirement)
