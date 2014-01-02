@@ -30,12 +30,20 @@ static uint8_t* ARDISCOVERY_AvahiDiscovery_BuildName(void);
 static eARDISCOVERY_ERROR ARDISCOVERY_AvahiDiscovery_CreateService(AvahiClient *c, ARDISCOVERY_AvahiDiscovery_PublisherData_t* serviceData);
 
 /**
- * @brief Client callback
+ * @brief Entry group callback
+ * @param[in] g Entry group
+ * @param[in] state service data
+ * @param[in] userData service data
+ */
+static void ARDISCOVERY_AvahiDiscovery_EntryGroupCb(AvahiEntryGroup* g, AvahiEntryGroupState state, void* userdata);
+
+/**
+ * @brief Client callback (publishing side)
  * @param[in] c Avahi client
  * @param[in] state Client state
  * @param[in] userData service data
  */
-static void ARDISCOVERY_AvahiDiscovery_ClientCb(AvahiClient* c, AvahiClientState state, void* userdata);
+static void ARDISCOVERY_AvahiDiscovery_Publisher_ClientCb(AvahiClient* c, AvahiClientState state, void* userdata);
 
 /*
  * Publisher
@@ -61,6 +69,7 @@ ARDISCOVERY_AvahiDiscovery_PublisherData_t* ARDISCOVERY_AvahiDiscovery_Publisher
         if (serviceData != NULL)
         {
             /* Init Avahi data */
+            serviceData->client = NULL;
             serviceData->entryGroup = NULL;
             serviceData->simplePoll = NULL;
             serviceData->devicePort = publishedPort;
@@ -157,7 +166,7 @@ static void ARDISCOVERY_AvahiDiscovery_EntryGroupCb(AvahiEntryGroup* g, AvahiEnt
         ERR("Service name collision, renaming service to '%s'", serviceData->serviceName);
 
         /* And recreate the services */
-        ARDISCOVERY_AvahiDiscovery_CreateService(avahi_entry_group_get_client(g), serviceData);
+        ARDISCOVERY_AvahiDiscovery_CreateService(serviceData->client, serviceData);
         break;
     }
 
@@ -233,7 +242,46 @@ static eARDISCOVERY_ERROR ARDISCOVERY_AvahiDiscovery_CreateService(AvahiClient* 
     return error;
 }
 
-static void ARDISCOVERY_AvahiDiscovery_ClientCb(AvahiClient* c, AvahiClientState state, void* userdata)
+eARDISCOVERY_ERROR ARDISCOVERY_AvahiDiscovery_ResetService(ARDISCOVERY_AvahiDiscovery_PublisherData_t* serviceData)
+{
+    /*
+     * Reset Avahi service
+     */
+    int ret;
+    eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
+
+    if (serviceData == NULL)
+    {
+        ERR("Null parameter");
+        error = ARDISCOVERY_ERROR;
+    }
+
+    if (serviceData->entryGroup == NULL)
+    {
+        ERR("Entry group null, reset required too soon");
+        return error;
+    }
+
+    if (error == ARDISCOVERY_OK)
+    {
+        ret = avahi_entry_group_free(serviceData->entryGroup);
+        if (ret < 0)
+        {
+            ERR("Entry group reset failed");
+            error = ARDISCOVERY_ERROR;
+        }
+        serviceData->entryGroup = NULL;
+    }
+
+    if (error == ARDISCOVERY_OK)
+    {
+        error = ARDISCOVERY_AvahiDiscovery_CreateService(serviceData->client, serviceData);
+    }
+
+    return error;
+}
+
+static void ARDISCOVERY_AvahiDiscovery_Publisher_ClientCb(AvahiClient* c, AvahiClientState state, void* userdata)
 {
     /*
      * Avahi client callback
@@ -291,7 +339,6 @@ static void ARDISCOVERY_AvahiDiscovery_ClientCb(AvahiClient* c, AvahiClientState
 
 void ARDISCOVERY_AvahiDiscovery_Publish(ARDISCOVERY_AvahiDiscovery_PublisherData_t* serviceData)
 {
-    AvahiClient *client = NULL;
     int avahiError;
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
 
@@ -324,8 +371,8 @@ void ARDISCOVERY_AvahiDiscovery_Publish(ARDISCOVERY_AvahiDiscovery_PublisherData
     if (error == ARDISCOVERY_OK)
     {
         /* Allocate a new client */
-        client = avahi_client_new(avahi_simple_poll_get(serviceData->simplePoll), 0, ARDISCOVERY_AvahiDiscovery_ClientCb, serviceData, &avahiError);
-        if (client == NULL)
+        serviceData->client = avahi_client_new(avahi_simple_poll_get(serviceData->simplePoll), 0, ARDISCOVERY_AvahiDiscovery_Publisher_ClientCb, serviceData, &avahiError);
+        if (serviceData->client == NULL)
         {
             ERR("Failed to create client: %s\n", avahi_strerror(avahiError));
             error = ARDISCOVERY_ERROR_CLIENT;
@@ -341,12 +388,12 @@ void ARDISCOVERY_AvahiDiscovery_Publish(ARDISCOVERY_AvahiDiscovery_PublisherData
     if (error == ARDISCOVERY_OK)
     {
         /* Main loop exited, cleanup */
-        if (client)
-        {
-            avahi_client_free(client);
-        }
         if (serviceData)
         {
+            if (serviceData->client)
+            {
+                avahi_client_free(serviceData->client);
+            }
             if (serviceData->simplePoll)
             {
                 avahi_simple_poll_free(serviceData->simplePoll);

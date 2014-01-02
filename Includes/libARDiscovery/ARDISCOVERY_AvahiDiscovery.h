@@ -29,6 +29,14 @@ ARDISCOVERY_AvahiDiscovery_PublisherData_t* ARDISCOVERY_AvahiDiscovery_Publisher
 void ARDISCOVERY_AvahiDiscovery_Publish(ARDISCOVERY_AvahiDiscovery_PublisherData_t* serviceData);
 
 /**
+ * @brief Reset the entry group then re-create the service
+ * @param[in] c Avahi client
+ * @param[in] serviceData service data
+ * @return error during execution
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_AvahiDiscovery_ResetService(ARDISCOVERY_AvahiDiscovery_PublisherData_t* serviceData);
+
+/**
  * @brief Stop Avahi process of service advertisement
  * @param[in] serviceData Service data
  */
