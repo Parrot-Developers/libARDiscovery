@@ -15,6 +15,8 @@ typedef enum
     ARDISCOVERY_ERROR_ENTRY_GROUP, /**< Avahi failed to create entry group */
     ARDISCOVERY_ERROR_ADD_SERVICE, /**< Avahi failed to add service */
     ARDISCOVERY_ERROR_GROUP_COMMIT, /**< Avahi failed to commit group */
+    ARDISCOVERY_ERROR_BROWSER_ALLOC, /**< Avahi failed to allocate desired number of browsers */
+    ARDISCOVERY_ERROR_BROWSER_NEW, /**< Avahi failed to create one browser */
 
     ARDISCOVERY_ERROR_ALLOC = -2000, /**< Failed to allocate connection resources */
     ARDISCOVERY_ERROR_INIT, /**< Wrong type to connect as */

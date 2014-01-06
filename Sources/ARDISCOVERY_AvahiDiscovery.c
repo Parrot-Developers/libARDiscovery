@@ -45,6 +45,27 @@ static void ARDISCOVERY_AvahiDiscovery_EntryGroupCb(AvahiEntryGroup* g, AvahiEnt
  */
 static void ARDISCOVERY_AvahiDiscovery_Publisher_ClientCb(AvahiClient* c, AvahiClientState state, void* userdata);
 
+/**
+ * @brief Client callback (browsing side)
+ * @param[in] c Avahi client
+ * @param[in] state Client state
+ * @param[in] userData service data
+ */
+static void ARDISCOVERY_AvahiDiscovery_Browser_ClientCb(AvahiClient* c, AvahiClientState state, void* userdata);
+
+/**
+ * @brief Browser callback
+ */
+static void ARDISCOVERY_AvahiDiscovery_Browser_BrowseCb(AvahiServiceBrowser *b, AvahiIfIndex interface, AvahiProtocol protocol, AvahiBrowserEvent event,
+        const char *name, const char *type, const char *domain, AVAHI_GCC_UNUSED AvahiLookupResultFlags flags, void* userdata);
+
+/**
+ * @brief Resolver callback
+ */
+static void ARDISCOVERY_AvahiDiscovery_Browser_ResolveCb(AvahiServiceResolver *r, AVAHI_GCC_UNUSED AvahiIfIndex interface, AVAHI_GCC_UNUSED AvahiProtocol protocol,
+        AvahiResolverEvent event, const char *name, const char *type, const char *domain, const char *host_name, const AvahiAddress *address, uint16_t port, AvahiStringList *txt,
+        AvahiLookupResultFlags flags, void* userdata);
+
 /*
  * Publisher
  */
@@ -410,13 +431,14 @@ void ARDISCOVERY_AvahiDiscovery_Publish(ARDISCOVERY_AvahiDiscovery_PublisherData
 
 void ARDISCOVERY_AvahiDiscovery_StopPublishing(ARDISCOVERY_AvahiDiscovery_PublisherData_t* serviceData)
 {
+    /*
+     * Stop publishing service
+     */
     if (serviceData == NULL)
     {
         return;
     }
-    /*
-     * Stop publishing service
-     */
+
     avahi_simple_poll_quit(serviceData->simplePoll);
 }
 
@@ -457,3 +479,301 @@ void ARDISCOVERY_AvahiDiscovery_Publisher_Delete(ARDISCOVERY_AvahiDiscovery_Publ
 /*
  * Browser
  */
+
+ARDISCOVERY_AvahiDiscovery_BrowserData_t* ARDISCOVERY_AvahiDiscovery_Browser_New(ARDISCOVERY_AvahiDiscovery_Browser_Callback_t callback, void* customData, uint8_t** serviceTypes, uint8_t serviceTypesNb, eARDISCOVERY_ERROR* errorPtr)
+{
+    /*
+     * Initialize Browsing related data
+     */
+
+    ARDISCOVERY_AvahiDiscovery_BrowserData_t *browserData = NULL;
+    eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
+    int i;
+
+    if (callback == NULL)
+    {
+        ERR("Null parameter");
+        error = ARDISCOVERY_ERROR;
+    }
+
+    if (error == ARDISCOVERY_OK)
+    {
+        browserData = malloc(sizeof(ARDISCOVERY_AvahiDiscovery_BrowserData_t));
+        if (browserData != NULL)
+        {
+            /* Init Avahi data */
+            browserData->simplePoll = NULL;
+            browserData->callback = callback;
+            browserData->customData = customData;
+
+            /* Allocate pointer to services */
+            browserData->serviceTypes = (uint8_t**) malloc(sizeof(uint8_t*) * serviceTypesNb);
+            for (i = 0; i < serviceTypesNb; i++)
+            {
+                *(browserData->serviceTypes + i) = (uint8_t*) malloc(sizeof(uint8_t) * ARDISCOVERY_AVAHIDISCOVERY_SERVICETYPE_SIZE);
+                memcpy(*(browserData->serviceTypes + i), *(serviceTypes + i), ARDISCOVERY_AVAHIDISCOVERY_SERVICETYPE_SIZE);
+            }
+            browserData->serviceTypesNb = serviceTypesNb;
+        }
+    }
+
+    /* Delete browser data if an error occurred */
+    if (error != ARDISCOVERY_OK)
+    {
+        ERR("error: %s", ARDISCOVERY_Error_ToString (error));
+        ARDISCOVERY_AvahiDiscovery_Browser_Delete(&browserData);
+    }
+
+    if (errorPtr != NULL)
+    {
+        *errorPtr = error;
+    }
+
+    return browserData;
+}
+
+void ARDISCOVERY_AvahiDiscovery_Browse(ARDISCOVERY_AvahiDiscovery_BrowserData_t* browserData)
+{
+    /*
+     * Start browsing for services
+     */
+
+    int avahiError;
+    eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
+    int i;
+
+    if (browserData == NULL)
+    {
+        ERR("Null parameter");
+        error = ARDISCOVERY_ERROR;
+    }
+
+    if (error == ARDISCOVERY_OK)
+    {
+        /* Allocate main loop object */
+        browserData->simplePoll = avahi_simple_poll_new();
+        if (browserData->simplePoll == NULL)
+        {
+            error = ARDISCOVERY_ERROR_SIMPLE_POLL;
+        }
+    }
+
+    if (error == ARDISCOVERY_OK)
+    {
+        /* Allocate a new client */
+        browserData->client = avahi_client_new(avahi_simple_poll_get(browserData->simplePoll), 0, ARDISCOVERY_AvahiDiscovery_Browser_ClientCb, browserData, &avahiError);
+        if (browserData->client == NULL)
+        {
+            ERR("Failed to create client: %s\n", avahi_strerror(avahiError));
+            error = ARDISCOVERY_ERROR_CLIENT;
+        }
+    }
+
+    if (error == ARDISCOVERY_OK)
+    {
+        /* Create each service browser */
+        for (i = 0 ; i < browserData->serviceTypesNb ; i++)
+        {
+            browserData->serviceBrowsers[i] = avahi_service_browser_new(browserData->client, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC,
+                    *(browserData->serviceTypes+i), NULL, 0, ARDISCOVERY_AvahiDiscovery_Browser_BrowseCb, browserData);
+            if (!browserData->serviceBrowsers[i])
+            {
+                ERR("Failed to create service browser #%d (%s): %s\n", i+1, *(browserData->serviceTypes+i), avahi_strerror(avahiError));
+                error = ARDISCOVERY_ERROR_BROWSER_NEW;
+            }
+        }
+    }
+
+    if (error == ARDISCOVERY_OK)
+    {
+        /* Run the main loop */
+        avahi_simple_poll_loop(browserData->simplePoll);
+    }
+
+    if (error == ARDISCOVERY_OK)
+    {
+        /* Main loop exited, cleanup */
+        if (browserData)
+        {
+            if (browserData->client)
+            {
+                avahi_client_free(browserData->client);
+            }
+            if (browserData->simplePoll)
+            {
+                avahi_simple_poll_free(browserData->simplePoll);
+            }
+
+            for (i = 0 ; i < ARDISCOVERY_AVAHIDISCOVERY_SERVICE_NB_MAX ; i++)
+            {
+                if (browserData->serviceBrowsers[i])
+                {
+                    avahi_service_browser_free(browserData->serviceBrowsers[i]);
+                }
+            }
+        }
+    }
+
+    if (error != ARDISCOVERY_OK)
+    {
+        ERR("error: %s", ARDISCOVERY_Error_ToString (error));
+    }
+}
+
+static void ARDISCOVERY_AvahiDiscovery_Browser_ClientCb(AvahiClient* c, AvahiClientState state, void* userdata)
+{
+    /*
+     * Avahi client callback
+     * Called whenever the client or server state changes
+     */
+
+    ARDISCOVERY_AvahiDiscovery_BrowserData_t* browserData = (ARDISCOVERY_AvahiDiscovery_BrowserData_t*) userdata;
+
+    if (c == NULL || browserData == NULL)
+    {
+        ERR("Null parameter");
+        return;
+    }
+
+    switch (state)
+    {
+        case AVAHI_CLIENT_FAILURE:
+        {
+            ERR("Client failure: %s", avahi_strerror(avahi_client_errno(c)));
+            avahi_simple_poll_quit(browserData->simplePoll);
+            break;
+        }
+        default:
+            break;
+    }
+}
+
+static void ARDISCOVERY_AvahiDiscovery_Browser_BrowseCb(AvahiServiceBrowser *b, AvahiIfIndex interface, AvahiProtocol protocol, AvahiBrowserEvent event,
+        const char *name, const char *type, const char *domain, AVAHI_GCC_UNUSED AvahiLookupResultFlags flags, void* userdata)
+{
+    /*
+     * Called whenever a new services becomes available on the LAN or is removed from the LAN
+     */
+
+    ARDISCOVERY_AvahiDiscovery_BrowserData_t* browserData = (ARDISCOVERY_AvahiDiscovery_BrowserData_t*) userdata;
+    AvahiServiceResolver *r = NULL;
+
+    if (b == NULL || browserData == NULL)
+    {
+        ERR("Null parameter");
+        return;
+    }
+
+    switch (event)
+    {
+        case AVAHI_BROWSER_FAILURE:
+        {
+            ERR("Browser failure: %s", avahi_strerror(avahi_client_errno(avahi_service_browser_get_client(b))));
+            avahi_simple_poll_quit(browserData->simplePoll);
+            break;
+        }
+        case AVAHI_BROWSER_NEW:
+        {
+            /* Resolve service and call callback in resolver */
+            r = avahi_service_resolver_new(browserData->client, interface, protocol, name, type, domain, AVAHI_PROTO_UNSPEC, 0,
+                    ARDISCOVERY_AvahiDiscovery_Browser_ResolveCb, browserData);
+            if (r == NULL)
+            {
+                ERR("Failed to resolve service '%s': %s\n", name, avahi_strerror(avahi_client_errno(browserData->client)));
+            }
+            break;
+        }
+        case AVAHI_BROWSER_REMOVE:
+        {
+            /* Call upper layer callback for service removal */
+            browserData->callback(browserData->customData, 0, name, type, NULL);
+            break;
+        }
+        case AVAHI_BROWSER_ALL_FOR_NOW:
+        case AVAHI_BROWSER_CACHE_EXHAUSTED:
+        default:
+            break;
+    }
+}
+
+static void ARDISCOVERY_AvahiDiscovery_Browser_ResolveCb(AvahiServiceResolver *r, AVAHI_GCC_UNUSED AvahiIfIndex interface, AVAHI_GCC_UNUSED AvahiProtocol protocol,
+        AvahiResolverEvent event, const char *name, const char *type, const char *domain, const char *host_name, const AvahiAddress *address, uint16_t port, AvahiStringList *txt,
+        AvahiLookupResultFlags flags, void* userdata)
+{
+    /*
+     * Called whenever a service has been resolved successfully or timed out
+     */
+
+    ARDISCOVERY_AvahiDiscovery_BrowserData_t* browserData = (ARDISCOVERY_AvahiDiscovery_BrowserData_t*) userdata;
+
+    if (r == NULL)
+    {
+        ERR("Null parameter");
+        return;
+    }
+
+    switch (event)
+    {
+        case AVAHI_RESOLVER_FAILURE:
+        {
+            ERR("Failed to resolve service '%s' of type '%s' in domain '%s': %s\n", name, type, domain, avahi_strerror(avahi_client_errno(avahi_service_resolver_get_client(r))));
+            break;
+        }
+        case AVAHI_RESOLVER_FOUND:
+        {
+            uint8_t a[AVAHI_ADDRESS_STR_MAX];
+
+            /* Concert Avahi object to readable ip address */
+            avahi_address_snprint(a, sizeof(a), address);
+            /* Call to say we found a service */
+            browserData->callback(browserData->customData, 1, name, type, a);
+        }
+    }
+
+    avahi_service_resolver_free(r);
+}
+
+void ARDISCOVERY_AvahiDiscovery_StopBrowsing(ARDISCOVERY_AvahiDiscovery_BrowserData_t* browserData)
+{
+    /*
+     * Stop browsing services
+     */
+
+    if (browserData == NULL)
+    {
+        return;
+    }
+
+    avahi_simple_poll_quit(browserData->simplePoll);
+}
+
+void ARDISCOVERY_AvahiDiscovery_Browser_Delete(ARDISCOVERY_AvahiDiscovery_BrowserData_t** browserDataPtrAddr)
+{
+    /*
+     * Free browser data
+     */
+
+    ARDISCOVERY_AvahiDiscovery_BrowserData_t *browserDataPtr = NULL;
+    int i;
+
+    if (browserDataPtrAddr != NULL)
+    {
+        browserDataPtr = *browserDataPtrAddr;
+
+        if (browserDataPtr != NULL)
+        {
+            ARDISCOVERY_AvahiDiscovery_StopBrowsing(browserDataPtr);
+
+            for (i = 0; i < browserDataPtr->serviceTypesNb; i++)
+            {
+                free(browserDataPtr->serviceTypes + i);
+            }
+            free(browserDataPtr->serviceTypes);
+
+            free(browserDataPtr);
+            browserDataPtr = NULL;
+        }
+
+        *browserDataPtrAddr = NULL;
+    }
+}
