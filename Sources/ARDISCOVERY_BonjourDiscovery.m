@@ -277,12 +277,20 @@
     struct sockaddr_in *socketAddress = nil;
     NSString *ipString = nil;
     int port;
+    int i;
     
     name = [[aService service] name];
-    address = [[[aService service] addresses] objectAtIndex: 0];
-    socketAddress = (struct sockaddr_in *) [address bytes];
-    ipString = [NSString stringWithFormat: @"%s",inet_ntoa(socketAddress->sin_addr)];
-    port = socketAddress->sin_port;
+    
+    for (i=0; i<[[[aService service] addresses] count]; i++)
+    {
+        address = [[[aService service] addresses] objectAtIndex: i];
+        socketAddress = (struct sockaddr_in *) [address bytes];
+        if (socketAddress->sin_family == AF_INET)//AF_INET -> IPv4, AF_INET6 -> IPv6
+        {
+            ipString = [NSString stringWithFormat: @"%s",inet_ntoa(socketAddress->sin_addr)];
+            port = socketAddress->sin_port;
+        }
+    }
     
     // This will print the IP and port for you to connect to.
     NSLog(@"%@", [NSString stringWithFormat:@"Resolved:%@-->%@:%u\n", [[aService service] hostName], ipString, port]);
