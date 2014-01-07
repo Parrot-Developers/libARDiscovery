@@ -1,7 +1,7 @@
 /*
  * DroneControlService
  *
- *  Created on: May 5, 2011
+ *  Created on: 
  *  Author:
  */
 
@@ -43,7 +43,6 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.text.format.Formatter;
 import android.util.Pair;
 
-
 public class ARDiscoveryService extends Service
 {
     private static String TAG = "ARDiscoveryService";
@@ -63,7 +62,9 @@ public class ARDiscoveryService extends Service
      */
     public static final String kARDiscoveryServiceNotificationServicesDevicesListUpdated = "kARDiscoveryServiceNotificationServicesDevicesListUpdated";
     
-    public static final String ARDISCOVERY_SERVICE_NET_DEVICE_FORMAT = "_arsdk-%04x._udp.local.";
+    public static String ARDISCOVERY_SERVICE_NET_DEVICE_FORMAT;
+    
+    private static native String nativeGetDefineNetDeviceFormat ();
     
     private HashMap<String, Intent> intentCache;
     
@@ -94,6 +95,12 @@ public class ARDiscoveryService extends Service
     private Object leScanCallback;/*< Device scan callback. (BluetoothAdapter.LeScanCallback) */
     
     private final IBinder binder = new LocalBinder();
+    
+    
+    static
+    {
+        ARDISCOVERY_SERVICE_NET_DEVICE_FORMAT = nativeGetDefineNetDeviceFormat ();
+    }
     
     @Override
     public IBinder onBind(Intent intent)
@@ -398,12 +405,13 @@ public class ARDiscoveryService extends Service
         int productID = 0;
         
         /* get ip address */
-        String ip = getServiceIP(serviceEvent);
+        String ip = getServiceIP (serviceEvent);
+        int port = getServicePort (serviceEvent);
         
         if (ip != null)
         {
             /* new ARDiscoveryDeviceNetService */
-            ARDiscoveryDeviceNetService deviceNetService = new ARDiscoveryDeviceNetService(serviceEvent.getName(), serviceEvent.getType(), ip);
+            ARDiscoveryDeviceNetService deviceNetService = new ARDiscoveryDeviceNetService(serviceEvent.getName(), serviceEvent.getType(), ip, port);
             
             /* find device type */
             for (int i = ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_NSNETSERVICE.getValue(); i < ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_BLESERVICE.getValue(); ++i)
@@ -508,6 +516,21 @@ public class ARDiscoveryService extends Service
         }
         
         return serviceIP;
+    }
+    
+    private int getServicePort(ServiceEvent serviceEvent)
+    {
+        ARSALPrint.d(TAG,"getServiceIP serviceEvent: " + serviceEvent);
+        
+        int servicePort = 0;
+        
+        ServiceInfo info = serviceEvent.getDNS().getServiceInfo(serviceEvent.getType(), serviceEvent.getName());
+        if(info != null)
+        {
+            servicePort = info.getPort();
+        }
+        
+        return servicePort;
     }
     
     public ArrayList<ARDiscoveryDeviceService> getDeviceServicesArray()

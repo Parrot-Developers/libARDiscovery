@@ -17,6 +17,7 @@ public class ARDiscoveryDeviceNetService implements  Parcelable
     private String name;
     private String type;
     private String ip;
+    private int port;
     
     public static final Parcelable.Creator<ARDiscoveryDeviceNetService> CREATOR = new Parcelable.Creator<ARDiscoveryDeviceNetService>()
     {
@@ -38,13 +39,15 @@ public class ARDiscoveryDeviceNetService implements  Parcelable
         name = "";
         type = "";
         ip = "";
+        port = 0;
     }
     
-    public ARDiscoveryDeviceNetService (String name, String type, String ip)
+    public ARDiscoveryDeviceNetService (String name, String type, String ip, int port)
     {
         this.name = name;
         this.type = type;
         this.ip = ip;
+        this.port = port;
     }
     
     /* Parcelling part */
@@ -53,6 +56,7 @@ public class ARDiscoveryDeviceNetService implements  Parcelable
         this.name = in.readString();
         this.type = in.readString();
         this.ip = in.readString();
+        this.port = in.readInt();
     }
     
     @Override
@@ -110,6 +114,16 @@ public class ARDiscoveryDeviceNetService implements  Parcelable
     {
         this.ip = ip;
     }
+    
+    public int getPort()
+    {
+        return port;
+    }
+    
+    public void setport (int port)
+    {
+        this.port = port;
+    }
 
     @Override
     public int describeContents()
@@ -123,6 +137,7 @@ public class ARDiscoveryDeviceNetService implements  Parcelable
         dest.writeString(this.name);
         dest.writeString(this.type);
         dest.writeString(this.ip);
+        dest.writeInt(this.port);
     }
 
 };

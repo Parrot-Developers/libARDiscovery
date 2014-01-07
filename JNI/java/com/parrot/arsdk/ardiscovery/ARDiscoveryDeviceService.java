@@ -1,7 +1,7 @@
 /*
- * DroneControlService
+ * ARDiscoveryService.java
  *
- *  Created on: May 5, 2011
+ *  Created on: 
  *  Author:
  */
 
