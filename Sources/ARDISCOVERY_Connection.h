@@ -5,39 +5,12 @@
 #include <libARDiscovery/ARDISCOVERY_Connection.h>
 
 /**
- * @brief TCP ports
- */
-#define ARDISCOVERY_CONNECTION_TCP_C2D_PORT 44444
-#define ARDISCOVERY_CONNECTION_TCP_D2C_PORT 44445
-
-/**
- * @brief Read/Write buffers max size
- */
-#define ARDISCOVERY_CONNECTION_TX_BUFFER_SIZE 128
-#define ARDISCOVERY_CONNECTION_RX_BUFFER_SIZE 128
-
-/**
- * @brief Connection state
- */
-typedef enum
-{
-    ARDISCOVERY_STATE_NONE = 0,
-    ARDISCOVERY_STATE_RX_PENDING,
-    ARDISCOVERY_STATE_TX_PENDING,
-    ARDISCOVERY_STATE_STOP
-
-} eARDISCOVERY_STATE;
-
-/**
  * @brief Low level communication related structure
  */
 typedef struct ARDISCOVERY_Connection_ComData_t
 {
-    int32_t socket;
-    uint32_t port;
-    uint8_t *buffer;
-    uint32_t size;
-
+    uint8_t *buffer; /**< data buffer */
+    uint32_t size; /**< size of the data buffer */
 } ARDISCOVERY_Connection_ComData_t;
 
 /**
@@ -45,11 +18,14 @@ typedef struct ARDISCOVERY_Connection_ComData_t
  */
 struct ARDISCOVERY_Connection_ConnectionData_t
 {
-    ARDISCOVERY_Connection_ComData_t TxData;    // Tx negociation node
-    ARDISCOVERY_Connection_ComData_t RxData;    // Rx negociation node
-    eARDISCOVERY_STATE state;                   // Connection state
-    ARDISCOVERY_Connection_Callback_t callback; // Data management callback
-    void* customData;                           // Custom data for callback use
+    ARDISCOVERY_Connection_ComData_t txData;    /**< Tx negociation node */
+    ARDISCOVERY_Connection_ComData_t rxData;    /**< Rx negociation node */
+    uint8_t isClosing;                          /**< is closing flag */
+    ARDISCOVERY_Connection_SendJsonCallback_t sendJsoncallback; /**< callback use to send json information of the connection */
+    ARDISCOVERY_Connection_ReceiveJsonCallback_t receiveJsoncallback; /**< callback use to receive json information of the connection */
+    void *customData;                           /**< Custom data for callback use */
+    int32_t socket;                             /**< socket used to negociate */
+    struct sockaddr_in address;                 /**< address used to negociate */
 };
 
 #endif /* _ARDISCOVERY_CONNECTION_PRIVATE_H_ */
