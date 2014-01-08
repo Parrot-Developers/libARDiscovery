@@ -560,21 +560,17 @@ void ARDISCOVERY_AvahiDiscovery_Browse(ARDISCOVERY_AvahiDiscovery_BrowserData_t*
 
     if (error == ARDISCOVERY_OK)
     {
-        /* Allocate a new client */
-        browserData->client = avahi_client_new(avahi_simple_poll_get(browserData->simplePoll), 0, ARDISCOVERY_AvahiDiscovery_Browser_ClientCb, browserData, &avahiError);
-        if (browserData->client == NULL)
-        {
-            ERR("Failed to create client: %s\n", avahi_strerror(avahiError));
-            error = ARDISCOVERY_ERROR_CLIENT;
-        }
-    }
-
-    if (error == ARDISCOVERY_OK)
-    {
-        /* Create each service browser */
+        /* Create each service browser and associated client */
         for (i = 0 ; i < browserData->serviceTypesNb ; i++)
         {
-            browserData->serviceBrowsers[i] = avahi_service_browser_new(browserData->client, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC,
+            browserData->clients[i] = avahi_client_new(avahi_simple_poll_get(browserData->simplePoll), 0, ARDISCOVERY_AvahiDiscovery_Browser_ClientCb, browserData, &avahiError);
+            if (browserData->clients[i] == NULL)
+            {
+                ERR("Failed to create client #%d: %s\n", i+1, avahi_strerror(avahiError));
+                error = ARDISCOVERY_ERROR_CLIENT;
+            }
+
+            browserData->serviceBrowsers[i] = avahi_service_browser_new(browserData->clients[i], AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC,
                     *(browserData->serviceTypes+i), NULL, 0, ARDISCOVERY_AvahiDiscovery_Browser_BrowseCb, browserData);
             if (!browserData->serviceBrowsers[i])
             {
@@ -595,21 +591,25 @@ void ARDISCOVERY_AvahiDiscovery_Browse(ARDISCOVERY_AvahiDiscovery_BrowserData_t*
         /* Main loop exited, cleanup */
         if (browserData)
         {
-            if (browserData->client)
-            {
-                avahi_client_free(browserData->client);
-            }
-            if (browserData->simplePoll)
-            {
-                avahi_simple_poll_free(browserData->simplePoll);
-            }
-
-            for (i = 0 ; i < ARDISCOVERY_AVAHIDISCOVERY_SERVICE_NB_MAX ; i++)
+            for (i = 0 ; i < browserData->serviceTypesNb ; i++)
             {
                 if (browserData->serviceBrowsers[i])
                 {
                     avahi_service_browser_free(browserData->serviceBrowsers[i]);
+                    browserData->serviceBrowsers[i] = NULL;
                 }
+            }
+            for (i = 0 ; i < browserData->serviceTypesNb ; i++)
+            {
+                if (browserData->clients[i])
+                {
+                    avahi_client_free(browserData->clients[i]);
+                    browserData->clients[i] = NULL;
+                }
+            }
+            if (browserData->simplePoll)
+            {
+                avahi_simple_poll_free(browserData->simplePoll);
             }
         }
     }
@@ -648,6 +648,25 @@ static void ARDISCOVERY_AvahiDiscovery_Browser_ClientCb(AvahiClient* c, AvahiCli
     }
 }
 
+static AvahiClient* ARDISCOVERY_AvahiDiscovery_Browser_FindClient(AvahiServiceBrowser *b, ARDISCOVERY_AvahiDiscovery_BrowserData_t* bdt)
+{
+    /*
+     * Find Avahi client from its corresponding index and browser
+     */
+
+    int i;
+
+    for (i = 0 ; i < bdt->serviceTypesNb ; i++)
+    {
+        if (bdt->serviceBrowsers[i] == b)
+        {
+            return bdt->clients[i];
+        }
+    }
+
+    return NULL;
+}
+
 static void ARDISCOVERY_AvahiDiscovery_Browser_BrowseCb(AvahiServiceBrowser *b, AvahiIfIndex interface, AvahiProtocol protocol, AvahiBrowserEvent event,
         const char *name, const char *type, const char *domain, AVAHI_GCC_UNUSED AvahiLookupResultFlags flags, void* userdata)
 {
@@ -658,7 +677,9 @@ static void ARDISCOVERY_AvahiDiscovery_Browser_BrowseCb(AvahiServiceBrowser *b, 
     ARDISCOVERY_AvahiDiscovery_BrowserData_t* browserData = (ARDISCOVERY_AvahiDiscovery_BrowserData_t*) userdata;
     AvahiServiceResolver *r = NULL;
 
-    if (b == NULL || browserData == NULL)
+    AvahiClient *c = ARDISCOVERY_AvahiDiscovery_Browser_FindClient(b, browserData);
+
+    if (b == NULL || browserData == NULL || c == NULL)
     {
         ERR("Null parameter");
         return;
@@ -675,11 +696,11 @@ static void ARDISCOVERY_AvahiDiscovery_Browser_BrowseCb(AvahiServiceBrowser *b, 
         case AVAHI_BROWSER_NEW:
         {
             /* Resolve service and call callback in resolver */
-            r = avahi_service_resolver_new(browserData->client, interface, protocol, name, type, domain, AVAHI_PROTO_UNSPEC, 0,
+            r = avahi_service_resolver_new(c, interface, protocol, name, type, domain, AVAHI_PROTO_UNSPEC, 0,
                     ARDISCOVERY_AvahiDiscovery_Browser_ResolveCb, browserData);
             if (r == NULL)
             {
-                ERR("Failed to resolve service '%s': %s\n", name, avahi_strerror(avahi_client_errno(browserData->client)));
+                ERR("Failed to resolve service '%s': %s\n", name, avahi_strerror(avahi_client_errno(c)));
             }
             break;
         }

@@ -40,7 +40,7 @@ struct ARDISCOVERY_AvahiDiscovery_BrowserData_t
     uint8_t** serviceTypes;         // Service types to browse for
     uint8_t serviceTypesNb;         // Number of service types to browse for
     AvahiServiceBrowser* serviceBrowsers[ARDISCOVERY_AVAHIDISCOVERY_SERVICE_NB_MAX]; // Avahi service browsers
-    AvahiClient *client;            // Avahi client
+    AvahiClient *clients[ARDISCOVERY_AVAHIDISCOVERY_SERVICE_NB_MAX];            // Avahi client
     AvahiSimplePoll *simplePoll;    // Avahi simple poll
     ARDISCOVERY_AvahiDiscovery_Browser_Callback_t callback; // Service browsing callback
     void* customData;               // Custom data to forward to callback
