@@ -20,12 +20,15 @@ struct ARDISCOVERY_Connection_ConnectionData_t
 {
     ARDISCOVERY_Connection_ComData_t txData;    /**< Tx negociation node */
     ARDISCOVERY_Connection_ComData_t rxData;    /**< Rx negociation node */
-    uint8_t isClosing;                          /**< is closing flag */
+    uint8_t isAlive;                              /**< is alive flag */ //TODO: use sem
+    uint8_t isBusy;                              /**< is busy flag */ //TODO: use mutex
     ARDISCOVERY_Connection_SendJsonCallback_t sendJsoncallback; /**< callback use to send json information of the connection */
     ARDISCOVERY_Connection_ReceiveJsonCallback_t receiveJsoncallback; /**< callback use to receive json information of the connection */
     void *customData;                           /**< Custom data for callback use */
     int32_t socket;                             /**< socket used to negociate */
     struct sockaddr_in address;                 /**< address used to negociate */
+    
+    int abortPipe[2];
 };
 
 #endif /* _ARDISCOVERY_CONNECTION_PRIVATE_H_ */

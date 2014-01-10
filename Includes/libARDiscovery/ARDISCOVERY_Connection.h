@@ -52,36 +52,52 @@ ARDISCOVERY_Connection_ConnectionData_t* ARDISCOVERY_Connection_New(ARDISCOVERY_
 /**
  * @brief Delete connection data
  * @param[in] connectionData Connection data
+ * @param[out] error Error code
  */
-void ARDISCOVERY_Connection_Delete (ARDISCOVERY_Connection_ConnectionData_t **connectionData);
+eARDISCOVERY_ERROR ARDISCOVERY_Connection_Delete (ARDISCOVERY_Connection_ConnectionData_t **connectionData);
 
 /**
  * @brief Initialize connection as a Device
- * @post ARDISCOVERY_Connection_Close() must be called to close the connection.
+ * @post ARDISCOVERY_Connection_Device_StopListening() must be called to close the connection.
  * @param[in] connectionData Connection data
  * @param[in] port port use to the discovery
  * @return error during execution
- * @see ARDISCOVERY_Connection_Close()
+ * @see ARDISCOVERY_Connection_Device_StopListening()
  */
-eARDISCOVERY_ERROR ARDISCOVERY_Connection_OpenAsDevice (ARDISCOVERY_Connection_ConnectionData_t *connectionData, int port);
-
-/**
- * @brief Initialize connection as a Controller
- * @post ARDISCOVERY_Connection_Close() must be called to close the connection.
- * @param[in] connectionData Connection data
- * @param[in] port port use to the discovery
- * @param[in] ip device IP address
- * @return error during execution
- * @see ARDISCOVERY_Connection_Close()
- */
-eARDISCOVERY_ERROR ARDISCOVERY_Connection_OpenAsController (ARDISCOVERY_Connection_ConnectionData_t *connectionData, int port, const char *ip);
+eARDISCOVERY_ERROR ARDISCOVERY_Connection_DeviceListeningLoop (ARDISCOVERY_Connection_ConnectionData_t *connectionData, int port);
 
 /**
  * @brief Close connection
  * @param[in] connectionData Connection data
- * @see ARDISCOVERY_Connection_OpenAsDevice()
- * @see ARDISCOVERY_Connection_OpenAsController()
+ * @see ARDISCOVERY_Connection_DeviceListeningLoop()
  */
-void ARDISCOVERY_Connection_Close (ARDISCOVERY_Connection_ConnectionData_t *connectionData);
+void ARDISCOVERY_Connection_Device_StopListening (ARDISCOVERY_Connection_ConnectionData_t *connectionData);
+
+/**
+ * @brief Initialize connection as a Controller
+ * @post ARDISCOVERY_Connection_Device_StopListening() must be called to close the connection.
+ * @param[in] connectionData Connection data
+ * @param[in] port port use to the discovery
+ * @param[in] ip device IP address
+ * @return error during execution
+ * @see ARDISCOVERY_Connection_Device_StopListening()
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_Connection_ControllerConnection (ARDISCOVERY_Connection_ConnectionData_t *connectionData, int port, const char *ip);
+
+/**
+ * @brief Abort connection
+ * @param[in] connectionData Connection data
+ * @see ARDISCOVERY_Connection_ControllerConnection()
+ */
+void ARDISCOVERY_Connection_ControllerConnectionAbort (ARDISCOVERY_Connection_ConnectionData_t *connectionData);
+
+/**
+ * @brief get if connectionData is busy
+ * @param[in] connectionData Connection data
+ * @return isBusy
+ * @see ARDISCOVERY_Connection_ControllerConnectionAbort()
+ * @see ARDISCOVERY_Connection_Device_StopListening()
+ */
+int ARDISCOVERY_Connection_GetIsBusy (ARDISCOVERY_Connection_ConnectionData_t *connectionData);
 
 #endif /* _ARDISCOVERY_CONNECTION_H_ */

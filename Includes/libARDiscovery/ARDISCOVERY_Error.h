@@ -25,7 +25,13 @@ typedef enum
     ARDISCOVERY_ERROR_SOCKET_ALREADY_CONNECTED, /**< Socket is already connected */
     ARDISCOVERY_ERROR_ACCEPT, /**< Socket accept failed */
     ARDISCOVERY_ERROR_SEND, /**< Failed to write frame to socket */
+    ARDISCOVERY_ERROR_READ, /**< Failed to read frame from socket */
+    ARDISCOVERY_ERROR_SELECT, /**< Failed to select sets */
+    ARDISCOVERY_ERROR_ABORT, /**< Aborted by the user*/
+    ARDISCOVERY_ERROR_PIPE_INIT, /**< Failed to intitialize a pipe*/
     ARDISCOVERY_ERROR_BAD_PARAMETER, /**< Bad parameters */
+    ARDISCOVERY_ERROR_BUSY, /**< discovery is busy*/
+    
     
     ARDISCOVERY_ERROR_JNI = -3000, /**< JNI error */
     ARDISCOVERY_ERROR_JNI_VM, /**< JNI virtual machine, not initialized */
