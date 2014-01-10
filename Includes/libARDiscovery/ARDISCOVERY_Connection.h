@@ -58,6 +58,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_Connection_Delete (ARDISCOVERY_Connection_Connect
 
 /**
  * @brief Initialize connection as a Device
+ * @warning Must be called in its own thread 
  * @post ARDISCOVERY_Connection_Device_StopListening() must be called to close the connection.
  * @param[in] connectionData Connection data
  * @param[in] port port use to the discovery
@@ -67,7 +68,8 @@ eARDISCOVERY_ERROR ARDISCOVERY_Connection_Delete (ARDISCOVERY_Connection_Connect
 eARDISCOVERY_ERROR ARDISCOVERY_Connection_DeviceListeningLoop (ARDISCOVERY_Connection_ConnectionData_t *connectionData, int port);
 
 /**
- * @brief Close connection
+ * @brief Close connection 
+ * @warning blocking function ; wait the end of the run
  * @param[in] connectionData Connection data
  * @see ARDISCOVERY_Connection_DeviceListeningLoop()
  */
@@ -75,6 +77,7 @@ void ARDISCOVERY_Connection_Device_StopListening (ARDISCOVERY_Connection_Connect
 
 /**
  * @brief Initialize connection as a Controller
+ * @warning blocking function
  * @post ARDISCOVERY_Connection_Device_StopListening() must be called to close the connection.
  * @param[in] connectionData Connection data
  * @param[in] port port use to the discovery
@@ -86,18 +89,13 @@ eARDISCOVERY_ERROR ARDISCOVERY_Connection_ControllerConnection (ARDISCOVERY_Conn
 
 /**
  * @brief Abort connection
+ * @warning blocking function ; wait the end of the run
  * @param[in] connectionData Connection data
  * @see ARDISCOVERY_Connection_ControllerConnection()
  */
-void ARDISCOVERY_Connection_ControllerConnectionAbort (ARDISCOVERY_Connection_ConnectionData_t *connectionData);
-
-/**
- * @brief get if connectionData is busy
- * @param[in] connectionData Connection data
- * @return isBusy
- * @see ARDISCOVERY_Connection_ControllerConnectionAbort()
- * @see ARDISCOVERY_Connection_Device_StopListening()
- */
-int ARDISCOVERY_Connection_GetIsBusy (ARDISCOVERY_Connection_ConnectionData_t *connectionData);
+static inline  void ARDISCOVERY_Connection_ControllerConnectionAbort (ARDISCOVERY_Connection_ConnectionData_t *connectionData)
+{
+    return ARDISCOVERY_Connection_Device_StopListening (connectionData);
+}
 
 #endif /* _ARDISCOVERY_CONNECTION_H_ */

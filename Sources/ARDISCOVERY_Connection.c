@@ -3,6 +3,7 @@
 
 #include <libARSAL/ARSAL_Print.h>
 #include <libARSAL/ARSAL_Socket.h>
+#include <libARSAL/ARSAL_Sem.h>
 
 #include <libARDiscovery/ARDISCOVERY_Connection.h>
 #include "ARDISCOVERY_Connection.h"
@@ -16,14 +17,14 @@
  *************************/
 
 /**
- * @brief Initialize a socket
+ * @brief Initializes a socket
  * @param[in] socket socket to intialize
  * @return error during execution
  */
 static eARDISCOVERY_ERROR ARDISCOVERY_Connection_CreateSocket (int *socket);
 
 /**
- * @brief Initialize the TCP socket for sending
+ * @brief Initializes the TCP socket for sending
  * On controller, port is self known and connecting is done first.
  * On device, port is known once received from controller.
  * @param[in] deviceSocket socket used by the device
@@ -33,7 +34,7 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_CreateSocket (int *socket);
 static eARDISCOVERY_ERROR ARDISCOVERY_Connection_DeviceInitSocket (int *deviceSocket, int port);
 
 /**
- * @brief Connect the Controller TCP socket
+ * @brief Connects the Controller TCP socket
  * On controller, port is self known and connecting is done first.
  * On device, port is known once received from controller.
  * @param[in] connectionData connection data
@@ -44,7 +45,7 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_DeviceInitSocket (int *deviceSo
 static eARDISCOVERY_ERROR ARDISCOVERY_Connection_ControllerInitSocket (ARDISCOVERY_Connection_ConnectionData_t *connectionData, int port, const char *ip);
 
 /**
- * @brief accept the connection
+ * @brief accepts the connection
  * @param[in] connectionData connection data
  * @param[in] deviceSocket socket used by the device
  * @return error during execution
@@ -52,20 +53,24 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_ControllerInitSocket (ARDISCOVE
 static eARDISCOVERY_ERROR ARDISCOVERY_Connection_DeviceAccept (ARDISCOVERY_Connection_ConnectionData_t *connectionData, int deviceSocket);
 
 /**
- * @brief receive the connection data
+ * @brief receives the connection data
  * @param[in] connectionData connection data
  * @return error during execution
  */
 static eARDISCOVERY_ERROR ARDISCOVERY_Connection_RxPending (ARDISCOVERY_Connection_ConnectionData_t *connectionData);
 
 /**
- * @brief send the connection data
+ * @brief sends the connection data
  * @param[in] connectionData connection data
  * @return error during execution
  */
 static eARDISCOVERY_ERROR ARDISCOVERY_Connection_TxPending (ARDISCOVERY_Connection_ConnectionData_t *connectionData);
 
-static void ARDISCOVERY_Connection_Signal (ARDISCOVERY_Connection_ConnectionData_t *connectionData);
+/**
+ * @brief unlocks
+ * @param[in] connectionData connection data
+ */
+static void ARDISCOVERY_Connection_Unlock (ARDISCOVERY_Connection_ConnectionData_t *connectionData);
 
 /*************************
  * Implementation
@@ -95,7 +100,7 @@ ARDISCOVERY_Connection_ConnectionData_t* ARDISCOVERY_Connection_New (ARDISCOVERY
             connectionData->rxData.buffer = NULL;
             connectionData->rxData.size = 0;
             connectionData->isAlive = 0;
-            connectionData->isBusy = 0;
+            ARSAL_Sem_Init (&(connectionData->runningSem), 0, 1);
             connectionData->sendJsoncallback = sendJsonCallback;
             connectionData->receiveJsoncallback = receiveJsonCallback;
             connectionData->customData = customData;
@@ -180,8 +185,11 @@ eARDISCOVERY_ERROR ARDISCOVERY_Connection_Delete (ARDISCOVERY_Connection_Connect
     {
         if ((*connectionData) != NULL)
         {
-            if ((*connectionData)->isBusy == 0)
+            if ( ARSAL_Sem_Trywait(&((*connectionData)->runningSem)) == 0)
             {
+                /* Destroy runningSem*/
+                ARSAL_Sem_Destroy(&((*connectionData)->runningSem));
+                
                 if ((*connectionData)->txData.buffer)
                 {
                     free((*connectionData)->txData.buffer);
@@ -233,14 +241,9 @@ eARDISCOVERY_ERROR ARDISCOVERY_Connection_DeviceListeningLoop (ARDISCOVERY_Conne
     if (error == ARDISCOVERY_OK)
     {
         /* check if it is already running */
-        if (connectionData->isBusy == 1)//TODO: mutex
+        if (ARSAL_Sem_Trywait(&(connectionData->runningSem)) != 0)
         {
             error = ARDISCOVERY_ERROR_BUSY;
-        }
-        else
-        {
-            connectionData->isBusy = 1;
-            connectionData->isAlive = 1;
         }
     }
     
@@ -252,8 +255,11 @@ eARDISCOVERY_ERROR ARDISCOVERY_Connection_DeviceListeningLoop (ARDISCOVERY_Conne
     
     if (error == ARDISCOVERY_OK)
     {
+        /*  Initialize is alive */
+        connectionData->isAlive = 1;
+        
         /* while is alive */
-        while (connectionData->isAlive == 1) //TODO: mutex
+        while (connectionData->isAlive == 1)
         {
             /* Wait for any incoming connection from controller */
             loopError = ARDISCOVERY_Connection_DeviceAccept (connectionData, deviceSocket);
@@ -288,8 +294,8 @@ eARDISCOVERY_ERROR ARDISCOVERY_Connection_DeviceListeningLoop (ARDISCOVERY_Conne
         /* close deviceSocket */
         ARSAL_Socket_Close (deviceSocket);
         
-        /* reset the flags isBusy */
-        connectionData->isBusy = 0; //TODO: mutex
+        /* reset the runningSem */
+        ARSAL_Sem_Post(&(connectionData->runningSem));
     }
     
     return error;
@@ -309,7 +315,12 @@ void ARDISCOVERY_Connection_Device_StopListening (ARDISCOVERY_Connection_Connect
     {
         /* Stop reception */
         connectionData->isAlive = 0;
-        ARDISCOVERY_Connection_Signal (connectionData);
+        ARDISCOVERY_Connection_Unlock (connectionData);
+        
+        /* wait the end of the run*/
+        ARSAL_Sem_Wait (&(connectionData->runningSem));
+        /* reset the runningSem */
+        ARSAL_Sem_Post(&(connectionData->runningSem));
     }
 }
 
@@ -329,21 +340,14 @@ eARDISCOVERY_ERROR ARDISCOVERY_Connection_ControllerConnection (ARDISCOVERY_Conn
     if (error == ARDISCOVERY_OK)
     {
         /* check if it is already running */
-        if (connectionData->isBusy == 1)
+        if (ARSAL_Sem_Trywait(&(connectionData->runningSem)) != 0)
         {
             error = ARDISCOVERY_ERROR_BUSY;
-        }
-        else
-        {
-            connectionData->isBusy = 1;
         }
     }
 
     if (error == ARDISCOVERY_OK)
     {
-        /* reset the flags isBusy */
-        connectionData->isBusy = 1; //TODO: mutex
-        
         /* Start by contacting the device we're interested in */
         error = ARDISCOVERY_Connection_ControllerInitSocket (connectionData, port, ip);
         
@@ -362,27 +366,10 @@ eARDISCOVERY_ERROR ARDISCOVERY_Connection_ControllerConnection (ARDISCOVERY_Conn
         /* close the socket*/
         ARSAL_Socket_Close (connectionData->socket);
         
-        /* reset the flags isBusy */
-        connectionData->isBusy = 0; //TODO: mutex
+        /* reset the runningSem */
+        ARSAL_Sem_Post(&(connectionData->runningSem));
     }
     return error;
-}
-
-void ARDISCOVERY_Connection_ControllerConnectionAbort (ARDISCOVERY_Connection_ConnectionData_t *connectionData)
-{
-    eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
-    
-    /* Check parameter */
-    if (connectionData == NULL)
-    {
-        error = ARDISCOVERY_ERROR_BAD_PARAMETER;
-    }
-    
-    if (error == ARDISCOVERY_OK)
-    {
-        /* Stop reception */
-        ARDISCOVERY_Connection_Signal (connectionData);
-    }
 }
 
 /*************************
@@ -705,7 +692,7 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_TxPending (ARDISCOVERY_Connecti
     return error;
 }
 
-void ARDISCOVERY_Connection_Signal (ARDISCOVERY_Connection_ConnectionData_t *connectionData)
+void ARDISCOVERY_Connection_Unlock (ARDISCOVERY_Connection_ConnectionData_t *connectionData)
 {
     /* - signal - */
     
