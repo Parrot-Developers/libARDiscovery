@@ -35,8 +35,8 @@ public abstract class ARDiscoveryConnection
     private native long nativeNew();
     private native int nativeDelete(long jARDiscoveryConnection);
     
-    private native int nativeOpenAsController (long jConnectionData, int port, String javaIP);
-    private native void nativeClose (long jConnectionData);
+    private native int nativeControllerConnection (long jConnectionData, int port, String javaIP);
+    private native void nativeControllerConnectionAbort (long jConnectionData);
     
     private long nativeARDiscoveryConnection;
     private boolean initOk;
@@ -66,14 +66,23 @@ public abstract class ARDiscoveryConnection
     /**
      * Dispose
      */
-    public void dispose()
+    public ARDISCOVERY_ERROR_ENUM dispose()
     {
+        ARDISCOVERY_ERROR_ENUM error = ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_OK;
+        
         if(initOk == true)
         {
-            nativeDelete(nativeARDiscoveryConnection);
-            nativeARDiscoveryConnection = 0;
-            initOk = false;
+            int nativeError = nativeDelete(nativeARDiscoveryConnection);
+            error = ARDISCOVERY_ERROR_ENUM.getFromValue(nativeError);
+            
+            if (error == ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_OK)
+            {
+                nativeARDiscoveryConnection = 0;
+                initOk = false;
+            }
         }
+        
+        return error;
     }
     
     /**
@@ -99,9 +108,9 @@ public abstract class ARDiscoveryConnection
      * @return error during execution
      * @see close()
      */
-    public ARDISCOVERY_ERROR_ENUM openAsControler (int port, String ip)
+    public ARDISCOVERY_ERROR_ENUM ControllerConnection (int port, String ip)
     {
-        int nativeError = nativeOpenAsController (nativeARDiscoveryConnection, port, ip);
+        int nativeError = nativeControllerConnection (nativeARDiscoveryConnection, port, ip);
         
         return ARDISCOVERY_ERROR_ENUM.getFromValue(nativeError);
     }
@@ -110,9 +119,9 @@ public abstract class ARDiscoveryConnection
      * @brief Close connection
      * @see openAsController()
      */
-    public void close ()
+    public void ControllerConnectionAbort ()
     {
-        nativeClose (nativeARDiscoveryConnection);
+        nativeControllerConnectionAbort (nativeARDiscoveryConnection);
     }
     
     /**

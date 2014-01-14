@@ -63,9 +63,10 @@ ARDISCOVERY_JNICONNECTIONDATA_t *ARDISCOVERY_JNIConnectionData_New (JNIEnv *env,
  * @warning This function free memory
  * @param env java environement
  * @param jniBLENetwork JNIConnectionData to delete
+ * @return error during callback execution
  * @see ARDISCOVERY_JNIConnectionData_New()
  */
-void ARNETWORKAL_ARDISCOVERY_JNIConnectionData_Delete (JNIEnv *env, ARDISCOVERY_JNICONNECTIONDATA_t **jniConnectionData);
+eARDISCOVERY_ERROR ARNETWORKAL_ARDISCOVERY_JNIConnectionData_Delete (JNIEnv *env, ARDISCOVERY_JNICONNECTIONDATA_t **jniConnectionData);
 
 /**
  * @brief callback use to send json information of the connection
@@ -196,29 +197,29 @@ Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeNew (JNIEnv *env, 
  * @param jConnectionData jniConnectionData to delete
  * @param[in] connectionData Connection data
  */
-JNIEXPORT void JNICALL
+JNIEXPORT jint JNICALL
 Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeDelete (JNIEnv *env, jobject thizz, jlong jConnectionData)
 {
     /* local declarations */
     ARDISCOVERY_JNICONNECTIONDATA_t *jniConnectionData = (ARDISCOVERY_JNICONNECTIONDATA_t *) (intptr_t) jConnectionData;
     
-    ARNETWORKAL_ARDISCOVERY_JNIConnectionData_Delete (env, &jniConnectionData);
+    return ARNETWORKAL_ARDISCOVERY_JNIConnectionData_Delete (env, &jniConnectionData);
 }
 
 /**
  * @brief Open a connection as a Controller
- * @warning this function keep a Global reference on the java ConnectionData call nativeClose() to free it
- * @post nativeClose() must be called to delete the Global reference on the java ConnectionData.
+ * @warning this function keep a Global reference on the java ConnectionData call nativeControllerConnectionAbort() to free it
+ * @post nativeControllerConnectionAbort() must be called to delete the Global reference on the java ConnectionData.
  * @param env reference to the java environment
  * @param thizz reference to the object calling this function
  * @param[in] jConnectionData JNI Connection data
  * @param[in] port port use to the discovery
  * @param[in] ipAddr device IP address
  * @return error during execution
- * @see nativeClose()
+ * @see nativeControllerConnectionAbort()
  */
 JNIEXPORT jint JNICALL
-Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeOpenAsController (JNIEnv *env, jobject thizz, jlong jConnectionData, jint port, jstring javaIP)
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeControllerConnection (JNIEnv *env, jobject thizz, jlong jConnectionData, jint port, jstring javaIP)
 {
     /* local declarations */
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
@@ -237,7 +238,7 @@ Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeOpenAsController (
         jniConnectionData->javaConnectionData = (*env)->NewGlobalRef (env, thizz);
         
         /* call the native fonction */
-        error = ARDISCOVERY_Connection_OpenAsController (jniConnectionData->nativeConnectionData, port, nativeIP);
+        error = ARDISCOVERY_Connection_ControllerConnection (jniConnectionData->nativeConnectionData, port, nativeIP);
     }
     
     /* clean up */
@@ -251,15 +252,15 @@ Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeOpenAsController (
  * @param env reference to the java environment
  * @param thizz reference to the object calling this function
  * @param[in] jConnectionData Connection data
- * @see nativeOpenAsController()
+ * @see nativeControllerConnection()
  */
 JNIEXPORT void JNICALL
-Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeClose (JNIEnv *env, jobject thizz, jlong jConnectionData)
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeControllerConnectionAbort (JNIEnv *env, jobject thizz, jlong jConnectionData)
 {
     /* local declarations */
     ARDISCOVERY_JNICONNECTIONDATA_t *jniConnectionData = (ARDISCOVERY_JNICONNECTIONDATA_t *) (intptr_t) jConnectionData;
     
-    ARDISCOVERY_Connection_Close (jniConnectionData->nativeConnectionData);
+    ARDISCOVERY_Connection_ControllerConnectionAbort (jniConnectionData->nativeConnectionData);
     
     /* free javaConnectionData */
     /* delete global references */
@@ -315,11 +316,20 @@ ARDISCOVERY_JNICONNECTIONDATA_t *ARDISCOVERY_JNIConnectionData_New (JNIEnv *env,
     return jniConnectionData;
 }
 
-void ARNETWORKAL_ARDISCOVERY_JNIConnectionData_Delete (JNIEnv *env, ARDISCOVERY_JNICONNECTIONDATA_t **jniConnectionData)
+eARDISCOVERY_ERROR ARNETWORKAL_ARDISCOVERY_JNIConnectionData_Delete (JNIEnv *env, ARDISCOVERY_JNICONNECTIONDATA_t **jniConnectionData)
 {
     /* - ARDISCOVERY_JNICONNECTIONDATA - */
     
-    if (jniConnectionData != NULL)
+    /* local declarations */
+    eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
+    
+    /* check parameters */
+    if (jniConnectionData == NULL)
+    {
+        error = ARDISCOVERY_ERROR_BAD_PARAMETER;
+    }
+    
+    if (error == ARDISCOVERY_OK)
     {
         if (*jniConnectionData != NULL)
         {
@@ -328,13 +338,15 @@ void ARNETWORKAL_ARDISCOVERY_JNIConnectionData_Delete (JNIEnv *env, ARDISCOVERY_
             (*jniConnectionData)->javaConnectionData = NULL;
             
             /* delete the nativeConnectionData */
-            ARDISCOVERY_Connection_Delete (&((*jniConnectionData)->nativeConnectionData));
+            error = ARDISCOVERY_Connection_Delete (&((*jniConnectionData)->nativeConnectionData));
             
             /* free jniConnectionData */
             free (*jniConnectionData);
             *jniConnectionData = NULL;
         }
     }
+    
+    return error;
 }
 
 eARDISCOVERY_ERROR ARDISCOVERY_JNIConnection_SendJsonCallback (uint8_t *dataTx, uint32_t *dataTxSize, void *customData)
