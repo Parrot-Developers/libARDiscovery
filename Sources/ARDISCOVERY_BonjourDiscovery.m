@@ -11,7 +11,7 @@
 #import <netdb.h>
 
 #define kServiceNetControllerType                   @"_arsdk-ff3._udp"
-#define kServiceNetDomain                           @"local"
+#define kServiceNetDomain                           @ARDISCOVERY_SERVICE_NET_DEVICE_DOMAIN
 #define kServiceNetDeviceFormat                     @ARDISCOVERY_SERVICE_NET_DEVICE_FORMAT"."
 
 #define ARBLESERVICE_BLE_MANUFACTURER_DATA_LENGTH   8

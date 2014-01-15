@@ -63,7 +63,9 @@ public class ARDiscoveryService extends Service
     public static final String kARDiscoveryServiceNotificationServicesDevicesListUpdated = "kARDiscoveryServiceNotificationServicesDevicesListUpdated";
     
     public static String ARDISCOVERY_SERVICE_NET_DEVICE_FORMAT;
+    public static String ARDISCOVERY_SERVICE_NET_DEVICE_DOMAIN;
     
+    private static native String nativeGetDefineNetDeviceDomain ();
     private static native String nativeGetDefineNetDeviceFormat ();
     
     private HashMap<String, Intent> intentCache;
@@ -99,7 +101,8 @@ public class ARDiscoveryService extends Service
     
     static
     {
-        ARDISCOVERY_SERVICE_NET_DEVICE_FORMAT = nativeGetDefineNetDeviceFormat ();
+        ARDISCOVERY_SERVICE_NET_DEVICE_FORMAT = nativeGetDefineNetDeviceFormat () + ".";
+        ARDISCOVERY_SERVICE_NET_DEVICE_DOMAIN = nativeGetDefineNetDeviceDomain () + ".";
     }
     
     @Override
@@ -134,6 +137,8 @@ public class ARDiscoveryService extends Service
         for (int i = ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_NSNETSERVICE.getValue() ; i < ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_BLESERVICE.getValue(); ++i)
         {
             String devicesService = String.format (ARDISCOVERY_SERVICE_NET_DEVICE_FORMAT, nativeGetProductID(i));
+            
+            devicesService += ARDISCOVERY_SERVICE_NET_DEVICE_DOMAIN;
             
             devicesServiceArray.add(devicesService);
         }
@@ -434,7 +439,7 @@ public class ARDiscoveryService extends Service
             }
             else
             {
-                ARSALPrint.d(TAG,"Found an unknown service : " + deviceNetService);
+                ARSALPrint.e(TAG,"Found an unknown service : " + deviceNetService);
             }
             
         }
@@ -520,7 +525,7 @@ public class ARDiscoveryService extends Service
     
     private int getServicePort(ServiceEvent serviceEvent)
     {
-        ARSALPrint.d(TAG,"getServiceIP serviceEvent: " + serviceEvent);
+        ARSALPrint.d(TAG,"getServicePort serviceEvent: " + serviceEvent);
         
         int servicePort = 0;
         

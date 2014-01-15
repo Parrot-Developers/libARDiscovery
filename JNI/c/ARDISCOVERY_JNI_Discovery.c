@@ -55,3 +55,13 @@ Java_com_parrot_arsdk_ardiscovery_ARDiscoveryService_nativeGetDefineNetDeviceFor
 {
     return  (*env)->NewStringUTF(env, ARDISCOVERY_SERVICE_NET_DEVICE_FORMAT);
 }
+
+/**
+ * @brief get ARDISCOVERY_SERVICE_NET_DEVICE_DOMAIN
+ * @return value of ARDISCOVERY_SERVICE_NET_DEVICE_DOMAIN
+ */
+ JNIEXPORT jstring JNICALL
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryService_nativeGetDefineNetDeviceDomain (JNIEnv *env, jclass class)
+{
+    return  (*env)->NewStringUTF(env, ARDISCOVERY_SERVICE_NET_DEVICE_DOMAIN);
+}
