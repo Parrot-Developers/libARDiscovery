@@ -53,5 +53,5 @@ Java_com_parrot_arsdk_ardiscovery_ARDiscoveryService_nativeGetProductID (JNIEnv 
  JNIEXPORT jstring JNICALL
 Java_com_parrot_arsdk_ardiscovery_ARDiscoveryService_nativeGetDefineNetDeviceFormat (JNIEnv *env, jclass class)
 {
-    return ARDISCOVERY_SERVICE_NET_DEVICE_FORMAT;
+    return  (*env)->NewStringUTF(env, ARDISCOVERY_SERVICE_NET_DEVICE_FORMAT);
 }

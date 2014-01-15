@@ -146,7 +146,7 @@ Java_com_parrot_arsdk_ardiscovery_ARDiscoveryService_nativeStaticInit (JNIEnv *e
 JNIEXPORT jstring JNICALL
 Java_com_parrot_arsdk_ardiscovery_ARDiscoveryService_nativeGetDefineJsonC2DPortKey (JNIEnv *env, jclass class)
 {
-    return ARDISCOVERY_CONNECTION_JSON_C2DPORT_STRING;
+    return  (*env)->NewStringUTF(env, ARDISCOVERY_CONNECTION_JSON_D2CPORT_STRING);
 }
 
 /**
@@ -156,7 +156,7 @@ Java_com_parrot_arsdk_ardiscovery_ARDiscoveryService_nativeGetDefineJsonC2DPortK
 JNIEXPORT jstring JNICALL
 Java_com_parrot_arsdk_ardiscovery_ARDiscoveryService_nativeGetDefineJsonD2CPortKey (JNIEnv *env, jclass class)
 {
-    return ARDISCOVERY_CONNECTION_JSON_D2CPORT_STRING;
+    return  (*env)->NewStringUTF(env, ARDISCOVERY_CONNECTION_JSON_D2CPORT_STRING);
 }
 
 /**
