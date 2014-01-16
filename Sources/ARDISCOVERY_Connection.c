@@ -592,6 +592,11 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_RxPending (ARDISCOVERY_Connecti
         /* Read error */
         error = ARDISCOVERY_ERROR_SELECT;
     }
+    else if(selectErr == 0)
+    {
+        /* timeout error*/
+        error = ARDISCOVERY_ERROR_TIMEOUT;
+    }
     else
     {
         if (FD_ISSET(connectionData->socket, &set))
@@ -667,6 +672,11 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_TxPending (ARDISCOVERY_Connecti
         {
             /* Read error */
             error = ARDISCOVERY_ERROR_SELECT;
+        }
+        else if(selectErr == 0)
+        {
+            /* timeout error*/
+            error = ARDISCOVERY_ERROR_TIMEOUT;
         }
         else
         {
