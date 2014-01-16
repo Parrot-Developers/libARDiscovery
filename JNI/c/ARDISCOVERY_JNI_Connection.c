@@ -116,7 +116,7 @@ JNI_OnLoad(JavaVM *VM, void *reserved)
 
 
 JNIEXPORT void JNICALL
-Java_com_parrot_arsdk_ardiscovery_ARDiscoveryService_nativeStaticInit (JNIEnv *env, jclass class)
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeStaticInit (JNIEnv *env, jclass class)
 {
     /* local declarations */
     jclass jARDiscoveryConnectionCls = NULL;
@@ -125,11 +125,11 @@ Java_com_parrot_arsdk_ardiscovery_ARDiscoveryService_nativeStaticInit (JNIEnv *e
     /* get ARDiscoveryConnection */
     jARDiscoveryConnectionCls = (*env)->FindClass(env, "com/parrot/arsdk/ardiscovery/ARDiscoveryConnection");
     
-    ARDISCOVERY_JNICONNECTION_METHOD_CONNECTION_SEND_JSON_CALLBACK = (*env)->GetMethodID (env, jARDiscoveryConnectionCls, "sendJsonCallback", "()Lcom/parrot/arsdk/ardiscovery/ARDiscoveryConnectionCallbackReturn;");
+    ARDISCOVERY_JNICONNECTION_METHOD_CONNECTION_SEND_JSON_CALLBACK = (*env)->GetMethodID (env, jARDiscoveryConnectionCls, "sendJsonCallback", "()Lcom/parrot/arsdk/ardiscovery/ARDiscoveryConnection$ARDiscoveryConnectionCallbackReturn;");
     ARDISCOVERY_JNICONNECTION_METHOD_CONNECTION_RECEIVE_JSON_CALLBACK = (*env)->GetMethodID (env, jARDiscoveryConnectionCls, "receiveJsonCallback", "([BLjava/lang/String;)I");
     
     /* get ARDiscoveryConnectionCallbackReturn */
-    jARDiscoveryConnectionCallbackReturnCls = (*env)->FindClass(env, "com/parrot/arsdk/ardiscovery/ARDiscoveryConnectionCallbackReturn");
+    jARDiscoveryConnectionCallbackReturnCls = (*env)->FindClass(env, "com/parrot/arsdk/ardiscovery/ARDiscoveryConnection$ARDiscoveryConnectionCallbackReturn");
     
     ARDISCOVERY_JNICONNECTIONCALLBACKRETURN_METHOD_DATA_GET_ERROR = (*env)->GetMethodID(env, jARDiscoveryConnectionCallbackReturnCls, "getError", "()I");  
     ARDISCOVERY_JNICONNECTIONCALLBACKRETURN_METHOD_DATA_GET_DATA_TX = (*env)->GetMethodID(env, jARDiscoveryConnectionCallbackReturnCls, "getDataTx", "()Ljava/lang/String;");
@@ -144,9 +144,9 @@ Java_com_parrot_arsdk_ardiscovery_ARDiscoveryService_nativeStaticInit (JNIEnv *e
  * @return value of ARDISCOVERY_CONNECTION_JSON_C2DPORT_STRING
  */
 JNIEXPORT jstring JNICALL
-Java_com_parrot_arsdk_ardiscovery_ARDiscoveryService_nativeGetDefineJsonC2DPortKey (JNIEnv *env, jclass class)
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeGetDefineJsonC2DPortKey (JNIEnv *env, jclass class)
 {
-    return  (*env)->NewStringUTF(env, ARDISCOVERY_CONNECTION_JSON_D2CPORT_STRING);
+    return  (*env)->NewStringUTF(env, ARDISCOVERY_CONNECTION_JSON_C2DPORT_STRING);
 }
 
 /**
@@ -154,7 +154,7 @@ Java_com_parrot_arsdk_ardiscovery_ARDiscoveryService_nativeGetDefineJsonC2DPortK
  * @return value of ARDISCOVERY_CONNECTION_JSON_D2CPORT_STRING
  */
 JNIEXPORT jstring JNICALL
-Java_com_parrot_arsdk_ardiscovery_ARDiscoveryService_nativeGetDefineJsonD2CPortKey (JNIEnv *env, jclass class)
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeGetDefineJsonD2CPortKey (JNIEnv *env, jclass class)
 {
     return  (*env)->NewStringUTF(env, ARDISCOVERY_CONNECTION_JSON_D2CPORT_STRING);
 }
@@ -164,7 +164,7 @@ Java_com_parrot_arsdk_ardiscovery_ARDiscoveryService_nativeGetDefineJsonD2CPortK
  * @return value of ARDISCOVERY_CONNECTION_TX_BUFFER_SIZE
  */
 JNIEXPORT jint JNICALL
-Java_com_parrot_arsdk_ardiscovery_ARDiscoveryService_nativeGetDefineTxBufferSize (JNIEnv *env, jclass class)
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeGetDefineTxBufferSize (JNIEnv *env, jclass class)
 {
     return ARDISCOVERY_CONNECTION_TX_BUFFER_SIZE;
 }
