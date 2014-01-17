@@ -412,6 +412,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_JNIConnection_SendJsonCallback (uint8_t *dataTx, 
                 nativeDataTxLength = strlen(nativeDataTx);
                 
                 memcpy (dataTx, nativeDataTx, nativeDataTxLength);
+                *dataTxSize = nativeDataTxLength;
                 
                 (*env)->ReleaseStringUTFChars(env, jDataTx, nativeDataTx);
                 nativeDataTx = NULL;
