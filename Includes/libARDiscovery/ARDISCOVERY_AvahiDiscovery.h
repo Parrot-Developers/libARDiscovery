@@ -28,7 +28,7 @@ typedef struct ARDISCOVERY_AvahiDiscovery_BrowserData_t ARDISCOVERY_AvahiDiscove
  * @param[in] ipAddr IP address of the host for said service
  * @return error during callback execution
  */
-typedef eARDISCOVERY_ERROR (*ARDISCOVERY_AvahiDiscovery_Browser_Callback_t) (void* custom, uint8_t state, uint8_t* serviceName, uint8_t* serviceType, uint8_t* ipAddr);
+typedef eARDISCOVERY_ERROR (*ARDISCOVERY_AvahiDiscovery_Browser_Callback_t) (void* custom, uint8_t state, uint8_t* serviceName, uint8_t* serviceType, uint8_t* ipAddr, uint16_t port);
 
 /**
  * @brief Initialize Publication related Avahi data

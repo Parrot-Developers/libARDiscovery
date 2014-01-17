@@ -707,7 +707,7 @@ static void ARDISCOVERY_AvahiDiscovery_Browser_BrowseCb(AvahiServiceBrowser *b, 
         case AVAHI_BROWSER_REMOVE:
         {
             /* Call upper layer callback for service removal */
-            browserData->callback(browserData->customData, 0, name, type, NULL);
+            browserData->callback(browserData->customData, 0, name, type, NULL, 0);
             break;
         }
         case AVAHI_BROWSER_ALL_FOR_NOW:
@@ -747,7 +747,7 @@ static void ARDISCOVERY_AvahiDiscovery_Browser_ResolveCb(AvahiServiceResolver *r
             /* Concert Avahi object to readable ip address */
             avahi_address_snprint(a, sizeof(a), address);
             /* Call to say we found a service */
-            browserData->callback(browserData->customData, 1, name, type, a);
+            browserData->callback(browserData->customData, 1, name, type, a, port);
         }
     }
 
