@@ -21,21 +21,30 @@ typedef enum
 } eARDISCOVERY_PRODUCT;
 
 /**
- * @brief Converts a product enumerator in product ID
+ * @brief Converts from product enumerator to product ID
  * This function is the only one knowing the correspondance
- * between the enumerator and the products' IDs.
+ * between the product enumerator and the products' IDs.
  * @param product The product's enumerator
  * @return The corresponding product ID
  */
 uint16_t ARDISCOVERY_getProductID(eARDISCOVERY_PRODUCT product);
 
 /**
- * @brief Converts a product enumerator in product name
+ * @brief Converts from product enumerator to product name
  * This function is the only one knowing the correspondance
- * between the enumerator and the products name.
+ * between the product enumerator and the products name.
  * @param product The product's enumerator
  * @return The corresponding product name
  */
 const char* ARDISCOVERY_getProductName(eARDISCOVERY_PRODUCT product);
+
+/**
+ * @brief Converts from product name to product enumerator
+ * This function is the only one knowing the correspondance
+ * between the products name and the product enumerator.
+ * @param name The product's name
+ * @return The corresponding product enumerator
+ */
+eARDISCOVERY_PRODUCT ARDISCOVERY_getProductFromName(const char *name);
 
 #endif // _ARDISCOVERY_DISCOVERY_H_

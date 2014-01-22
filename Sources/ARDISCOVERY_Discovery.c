@@ -1,4 +1,5 @@
 #include <libARDiscovery/ARDISCOVERY_Discovery.h>
+#include <string.h>
 
 static const uint16_t ARDISCOVERY_Discovery_ProductTable[ARDISCOVERY_PRODUCT_MAX] =
 {
@@ -29,4 +30,18 @@ uint16_t ARDISCOVERY_getProductID(eARDISCOVERY_PRODUCT product)
 const char* ARDISCOVERY_getProductName(eARDISCOVERY_PRODUCT product)
 {
     return ARDISCOVERY_Discovery_ProductNameTable[product];
+}
+
+eARDISCOVERY_PRODUCT ARDISCOVERY_getProductFromName(const char *name)
+{
+    uint8_t product = ARDISCOVERY_PRODUCT_MAX;
+    if (name == NULL)
+        return ARDISCOVERY_PRODUCT_MAX;
+    for (int i = 0; (product == ARDISCOVERY_PRODUCT_MAX) && (i < ARDISCOVERY_PRODUCT_MAX); i++)
+    {
+        if(strcmp(name, ARDISCOVERY_Discovery_ProductNameTable[i]) == 0)
+            product = i;
+    }
+    
+    return product;
 }
