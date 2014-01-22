@@ -29,4 +29,13 @@ typedef enum
  */
 uint16_t ARDISCOVERY_getProductID(eARDISCOVERY_PRODUCT product);
 
+/**
+ * @brief Converts a product enumerator in product name
+ * This function is the only one knowing the correspondance
+ * between the enumerator and the products name.
+ * @param product The product's enumerator
+ * @return The corresponding product name
+ */
+const char* ARDISCOVERY_getProductName(eARDISCOVERY_PRODUCT product);
+
 #endif // _ARDISCOVERY_DISCOVERY_H_
