@@ -35,9 +35,11 @@ const char* ARDISCOVERY_getProductName(eARDISCOVERY_PRODUCT product)
 eARDISCOVERY_PRODUCT ARDISCOVERY_getProductFromName(const char *name)
 {
     uint8_t product = ARDISCOVERY_PRODUCT_MAX;
+    int i = 0;
+
     if (name == NULL)
         return ARDISCOVERY_PRODUCT_MAX;
-    for (int i = 0; (product == ARDISCOVERY_PRODUCT_MAX) && (i < ARDISCOVERY_PRODUCT_MAX); i++)
+    for (i = 0; (product == ARDISCOVERY_PRODUCT_MAX) && (i < ARDISCOVERY_PRODUCT_MAX); i++)
     {
         if(strcmp(name, ARDISCOVERY_Discovery_ProductNameTable[i]) == 0)
             product = i;
