@@ -4,7 +4,7 @@
  **/
 
 /*****************************************
- * 
+ *
  *             include file :
  *
  *****************************************/
@@ -44,6 +44,52 @@ JNIEXPORT jint JNICALL
 Java_com_parrot_arsdk_ardiscovery_ARDiscoveryService_nativeGetProductID (JNIEnv *env, jclass thizz, int product)
 {
     return ARDISCOVERY_getProductID (product);
+}
+
+ /**
+ * @brief Converts a product ID in product name
+ * This function is the only one knowing the correspondance
+ * between the products' IDs and the product names.
+ * @param product The product ID
+ * @return The corresponding product name
+ */
+JNIEXPORT jstring JNICALL
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryService_nativeGetProductName (JNIEnv *env, jclass thizz, int product)
+{
+    const char *nativeName;
+    jstring jName = NULL;
+
+    nativeName = ARDISCOVERY_getProductName (product);
+
+    if (nativeName != NULL)
+    {
+        jName = (*env)->NewStringUTF(env, nativeName);
+    }
+
+    return jName;
+}
+
+ /**
+ * @brief Converts a product product name in product ID
+ * This function is the only one knowing the correspondance
+ * between the product names and the products' IDs.
+ * @param name The product's product name
+ * @return The corresponding product ID
+ */
+JNIEXPORT jint JNICALL
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryService_nativeGetProductFromName (JNIEnv *env, jclass thizz, jstring name)
+{
+    const char *nativeName = (*env)->GetStringUTFChars(env, name, 0);
+    jint product;
+
+    product = ARDISCOVERY_getProductFromName (nativeName);
+
+    if (nativeName != NULL)
+    {
+         (*env)->ReleaseStringUTFChars(env, name, nativeName);
+    }
+
+    return product;
 }
 
 /**
