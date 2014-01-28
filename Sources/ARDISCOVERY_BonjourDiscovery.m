@@ -41,7 +41,7 @@
 - (BOOL)isEqual:(id)object
 {
     ARService *otherService = (ARService *)object;
-    return ([self.name isEqualToString:[otherService name]] && (self.productID == otherService.productID));
+    return ([self.name isEqualToString:[otherService name]] && (self.product == otherService.product));
 }
 
 @end
@@ -383,8 +383,7 @@
         aService.name = [aNetService name];
         aService.service = aNetService;
         
-        aService.productID = ARDISCOVERY_PRODUCT_MAX;
-
+        aService.product = ARDISCOVERY_PRODUCT_MAX;
         
         if ([aNetService.type isEqualToString:kServiceNetControllerType])
         {
@@ -401,12 +400,12 @@
                 NSString *deviceType = [NSString stringWithFormat:kServiceNetDeviceFormat, ARDISCOVERY_getProductID(i)];
                 if ([aNetService.type isEqualToString:deviceType])
                 {
-                    aService.productID = ARDISCOVERY_getProductID(i);
+                    aService.product = i;
                     break;
                 }
             }
             
-            if (aService.productID != ARDISCOVERY_PRODUCT_MAX)
+            if (aService.product != ARDISCOVERY_PRODUCT_MAX)
             {
                 [self.devicesServicesList setObject:aService forKey:aService.name];
                 if (!moreComing)
@@ -572,8 +571,13 @@
                 
                 NSData *manufacturerData = [advertisementData valueForKey:CBAdvertisementDataManufacturerDataKey];
                 uint16_t *ids = (uint16_t *) manufacturerData.bytes;
-                aService.productID = ids[2];
-
+                aService.product = ARDISCOVERY_PRODUCT_MAX;
+                for (int i = ARDISCOVERY_PRODUCT_BLESERVICE ; (aService.product == ARDISCOVERY_PRODUCT_MAX) && (i < ARDISCOVERY_PRODUCT_MAX) ; i++)
+                {
+                    if (ids[2] == ARDISCOVERY_getProductID(i))
+                        aService.product = i;
+                }
+                
                 NSTimer *timer = (NSTimer *)[self.devicesBLEServicesTimerList objectForKey:aService.name];
                 if(timer != nil)
                 {

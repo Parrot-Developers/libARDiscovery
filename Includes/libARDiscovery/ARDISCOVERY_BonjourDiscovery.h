@@ -7,6 +7,7 @@
 //
 #import <Foundation/Foundation.h>
 #import <CoreBluetooth/CoreBluetooth.h>
+#import <libARDiscovery/ARDISCOVERY_Discovery.h>
 
 #pragma mark Notifications
 
@@ -59,9 +60,9 @@
 @end
 
 @interface ARService : NSObject
-@property (nonatomic, strong) NSString *name;       ///< Name of the device
-@property (nonatomic, assign) NSUInteger productID; ///< Specific product ID
-@property (nonatomic, strong) id service;           ///< Can be NSNetService or ARBLEService
+@property (nonatomic, strong) NSString *name;               ///< Name of the device
+@property (nonatomic, assign) eARDISCOVERY_PRODUCT product; ///< Specific product
+@property (nonatomic, strong) id service;                   ///< Can be NSNetService or ARBLEService
 @end
 
 @interface ARDiscovery : NSObject
