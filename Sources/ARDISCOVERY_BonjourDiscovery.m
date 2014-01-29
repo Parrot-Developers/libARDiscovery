@@ -18,7 +18,7 @@
 #define ARBLESERVICE_PARROT_BT_VENDOR_ID            0X0043  // Parrot Company ID registered by Bluetooth SIG (Bluetooth Specification v4.0 Requirement)
 #define ARBLESERVICE_PARROT_USB_VENDOR_ID           0x19cf  // Official Parrot USB Vendor ID
 
-#define kServiceResolutionTimeout                   5.f    // Time in seconds
+#define kServiceResolutionTimeout                   50.f    // Time in seconds
 #define kServiceBLERefreshTime                      10.f    // Time in seconds
 
 #define CHECK_VALID(DEFAULT_RETURN_VALUE)       \
@@ -281,15 +281,17 @@
     int i;
     
     name = [[aService service] name];
-    
-    for (i=0; i<[[[aService service] addresses] count]; i++)
+    NSArray *adresses = ((NSNetService *)[aService service]).addresses;
+    for (i = 0 ; i < [adresses count] ; i++)
     {
-        address = [[[aService service] addresses] objectAtIndex: i];
+        address = [adresses objectAtIndex:i];
         socketAddress = (struct sockaddr_in *) [address bytes];
         if (socketAddress->sin_family == AF_INET)//AF_INET -> IPv4, AF_INET6 -> IPv6
         {
-            ipString = [NSString stringWithFormat: @"%s",inet_ntoa(socketAddress->sin_addr)];
-            port = socketAddress->sin_port;
+            char ip[INET_ADDRSTRLEN];
+            inet_ntop(AF_INET, &socketAddress->sin_addr, ip, INET_ADDRSTRLEN);
+            ipString = [NSString stringWithFormat: @"%s", ip];
+            port = ntohs(socketAddress->sin_port);
         }
     }
     
@@ -359,21 +361,6 @@
 }
 
 #pragma mark - NSNetServiceBrowser Delegate
-- (void)netServiceBrowser:(NSNetServiceBrowser *)aNetServiceBrowser didNotSearch:(NSDictionary *)errorDict
-{
-    NSLog(@"%s:%d => %@", __FUNCTION__, __LINE__, errorDict);
-}
-
-- (void)netServiceBrowserDidStopSearch:(NSNetServiceBrowser *)netServiceBrowser
-{
-    NSLog(@"%s:%d", __FUNCTION__, __LINE__);
-}
-
-- (void)netServiceBrowserWillSearch:(NSNetServiceBrowser *)netServiceBrowser
-{
-    NSLog(@"%s:%d", __FUNCTION__, __LINE__);
-}
-
 - (void)netServiceBrowser:(NSNetServiceBrowser *)aNetServiceBrowser didFindService:(NSNetService *)aNetService moreComing:(BOOL)moreComing
 {
     NSLog(@"Service found : %@, %@", aNetService.name, aNetService.type);
@@ -487,6 +474,7 @@
     {
         self.currentResolutionService = nil;
         [self sendNotResolveNotification];
+        [service stop];
     }
 }
 
@@ -495,6 +483,7 @@
     @synchronized (self)
     {
         [self sendResolveNotification];
+        [service stop];
     }
 }
 
