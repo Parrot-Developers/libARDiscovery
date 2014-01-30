@@ -576,7 +576,7 @@
 
                 [self.devicesServicesList setObject:aService forKey:[peripheral.identifier UUIDString]];
                 timer = [NSTimer scheduledTimerWithTimeInterval:kServiceBLERefreshTime target:self selector:@selector(deviceBLETimeout:) userInfo:aService repeats:NO];
-                [self.devicesBLEServicesTimerList setObject:timer forKey:[peripheral.identifier UUIDString]];
+                [self.devicesBLEServicesTimerList setObject:timer forKey:aService.name];
                 [self sendDevicesListUpdateNotification];
             }
         }
