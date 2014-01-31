@@ -18,7 +18,7 @@
 #define ARBLESERVICE_PARROT_BT_VENDOR_ID            0X0043  // Parrot Company ID registered by Bluetooth SIG (Bluetooth Specification v4.0 Requirement)
 #define ARBLESERVICE_PARROT_USB_VENDOR_ID           0x19cf  // Official Parrot USB Vendor ID
 
-#define kServiceResolutionTimeout                   50.f    // Time in seconds
+#define kServiceResolutionTimeout                   5.f    // Time in seconds
 #define kServiceBLERefreshTime                      10.f    // Time in seconds
 
 #define CHECK_VALID(DEFAULT_RETURN_VALUE)       \
