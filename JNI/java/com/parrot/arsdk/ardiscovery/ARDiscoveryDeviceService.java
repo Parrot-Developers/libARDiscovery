@@ -150,7 +150,7 @@ public class ARDiscoveryDeviceService implements Parcelable
         this.device = device;
     }
     
-    public Object getProductID ()
+    public int getProductID ()
     {
         return productID;
     }
