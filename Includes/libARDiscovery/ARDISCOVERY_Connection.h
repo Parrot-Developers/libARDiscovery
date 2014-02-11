@@ -6,8 +6,9 @@
 /**
  * @brief JSON strings for UDP ports extraction
  */
-#define ARDISCOVERY_CONNECTION_JSON_C2DPORT_STRING  "c2d_port"
-#define ARDISCOVERY_CONNECTION_JSON_D2CPORT_STRING  "d2c_port"
+#define ARDISCOVERY_CONNECTION_JSON_C2DPORT_STRING                  "c2d_port"
+#define ARDISCOVERY_CONNECTION_JSON_D2CPORT_STRING                  "d2c_port"
+#define ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_SIZE_STRING   "arstream_fragment_size"
 
 /**
  * @brief Read/Write buffers max size

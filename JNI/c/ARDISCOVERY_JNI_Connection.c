@@ -160,6 +160,16 @@ Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeGetDefineJsonD2CPo
 }
 
 /**
+ * @brief get ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_SIZE_STRING
+ * @return value of ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_SIZE_STRING
+ */
+JNIEXPORT jstring JNICALL
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeGetDefineJsonARStreamFragmentSizeKey (JNIEnv *env, jclass class)
+{
+    return  (*env)->NewStringUTF(env, ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_SIZE_STRING);
+}
+
+/**
  * @brief get ARDISCOVERY_CONNECTION_TX_BUFFER_SIZE
  * @return value of ARDISCOVERY_CONNECTION_TX_BUFFER_SIZE
  */
