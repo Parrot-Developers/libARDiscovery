@@ -33,10 +33,10 @@
 #pragma mark - ARBLEService implementation
 
 @implementation ARBLEService
-
 @end
 
 @implementation ARService
+@synthesize signal;
 
 - (BOOL)isEqual:(id)object
 {
@@ -369,7 +369,7 @@
         ARService *aService = [[ARService alloc] init];
         aService.name = [aNetService name];
         aService.service = aNetService;
-        
+        aService.signal = [NSNumber numberWithInt:0];
         aService.product = ARDISCOVERY_PRODUCT_MAX;
         
         if ([aNetService.type isEqualToString:kServiceNetControllerType])
@@ -557,6 +557,7 @@
                 ARService *aService = [[ARService alloc] init];
                 aService.name = [service.peripheral name];
                 aService.service = service;
+                aService.signal = RSSI;
                 
                 NSData *manufacturerData = [advertisementData valueForKey:CBAdvertisementDataManufacturerDataKey];
                 uint16_t *ids = (uint16_t *) manufacturerData.bytes;

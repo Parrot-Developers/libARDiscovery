@@ -63,6 +63,7 @@
 @property (nonatomic, strong) NSString *name;               ///< Name of the device
 @property (nonatomic, assign) eARDISCOVERY_PRODUCT product; ///< Specific product
 @property (nonatomic, strong) id service;                   ///< Can be NSNetService or ARBLEService
+@property (nonatomic, strong) NSNumber *signal;
 @end
 
 @interface ARDiscovery : NSObject
