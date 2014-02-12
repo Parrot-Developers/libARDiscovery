@@ -19,7 +19,7 @@
  * @brief Build final name
  * @return Pointer to name
  */
-static uint8_t* ARDISCOVERY_AvahiDiscovery_BuildName(void);
+static char* ARDISCOVERY_AvahiDiscovery_BuildName(void);
 
 /**
  * @brief Create service to be published
@@ -70,7 +70,7 @@ static void ARDISCOVERY_AvahiDiscovery_Browser_ResolveCb(AvahiServiceResolver *r
  * Publisher
  */
 
-ARDISCOVERY_AvahiDiscovery_PublisherData_t* ARDISCOVERY_AvahiDiscovery_Publisher_New(uint8_t* serviceName, uint8_t* serviceType, uint32_t publishedPort, eARDISCOVERY_ERROR* errorPtr)
+ARDISCOVERY_AvahiDiscovery_PublisherData_t* ARDISCOVERY_AvahiDiscovery_Publisher_New(char* serviceName, char* serviceType, uint32_t publishedPort, eARDISCOVERY_ERROR* errorPtr)
 {
     /*
      * Create and initialize discovery data
@@ -98,10 +98,10 @@ ARDISCOVERY_AvahiDiscovery_PublisherData_t* ARDISCOVERY_AvahiDiscovery_Publisher
             /* Set Service Type */
             if (error == ARDISCOVERY_OK)
             {
-                serviceData->serviceType = (uint8_t *) malloc(sizeof(uint8_t) * ARDISCOVERY_AVAHIDISCOVERY_SERVICETYPE_SIZE);
+                serviceData->serviceType = malloc(sizeof(uint8_t) * ARDISCOVERY_AVAHIDISCOVERY_SERVICETYPE_SIZE);
                 if (serviceData->serviceType != NULL)
                 {
-                    strcpy((char *)serviceData->serviceType, (char *)serviceType);
+                    strcpy(serviceData->serviceType, serviceType);
                 }
                 else
                 {
@@ -112,10 +112,10 @@ ARDISCOVERY_AvahiDiscovery_PublisherData_t* ARDISCOVERY_AvahiDiscovery_Publisher
             /* Set Service Name */
             if (error == ARDISCOVERY_OK)
             {
-                serviceData->serviceName = (uint8_t *) malloc(sizeof(uint8_t) * ARDISCOVERY_AVAHIDISCOVERY_SERVICENAME_SIZE);
+                serviceData->serviceName = malloc(sizeof(uint8_t) * ARDISCOVERY_AVAHIDISCOVERY_SERVICENAME_SIZE);
                 if (serviceData->serviceName != NULL)
                 {
-                    strcpy((char *)serviceData->serviceName, (char *)serviceName);
+                    strcpy(serviceData->serviceName, serviceName);
                 }
                 else
                 {
@@ -140,17 +140,17 @@ ARDISCOVERY_AvahiDiscovery_PublisherData_t* ARDISCOVERY_AvahiDiscovery_Publisher
     return serviceData;
 }
 
-static uint8_t* ARDISCOVERY_AvahiDiscovery_BuildName(void)
+static char* ARDISCOVERY_AvahiDiscovery_BuildName(void)
 {
     /*
      * Get hostname and build the final name
      */
-    uint8_t hostname[HOST_NAME_MAX + 1]; /* POSIX hostname max length + the null terminating byte. */
-    int error = gethostname((char *)hostname, sizeof(hostname));
+    char hostname[HOST_NAME_MAX + 1]; /* POSIX hostname max length + the null terminating byte. */
+    int error = gethostname(hostname, sizeof(hostname));
     if (error == 0)
     {
         hostname[sizeof(hostname) - 1] = '\0';
-        return (uint8_t *)strdup((const char *)hostname);
+        return strdup((const char *)hostname);
     }
     return NULL;
 }
@@ -182,7 +182,7 @@ static void ARDISCOVERY_AvahiDiscovery_EntryGroupCb(AvahiEntryGroup* g, AvahiEnt
         /* A service name collision happened. Let's pick a new name */
         char* n = avahi_alternative_service_name((const char *)serviceData->serviceName);
         avahi_free(serviceData->serviceName);
-        serviceData->serviceName = (uint8_t *)n;
+        serviceData->serviceName = n;
 
         ERR("Service name collision, renaming service to '%s'", serviceData->serviceName);
 
@@ -480,7 +480,7 @@ void ARDISCOVERY_AvahiDiscovery_Publisher_Delete(ARDISCOVERY_AvahiDiscovery_Publ
  * Browser
  */
 
-ARDISCOVERY_AvahiDiscovery_BrowserData_t* ARDISCOVERY_AvahiDiscovery_Browser_New(ARDISCOVERY_AvahiDiscovery_Browser_Callback_t callback, void* customData, uint8_t** serviceTypes, uint8_t serviceTypesNb, eARDISCOVERY_ERROR* errorPtr)
+ARDISCOVERY_AvahiDiscovery_BrowserData_t* ARDISCOVERY_AvahiDiscovery_Browser_New(ARDISCOVERY_AvahiDiscovery_Browser_Callback_t callback, void* customData, char** serviceTypes, uint8_t serviceTypesNb, eARDISCOVERY_ERROR* errorPtr)
 {
     /*
      * Initialize Browsing related data
@@ -507,10 +507,10 @@ ARDISCOVERY_AvahiDiscovery_BrowserData_t* ARDISCOVERY_AvahiDiscovery_Browser_New
             browserData->customData = customData;
 
             /* Allocate pointer to services */
-            browserData->serviceTypes = (uint8_t**) malloc(sizeof(uint8_t*) * serviceTypesNb);
+            browserData->serviceTypes = malloc(sizeof(char*) * serviceTypesNb);
             for (i = 0; i < serviceTypesNb; i++)
             {
-                *(browserData->serviceTypes + i) = (uint8_t*) malloc(sizeof(uint8_t) * ARDISCOVERY_AVAHIDISCOVERY_SERVICETYPE_SIZE);
+                *(browserData->serviceTypes + i) = malloc(sizeof(uint8_t) * ARDISCOVERY_AVAHIDISCOVERY_SERVICETYPE_SIZE);
                 memcpy(*(browserData->serviceTypes + i), *(serviceTypes + i), ARDISCOVERY_AVAHIDISCOVERY_SERVICETYPE_SIZE);
             }
             browserData->serviceTypesNb = serviceTypesNb;
@@ -667,8 +667,7 @@ static AvahiClient* ARDISCOVERY_AvahiDiscovery_Browser_FindClient(AvahiServiceBr
     return NULL;
 }
 
-static void ARDISCOVERY_AvahiDiscovery_Browser_BrowseCb(AvahiServiceBrowser *b, AvahiIfIndex interface, AvahiProtocol protocol, AvahiBrowserEvent event,
-        const char *name, const char *type, const char *domain, AVAHI_GCC_UNUSED AvahiLookupResultFlags flags, void* userdata)
+static void ARDISCOVERY_AvahiDiscovery_Browser_BrowseCb(AvahiServiceBrowser *b, AvahiIfIndex interface, AvahiProtocol protocol, AvahiBrowserEvent event, const char *name, const char *type, const char *domain, AVAHI_GCC_UNUSED AvahiLookupResultFlags flags, void* userdata)
 {
     /*
      * Called whenever a new services becomes available on the LAN or is removed from the LAN
@@ -717,9 +716,7 @@ static void ARDISCOVERY_AvahiDiscovery_Browser_BrowseCb(AvahiServiceBrowser *b, 
     }
 }
 
-static void ARDISCOVERY_AvahiDiscovery_Browser_ResolveCb(AvahiServiceResolver *r, AVAHI_GCC_UNUSED AvahiIfIndex interface, AVAHI_GCC_UNUSED AvahiProtocol protocol,
-        AvahiResolverEvent event, const char *name, const char *type, const char *domain, const char *host_name, const AvahiAddress *address, uint16_t port, AvahiStringList *txt,
-        AvahiLookupResultFlags flags, void* userdata)
+static void ARDISCOVERY_AvahiDiscovery_Browser_ResolveCb(AvahiServiceResolver *r, AVAHI_GCC_UNUSED AvahiIfIndex interface, AVAHI_GCC_UNUSED AvahiProtocol protocol, AvahiResolverEvent event, const char *name, const char *type, const char *domain, const char *host_name, const AvahiAddress *address, uint16_t port, AvahiStringList *txt, AvahiLookupResultFlags flags, void* userdata)
 {
     /*
      * Called whenever a service has been resolved successfully or timed out
@@ -742,7 +739,7 @@ static void ARDISCOVERY_AvahiDiscovery_Browser_ResolveCb(AvahiServiceResolver *r
         }
         case AVAHI_RESOLVER_FOUND:
         {
-            uint8_t a[AVAHI_ADDRESS_STR_MAX];
+            char a[AVAHI_ADDRESS_STR_MAX];
 
             /* Concert Avahi object to readable ip address */
             avahi_address_snprint(a, sizeof(a), address);

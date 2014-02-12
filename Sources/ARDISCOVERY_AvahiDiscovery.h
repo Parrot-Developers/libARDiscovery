@@ -24,8 +24,8 @@
  */
 struct ARDISCOVERY_AvahiDiscovery_PublisherData_t
 {
-    uint8_t* serviceName;           // Specific to each device ("ARDrone_21452365")
-    uint8_t* serviceType;           // Specific to each platform ("_ardrone3._ucp")
+    char* serviceName;              // Specific to each device ("ARDrone_21452365")
+    char* serviceType;              // Specific to each platform ("_ardrone3._ucp")
     uint32_t devicePort;            // Port advertised by device
     AvahiClient *client;            // Avahi client
     AvahiEntryGroup *entryGroup;    // Avahi entry group
@@ -37,7 +37,7 @@ struct ARDISCOVERY_AvahiDiscovery_PublisherData_t
  */
 struct ARDISCOVERY_AvahiDiscovery_BrowserData_t
 {
-    uint8_t** serviceTypes;         // Service types to browse for
+    char** serviceTypes;         // Service types to browse for
     uint8_t serviceTypesNb;         // Number of service types to browse for
     AvahiServiceBrowser* serviceBrowsers[ARDISCOVERY_AVAHIDISCOVERY_SERVICE_NB_MAX]; // Avahi service browsers
     AvahiClient *clients[ARDISCOVERY_AVAHIDISCOVERY_SERVICE_NB_MAX];            // Avahi client

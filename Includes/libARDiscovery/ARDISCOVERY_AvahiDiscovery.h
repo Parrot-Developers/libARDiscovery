@@ -28,7 +28,7 @@ typedef struct ARDISCOVERY_AvahiDiscovery_BrowserData_t ARDISCOVERY_AvahiDiscove
  * @param[in] ipAddr IP address of the host for said service
  * @return error during callback execution
  */
-typedef eARDISCOVERY_ERROR (*ARDISCOVERY_AvahiDiscovery_Browser_Callback_t) (void* custom, uint8_t state, uint8_t* serviceName, uint8_t* serviceType, uint8_t* ipAddr, uint16_t port);
+typedef eARDISCOVERY_ERROR (*ARDISCOVERY_AvahiDiscovery_Browser_Callback_t) (void* custom, uint8_t state, const char* serviceName, const char* serviceType, const char* ipAddr, uint16_t port);
 
 /**
  * @brief Initialize Publication related Avahi data
@@ -37,7 +37,7 @@ typedef eARDISCOVERY_ERROR (*ARDISCOVERY_AvahiDiscovery_Browser_Callback_t) (voi
  * @param[in] errorPtr Error during execution
  * @return Pointer to allocated service data
  */
-ARDISCOVERY_AvahiDiscovery_PublisherData_t* ARDISCOVERY_AvahiDiscovery_Publisher_New(uint8_t* serviceName, uint8_t* serviceType, uint32_t publishedPort, eARDISCOVERY_ERROR* errorPtr);
+ARDISCOVERY_AvahiDiscovery_PublisherData_t* ARDISCOVERY_AvahiDiscovery_Publisher_New(char* serviceName, char* serviceType, uint32_t publishedPort, eARDISCOVERY_ERROR* errorPtr);
 
 /**
  * @brief Start Avahi process of service advertisement
@@ -74,7 +74,7 @@ void ARDISCOVERY_AvahiDiscovery_Publisher_Delete(ARDISCOVERY_AvahiDiscovery_Publ
  * @param[in] errorPtr Error during execution
  * @return Pointer to allocated browser data
  */
-ARDISCOVERY_AvahiDiscovery_BrowserData_t* ARDISCOVERY_AvahiDiscovery_Browser_New(ARDISCOVERY_AvahiDiscovery_Browser_Callback_t callback, void* customData, uint8_t** serviceTypes, uint8_t serviceTypesNb, eARDISCOVERY_ERROR* errorPtr);
+ARDISCOVERY_AvahiDiscovery_BrowserData_t* ARDISCOVERY_AvahiDiscovery_Browser_New(ARDISCOVERY_AvahiDiscovery_Browser_Callback_t callback, void* customData, char** serviceTypes, uint8_t serviceTypesNb, eARDISCOVERY_ERROR* errorPtr);
 
 /**
  * @brief Start Avahi process of service browsing
