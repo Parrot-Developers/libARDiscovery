@@ -490,11 +490,14 @@
 #pragma mark - Refresh BLE services methods
 - (void)deviceBLETimeout:(NSTimer *)timer
 {
-    ARService *aService = [timer userInfo];
-    CBPeripheral *peripheral = ((ARBLEService *) aService.service).peripheral;
-    [self.devicesBLEServicesTimerList removeObjectForKey:[peripheral.identifier UUIDString]];
-    [self.devicesServicesList removeObjectForKey:[peripheral.identifier UUIDString]];
-    [self sendDevicesListUpdateNotification];
+    @synchronized (self)
+    {
+        ARService *aService = [timer userInfo];
+        CBPeripheral *peripheral = ((ARBLEService *) aService.service).peripheral;
+        [self.devicesBLEServicesTimerList removeObjectForKey:[peripheral.identifier UUIDString]];
+        [self.devicesServicesList removeObjectForKey:[peripheral.identifier UUIDString]];
+        [self sendDevicesListUpdateNotification];
+    }
 }
 
 #pragma mark - CBCentralManagerDelegate methods
@@ -550,35 +553,59 @@
         {
             if ( [self isParrotBLEDevice:advertisementData] )
             {
-                ARBLEService *service = [[ARBLEService alloc] init];
-                service.centralManager = central;
-                service.peripheral = peripheral;
-                
-                ARService *aService = [[ARService alloc] init];
-                aService.name = [service.peripheral name];
-                aService.service = service;
-                aService.signal = RSSI;
-                
-                NSData *manufacturerData = [advertisementData valueForKey:CBAdvertisementDataManufacturerDataKey];
-                uint16_t *ids = (uint16_t *) manufacturerData.bytes;
-                aService.product = ARDISCOVERY_PRODUCT_MAX;
-                for (int i = ARDISCOVERY_PRODUCT_BLESERVICE ; (aService.product == ARDISCOVERY_PRODUCT_MAX) && (i < ARDISCOVERY_PRODUCT_MAX) ; i++)
+                ARService *aService = [self.devicesServicesList objectForKey:[peripheral.identifier UUIDString]];
+                if(aService == nil)
                 {
-                    if (ids[2] == ARDISCOVERY_getProductID(i))
-                        aService.product = i;
+                    ARBLEService *bleService = [[ARBLEService alloc] init];
+                    bleService.centralManager = central;
+                    bleService.peripheral = peripheral;
+                    
+                    aService = [[ARService alloc] init];
+                    aService.service = bleService;
+                    aService.name = [peripheral name];
+                    aService.signal = RSSI;
+                    
+                    NSData *manufacturerData = [advertisementData valueForKey:CBAdvertisementDataManufacturerDataKey];
+                    uint16_t *ids = (uint16_t *) manufacturerData.bytes;
+                    aService.product = ARDISCOVERY_PRODUCT_MAX;
+                    for (int i = ARDISCOVERY_PRODUCT_BLESERVICE ; (aService.product == ARDISCOVERY_PRODUCT_MAX) && (i < ARDISCOVERY_PRODUCT_MAX) ; i++)
+                    {
+                        if (ids[2] == ARDISCOVERY_getProductID(i))
+                            aService.product = i;
+                    }
+
+                    [self.devicesServicesList setObject:aService forKey:[peripheral.identifier UUIDString]];
+                    [self sendDevicesListUpdateNotification];
+                }
+                else
+                {
+                    BOOL sendNotification = NO;
+                    if(![aService.name isEqualToString:[peripheral name]])
+                    {
+                        aService.name = [peripheral name];
+                        sendNotification = YES;
+                    }
+                    
+                    if([aService.signal compare:RSSI] != NSOrderedSame)
+                    {
+                        aService.signal = RSSI;
+                        sendNotification = YES;
+                    }
+
+                    if(sendNotification)
+                    {
+                        [self sendDevicesListUpdateNotification];
+                    }
                 }
                 
-                NSTimer *timer = (NSTimer *)[self.devicesBLEServicesTimerList objectForKey:aService.name];
+                NSTimer *timer = (NSTimer *)[self.devicesBLEServicesTimerList objectForKey:[peripheral.identifier UUIDString]];
                 if(timer != nil)
                 {
                     [timer invalidate];
                     timer = nil;
                 }
-
-                [self.devicesServicesList setObject:aService forKey:[peripheral.identifier UUIDString]];
                 timer = [NSTimer scheduledTimerWithTimeInterval:kServiceBLERefreshTime target:self selector:@selector(deviceBLETimeout:) userInfo:aService repeats:NO];
-                [self.devicesBLEServicesTimerList setObject:timer forKey:aService.name];
-                [self sendDevicesListUpdateNotification];
+                [self.devicesBLEServicesTimerList setObject:timer forKey:[peripheral.identifier UUIDString]];
             }
         }
     }
