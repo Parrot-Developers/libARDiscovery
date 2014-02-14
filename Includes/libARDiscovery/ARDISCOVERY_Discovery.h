@@ -21,6 +21,15 @@ typedef enum
 } eARDISCOVERY_PRODUCT;
 
 /**
+ * @brief Get service of product
+ * This function is the only one knowing the correspondance between product 
+ * and service.
+ * @param product The product's enumerator
+ * @return The corresponding product ID for the service
+ */
+eARDISCOVERY_PRODUCT ARDISCOVERY_getProductService(eARDISCOVERY_PRODUCT product);
+
+/**
  * @brief Converts from product enumerator to product ID
  * This function is the only one knowing the correspondance
  * between the product enumerator and the products' IDs.

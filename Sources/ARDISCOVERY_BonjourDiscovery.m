@@ -366,14 +366,18 @@
     NSLog(@"Service found : %@, %@", aNetService.name, aNetService.type);
     @synchronized (self)
     {
-        ARService *aService = [[ARService alloc] init];
-        aService.name = [aNetService name];
-        aService.service = aNetService;
-        aService.signal = [NSNumber numberWithInt:0];
-        aService.product = ARDISCOVERY_PRODUCT_MAX;
-        
         if ([aNetService.type isEqualToString:kServiceNetControllerType])
         {
+            ARService *aService = [self.controllersServicesList objectForKey:aNetService.name];
+            if (aService == nil)
+            {
+                aService = [[ARService alloc] init];
+                aService.service = aNetService;
+            }
+            aService.name = [aNetService name];
+            aService.signal = [NSNumber numberWithInt:0];
+            aService.product = ARDISCOVERY_PRODUCT_MAX;
+            
             [self.controllersServicesList setObject:aService forKey:aService.name];
             if (!moreComing)
             {
@@ -382,13 +386,23 @@
         }
         else
         {
-            for (int i = ARDISCOVERY_PRODUCT_NSNETSERVICE; i < ARDISCOVERY_PRODUCT_BLESERVICE; ++i)
+            ARService *aService = [self.devicesServicesList objectForKey:aNetService.name];
+            if (aService == nil)
+            {
+                aService = [[ARService alloc] init];
+                aService.service = aNetService;
+            }
+            
+            aService.name = [aNetService name];
+            aService.signal = [NSNumber numberWithInt:0];
+            aService.product = ARDISCOVERY_PRODUCT_MAX;
+            
+            for (int i = ARDISCOVERY_PRODUCT_NSNETSERVICE; (aService.product == ARDISCOVERY_PRODUCT_MAX) && (i < ARDISCOVERY_PRODUCT_BLESERVICE); ++i)
             {
                 NSString *deviceType = [NSString stringWithFormat:kServiceNetDeviceFormat, ARDISCOVERY_getProductID(i)];
                 if ([aNetService.type isEqualToString:deviceType])
                 {
                     aService.product = i;
-                    break;
                 }
             }
             

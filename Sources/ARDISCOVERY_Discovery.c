@@ -21,6 +21,21 @@ static const char* ARDISCOVERY_Discovery_ProductNameTable[ARDISCOVERY_PRODUCT_MA
     [ARDISCOVERY_PRODUCT_ARDRONE_MINI]  = "MiniDrone"
 };
 
+eARDISCOVERY_PRODUCT ARDISCOVERY_getProductService(eARDISCOVERY_PRODUCT product)
+{
+    eARDISCOVERY_PRODUCT retval = ARDISCOVERY_PRODUCT_MAX;
+    
+    if(ARDISCOVERY_PRODUCT_NSNETSERVICE <= product && product < ARDISCOVERY_PRODUCT_BLESERVICE)
+    {
+        retval = ARDISCOVERY_PRODUCT_NSNETSERVICE;
+    }
+    else if(ARDISCOVERY_PRODUCT_BLESERVICE <= product && product < ARDISCOVERY_PRODUCT_MAX)
+    {
+        retval = ARDISCOVERY_PRODUCT_BLESERVICE;
+    }
+    
+    return retval;
+}
 
 uint16_t ARDISCOVERY_getProductID(eARDISCOVERY_PRODUCT product)
 {
