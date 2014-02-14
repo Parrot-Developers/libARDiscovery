@@ -386,11 +386,21 @@
         }
         else
         {
-            ARService *aService = [self.devicesServicesList objectForKey:aNetService.name];
+            ARService *aService   = [self.devicesServicesList objectForKey:aNetService.name];
+            
             if (aService == nil)
             {
                 aService = [[ARService alloc] init];
                 aService.service = aNetService;
+            }
+            else
+            {
+                NSString *serviceType = [NSString stringWithFormat:kServiceNetDeviceFormat, ARDISCOVERY_getProductID(aService.product)];
+                if(![aNetService.type isEqualToString:serviceType])
+                {
+                    aService = [[ARService alloc] init];
+                    aService.service = aNetService;
+                }
             }
             
             aService.name = [aNetService name];
