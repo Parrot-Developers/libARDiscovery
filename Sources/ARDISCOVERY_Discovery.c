@@ -8,7 +8,7 @@ static const uint16_t ARDISCOVERY_Discovery_ProductTable[ARDISCOVERY_PRODUCT_MAX
     [ARDISCOVERY_PRODUCT_JS]            = 0x0902,
 
     // BLE Service
-    [ARDISCOVERY_PRODUCT_ARDRONE_MINI]  = 0x0900
+    [ARDISCOVERY_PRODUCT_MINIDRONE]  = 0x0900
 };
 
 static const char* ARDISCOVERY_Discovery_ProductNameTable[ARDISCOVERY_PRODUCT_MAX] =
@@ -18,7 +18,7 @@ static const char* ARDISCOVERY_Discovery_ProductNameTable[ARDISCOVERY_PRODUCT_MA
     [ARDISCOVERY_PRODUCT_JS]            = "Jumping Sumo",
     
     // BLE Service
-    [ARDISCOVERY_PRODUCT_ARDRONE_MINI]  = "MiniDrone"
+    [ARDISCOVERY_PRODUCT_MINIDRONE]  = "MiniDrone"
 };
 
 eARDISCOVERY_PRODUCT ARDISCOVERY_getProductService(eARDISCOVERY_PRODUCT product)

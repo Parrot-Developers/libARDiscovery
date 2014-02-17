@@ -15,7 +15,7 @@ typedef enum
     ARDISCOVERY_PRODUCT_JS,                                             ///< JUMPING SUMO product
     
     ARDISCOVERY_PRODUCT_BLESERVICE,                                     ///< BlueTooth products category
-    ARDISCOVERY_PRODUCT_ARDRONE_MINI = ARDISCOVERY_PRODUCT_BLESERVICE,         ///< DELOS product
+    ARDISCOVERY_PRODUCT_MINIDRONE = ARDISCOVERY_PRODUCT_BLESERVICE,         ///< DELOS product
     
     ARDISCOVERY_PRODUCT_MAX                                             ///< Max of products
 } eARDISCOVERY_PRODUCT;

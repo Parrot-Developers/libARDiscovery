@@ -652,7 +652,7 @@
         
         if ((ids[0] == ARBLESERVICE_PARROT_BT_VENDOR_ID) &&
             (ids[1] == ARBLESERVICE_PARROT_USB_VENDOR_ID) &&
-            (ids[2] == ARDISCOVERY_getProductID(ARDISCOVERY_PRODUCT_ARDRONE_MINI)))
+            (ids[2] == ARDISCOVERY_getProductID(ARDISCOVERY_PRODUCT_MINIDRONE)))
         {
             res = YES;
         }
