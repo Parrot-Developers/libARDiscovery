@@ -828,7 +828,7 @@ public class ARDiscoveryService extends Service
                     /* check the vendorID, the usbVendorID end the productID */
                     if ((btVendorID == ARDISCOVERY_BT_VENDOR_ID) && 
                         (usbVendorID == ARDISCOVERY_USB_VENDOR_ID) && 
-                        (usbProductID == getProductID(ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_ARDRONE_MINI)) )
+                        (usbProductID == getProductID(ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_MINIDRONE)) )
                     {
                         parrotProductID = usbProductID;
                     }
