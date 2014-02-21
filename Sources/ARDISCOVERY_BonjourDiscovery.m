@@ -570,7 +570,6 @@
 
 - (void)centralManager:(CBCentralManager *)central didDiscoverPeripheral:(CBPeripheral *)peripheral advertisementData:(NSDictionary *)advertisementData RSSI:(NSNumber *)RSSI
 {
-    NSLog(@"Scanning %@", [peripheral name]);
     @synchronized (self)
     {
         if([peripheral name] != nil)
@@ -580,6 +579,7 @@
                 ARService *aService = [self.devicesServicesList objectForKey:[peripheral.identifier UUIDString]];
                 if(aService == nil)
                 {
+                    NSLog(@"New device %@", [peripheral name]);
                     ARBLEService *bleService = [[ARBLEService alloc] init];
                     bleService.centralManager = central;
                     bleService.peripheral = peripheral;
