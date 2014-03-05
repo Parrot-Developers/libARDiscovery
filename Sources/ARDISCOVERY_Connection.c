@@ -230,7 +230,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_Connection_DeviceListeningLoop (ARDISCOVERY_Conne
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
     eARDISCOVERY_ERROR loopError = ARDISCOVERY_OK;
     
-    int deviceSocket = 0;
+    int deviceSocket = -1;
     
     /* Check parameter */
     if (connectionData == NULL)
@@ -278,10 +278,11 @@ eARDISCOVERY_ERROR ARDISCOVERY_Connection_DeviceListeningLoop (ARDISCOVERY_Conne
                 loopError = ARDISCOVERY_Connection_TxPending (connectionData);
             }
             
-            if (loopError != ARDISCOVERY_ERROR_BAD_PARAMETER)
+            /* close the client socket */
+            if (connectionData->socket != -1)
             {
-                /* close the client socket */
                 ARSAL_Socket_Close (connectionData->socket);
+                connectionData->socket = -1;
             }
             
             if (loopError != ARDISCOVERY_OK)
@@ -292,7 +293,11 @@ eARDISCOVERY_ERROR ARDISCOVERY_Connection_DeviceListeningLoop (ARDISCOVERY_Conne
         }
         
         /* close deviceSocket */
-        ARSAL_Socket_Close (deviceSocket);
+        if(deviceSocket != -1)
+        {
+            ARSAL_Socket_Close (deviceSocket);
+            deviceSocket = -1;
+        }
         
         /* reset the runningSem */
         ARSAL_Sem_Post(&(connectionData->runningSem));
@@ -364,7 +369,11 @@ eARDISCOVERY_ERROR ARDISCOVERY_Connection_ControllerConnection (ARDISCOVERY_Conn
         }
         
         /* close the socket*/
-        ARSAL_Socket_Close (connectionData->socket);
+        if (connectionData->socket != -1)
+        {
+            ARSAL_Socket_Close (connectionData->socket);
+            connectionData->socket = -1;
+        }
         
         /* reset the runningSem */
         ARSAL_Sem_Post(&(connectionData->runningSem));
