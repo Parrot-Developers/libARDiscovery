@@ -10,6 +10,7 @@
 #import <libARDiscovery/ARDISCOVERY_Discovery.h>
 #import <netdb.h>
 
+
 #define kServiceNetControllerType                   @"_arsdk-ff3._udp"
 #define kServiceNetDomain                           @ARDISCOVERY_SERVICE_NET_DEVICE_DOMAIN
 #define kServiceNetDeviceFormat                     @ARDISCOVERY_SERVICE_NET_DEVICE_FORMAT"."
@@ -63,7 +64,7 @@
 @property (strong, nonatomic) NSMutableArray *devicesServiceBrowsers;
 
 #pragma mark - Services CoreBluetooth
-@property (strong, nonatomic) CBCentralManager *centralManager;
+@property (strong, nonatomic) ARSAL_CentralManager *centralManager;
 @property (nonatomic, assign) BOOL centralManagerInitialized;
 @property (strong, nonatomic) NSMutableDictionary *devicesBLEServicesTimerList;
 
@@ -139,7 +140,8 @@
              * Discover is not in progress
              */
             _sharedInstance.centralManagerInitialized = NO;
-            _sharedInstance.centralManager = [[CBCentralManager alloc] initWithDelegate:_sharedInstance queue:nil];
+            _sharedInstance.centralManager = [[ARSAL_CentralManager alloc] initWithQueue:nil]; //TODO add
+            [_sharedInstance.centralManager addDelegate: _sharedInstance]; //TODO add
             _sharedInstance.isNSNetDiscovering = NO;
             _sharedInstance.isCBDiscovering = NO;
             _sharedInstance.askForCBDiscovering = NO;
@@ -512,16 +514,27 @@
 }
 
 #pragma mark - Refresh BLE services methods
-- (void)deviceBLETimeout:(NSTimer *)timer
+- (void)deviceBLERemoveServices:(ARService *)aService
 {
+    NSLog(@"%s:%d", __FUNCTION__, __LINE__); //TODO sup
+    
     @synchronized (self)
     {
-        ARService *aService = [timer userInfo];
         CBPeripheral *peripheral = ((ARBLEService *) aService.service).peripheral;
+        NSLog(@"Removed service %@ : %@", aService.name, NSStringFromClass([[aService service] class]));
         [self.devicesBLEServicesTimerList removeObjectForKey:[peripheral.identifier UUIDString]];
         [self.devicesServicesList removeObjectForKey:[peripheral.identifier UUIDString]];
         [self sendDevicesListUpdateNotification];
     }
+}
+
+- (void)deviceBLETimeout:(NSTimer *)timer
+{
+    NSLog(@"%s:%d", __FUNCTION__, __LINE__); //TODO sup
+
+    ARService *aService = [timer userInfo];
+    [self deviceBLERemoveServices:aService];
+    
 }
 
 #pragma mark - CBCentralManagerDelegate methods
@@ -581,7 +594,7 @@
                 {
                     NSLog(@"New device %@", [peripheral name]);
                     ARBLEService *bleService = [[ARBLEService alloc] init];
-                    bleService.centralManager = central;
+                    bleService.centralManager = self.centralManager;
                     bleService.peripheral = peripheral;
                     
                     aService = [[ARService alloc] init];
@@ -632,6 +645,22 @@
                 [self.devicesBLEServicesTimerList setObject:timer forKey:[peripheral.identifier UUIDString]];
             }
         }
+    }
+}
+
+- (void)centralManager:(CBCentralManager *)central didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
+{
+    NSTimer *timer = (NSTimer *)[self.devicesBLEServicesTimerList objectForKey:[peripheral.identifier UUIDString]];
+    
+    if(timer != nil)
+    {
+        ARService *aService = [timer userInfo];
+        
+        [timer invalidate];
+        timer = nil;
+        
+        [self deviceBLERemoveServices:aService];
+        
     }
 }
 

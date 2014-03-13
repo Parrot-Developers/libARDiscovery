@@ -7,6 +7,7 @@
 //
 #import <Foundation/Foundation.h>
 #import <CoreBluetooth/CoreBluetooth.h>
+#include <libARSAL/ARSAL_CentralManager.h>
 #import <libARDiscovery/ARDISCOVERY_Discovery.h>
 
 #pragma mark Notifications
@@ -55,7 +56,7 @@
 
 #pragma mark ARDiscovery interface
 @interface ARBLEService : NSObject
-@property (nonatomic, strong) CBCentralManager *centralManager;
+@property (nonatomic, strong) ARSAL_CentralManager *centralManager;
 @property (nonatomic, strong) CBPeripheral *peripheral;
 @end
 
