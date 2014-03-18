@@ -111,3 +111,18 @@ Java_com_parrot_arsdk_ardiscovery_ARDiscoveryService_nativeGetDefineNetDeviceDom
 {
     return  (*env)->NewStringUTF(env, ARDISCOVERY_SERVICE_NET_DEVICE_DOMAIN);
 }
+
+ /**
+ * @brief Converts a product ID to product enumerator
+ * This function is the only one knowing the correspondance
+ * between the ID and the products' enumerator.
+ * @param env reference to the java environment
+ * @param thizz reference to the object calling this function
+ * @param productID The product's ID
+ * @return The corresponding product enumerator
+ */
+JNIEXPORT jint JNICALL
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryService_nativeGetProductFromProductID (JNIEnv *env, jclass thizz, jint productID)
+{
+    return ARDISCOVERY_getProductFromProductID (productID);
+}

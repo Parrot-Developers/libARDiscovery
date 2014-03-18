@@ -56,4 +56,13 @@ const char* ARDISCOVERY_getProductName(eARDISCOVERY_PRODUCT product);
  */
 eARDISCOVERY_PRODUCT ARDISCOVERY_getProductFromName(const char *name);
 
+/**
+ * @brief Converts from product ID to product enumerator
+ * This function is the only one knowing the correspondance
+ * between the products IDs and the product enumerator.
+ * @param productID the productID of the product
+ * @return The corresponding product enumerator
+ */
+eARDISCOVERY_PRODUCT ARDISCOVERY_getProductFromProductID(uint16_t productID);
+
 #endif // _ARDISCOVERY_DISCOVERY_H_

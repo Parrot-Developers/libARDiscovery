@@ -68,3 +68,19 @@ eARDISCOVERY_PRODUCT ARDISCOVERY_getProductFromName(const char *name)
     
     return product;
 }
+
+eARDISCOVERY_PRODUCT ARDISCOVERY_getProductFromProductID(uint16_t productID)
+{
+    uint8_t product = ARDISCOVERY_PRODUCT_MAX;
+    int i = 0;
+
+    for (i = 0; (product == ARDISCOVERY_PRODUCT_MAX) && (i < ARDISCOVERY_PRODUCT_MAX); i++)
+    {
+        if (ARDISCOVERY_Discovery_ProductTable[i] == productID)
+        {
+            product = i;
+        }
+    }
+    
+    return product;
+}

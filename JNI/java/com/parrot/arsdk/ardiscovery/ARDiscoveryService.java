@@ -51,6 +51,7 @@ public class ARDiscoveryService extends Service
     private static native int nativeGetProductID (int product);
     private static native String nativeGetProductName(int product);
     private static native int nativeGetProductFromName(String name);
+    private static native int nativeGetProductFromProductID(int productID);
     
     public enum eARDISCOVERY_SERVICE_EVENT_STATUS
     {
@@ -934,6 +935,18 @@ public class ARDiscoveryService extends Service
     public static int getProductID (ARDISCOVERY_PRODUCT_ENUM product)
     {
         return nativeGetProductID (product.getValue());
+    }
+
+    /**
+     * @brief Converts a product ID in product enumerator
+     * This function is the only one knowing the correspondance
+     * between the enumerator and the products' IDs.
+     * @param productID The product's ID
+     * @return The corresponding product enumerator
+     */
+    public static ARDISCOVERY_PRODUCT_ENUM getProductFromProductID (int productID)
+    {
+        return ARDISCOVERY_PRODUCT_ENUM.getFromValue (nativeGetProductFromProductID (productID));
     }
     
     /**
