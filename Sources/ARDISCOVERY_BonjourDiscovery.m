@@ -6,10 +6,12 @@
 //  Copyright (c) 2013 Parrot SA. All rights reserved.
 //
 #include <arpa/inet.h>
+#include <libARSAL/ARSAL_Print.h>
 #import <libARDiscovery/ARDISCOVERY_BonjourDiscovery.h>
 #import <libARDiscovery/ARDISCOVERY_Discovery.h>
 #import <netdb.h>
 
+#define ARDISCOVERY_BONJOURDISCOVERY_TAG "ARDISCOVERY_BonjourDiscovery"
 
 #define kServiceNetControllerType                   @"_arsdk-ff3._udp"
 #define kServiceNetDomain                           @ARDISCOVERY_SERVICE_NET_DEVICE_DOMAIN
@@ -41,8 +43,37 @@
 
 - (BOOL)isEqual:(id)object
 {
+    BOOL result = YES;
     ARService *otherService = (ARService *)object;
-    return ([self.name isEqualToString:[otherService name]] && (self.product == otherService.product));
+    
+    if((otherService != nil) && ([[self.service class] isEqual: [otherService.service class]]))
+    {
+        if ([self.service isKindOfClass:[NSNetService class]])
+        {
+            NSNetService *netService = (NSNetService *) self.service;
+            NSNetService *otherNETService = (NSNetService *) otherService.service;
+            
+            result = ([netService.name isEqual:otherService.name]);
+        }
+        else if ([self.service isKindOfClass:[ARBLEService class]])
+        {
+            ARBLEService *bleService = (ARBLEService *) self.service;
+            ARBLEService *otherBLEService = (ARBLEService *) otherService.service;
+            
+            result = ([[bleService.peripheral.identifier UUIDString] isEqual: [otherBLEService.peripheral.identifier UUIDString]]);
+        }
+        else
+        {
+            ARSAL_PRINT(ARSAL_PRINT_ERROR, ARDISCOVERY_BONJOURDISCOVERY_TAG, "Unknown network media type.");
+            result = NO;
+        }
+    }
+    else
+    {
+        result = NO;
+    }
+    
+    return result;
 }
 
 @end
@@ -140,8 +171,8 @@
              * Discover is not in progress
              */
             _sharedInstance.centralManagerInitialized = NO;
-            _sharedInstance.centralManager = [[ARSAL_CentralManager alloc] initWithQueue:nil]; //TODO add
-            [_sharedInstance.centralManager addDelegate: _sharedInstance]; //TODO add
+            _sharedInstance.centralManager = [[ARSAL_CentralManager alloc] initWithQueue:nil];
+            [_sharedInstance.centralManager addDelegate: _sharedInstance];
             _sharedInstance.isNSNetDiscovering = NO;
             _sharedInstance.isCBDiscovering = NO;
             _sharedInstance.askForCBDiscovering = NO;
@@ -215,6 +246,7 @@
 - (void)start
 {
     NSLog(@"%s:%d", __FUNCTION__, __LINE__);
+    
     if (!isNSNetDiscovering)
     {
         /**
@@ -250,6 +282,9 @@
 - (void)stop
 {
     NSLog(@"%s:%d", __FUNCTION__, __LINE__);
+    
+    [self removeAllServices];
+    
     if (isNSNetDiscovering)
     {
         /**
@@ -270,6 +305,19 @@
          */
         isCBDiscovering = NO;
         [centralManager stopScan];
+    }
+}
+
+- (void)removeAllServices
+{
+    @synchronized (self)
+    {
+        [self.devicesServicesList removeAllObjects];
+        [self sendDevicesListUpdateNotification];
+        
+
+        [self.controllersServicesList removeAllObjects];
+        [self sendControllersListUpdateNotification];
     }
 }
 
@@ -516,8 +564,6 @@
 #pragma mark - Refresh BLE services methods
 - (void)deviceBLERemoveServices:(ARService *)aService
 {
-    NSLog(@"%s:%d", __FUNCTION__, __LINE__); //TODO sup
-    
     @synchronized (self)
     {
         CBPeripheral *peripheral = ((ARBLEService *) aService.service).peripheral;
@@ -530,11 +576,8 @@
 
 - (void)deviceBLETimeout:(NSTimer *)timer
 {
-    NSLog(@"%s:%d", __FUNCTION__, __LINE__); //TODO sup
-
     ARService *aService = [timer userInfo];
     [self deviceBLERemoveServices:aService];
-    
 }
 
 #pragma mark - CBCentralManagerDelegate methods
