@@ -53,7 +53,7 @@
             NSNetService *netService = (NSNetService *) self.service;
             NSNetService *otherNETService = (NSNetService *) otherService.service;
             
-            result = ([netService.name isEqual:otherService.name]);
+            result = ([netService.name isEqual:otherNETService.name]);
         }
         else if ([self.service isKindOfClass:[ARBLEService class]])
         {
