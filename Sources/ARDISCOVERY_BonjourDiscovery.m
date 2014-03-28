@@ -599,6 +599,8 @@
         case CBCentralManagerStateResetting:
             NSLog(@"%@ CBCentralManagerStateResetting", sNewState);
             centralManagerInitialized = NO;
+            sCBDiscovering = NO;
+            askForCBDiscovering = YES;
             break;
             
         case CBCentralManagerStateUnsupported:
@@ -614,6 +616,8 @@
         case CBCentralManagerStatePoweredOff:
             NSLog(@"%@ CBCentralManagerStatePoweredOff", sNewState);
             centralManagerInitialized = NO;
+            isCBDiscovering = NO;
+            askForCBDiscovering = YES;
             break;
             
         default:
