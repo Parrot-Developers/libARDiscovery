@@ -599,7 +599,7 @@
         case CBCentralManagerStateResetting:
             NSLog(@"%@ CBCentralManagerStateResetting", sNewState);
             centralManagerInitialized = NO;
-            sCBDiscovering = NO;
+            isCBDiscovering = NO;
             askForCBDiscovering = YES;
             break;
             
