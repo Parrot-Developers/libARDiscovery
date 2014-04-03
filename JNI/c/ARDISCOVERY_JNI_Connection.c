@@ -140,33 +140,53 @@ Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeStaticInit (JNIEnv
 }
 
 /**
- * @brief get ARDISCOVERY_CONNECTION_JSON_C2DPORT_STRING
- * @return value of ARDISCOVERY_CONNECTION_JSON_C2DPORT_STRING
+ * @brief get ARDISCOVERY_CONNECTION_JSON_C2DPORT_KEY
+ * @return value of ARDISCOVERY_CONNECTION_JSON_C2DPORT_KEY
  */
 JNIEXPORT jstring JNICALL
 Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeGetDefineJsonC2DPortKey (JNIEnv *env, jclass class)
 {
-    return  (*env)->NewStringUTF(env, ARDISCOVERY_CONNECTION_JSON_C2DPORT_STRING);
+    return  (*env)->NewStringUTF(env, ARDISCOVERY_CONNECTION_JSON_C2DPORT_KEY);
 }
 
 /**
- * @brief get ARDISCOVERY_CONNECTION_JSON_D2CPORT_STRING
- * @return value of ARDISCOVERY_CONNECTION_JSON_D2CPORT_STRING
+ * @brief get ARDISCOVERY_CONNECTION_JSON_D2CPORT_KEY
+ * @return value of ARDISCOVERY_CONNECTION_JSON_D2CPORT_KEY
  */
 JNIEXPORT jstring JNICALL
 Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeGetDefineJsonD2CPortKey (JNIEnv *env, jclass class)
 {
-    return  (*env)->NewStringUTF(env, ARDISCOVERY_CONNECTION_JSON_D2CPORT_STRING);
+    return  (*env)->NewStringUTF(env, ARDISCOVERY_CONNECTION_JSON_D2CPORT_KEY);
 }
 
 /**
- * @brief get ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_SIZE_STRING
- * @return value of ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_SIZE_STRING
+ * @brief get ARDISCOVERY_CONNECTION_JSON_CONTROLLER_TYPE_KEY
+ * @return value of ARDISCOVERY_CONNECTION_JSON_CONTROLLER_TYPE_KEY
+ */
+JNIEXPORT jstring JNICALL
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeGetDefineJsonControllerTypeKey (JNIEnv *env, jclass class)
+{
+    return  (*env)->NewStringUTF(env, ARDISCOVERY_CONNECTION_JSON_CONTROLLER_TYPE_KEY);
+}
+
+/**
+ * @brief get ARDISCOVERY_CONNECTION_JSON_CONTROLLER_NAME_KEY
+ * @return value of ARDISCOVERY_CONNECTION_JSON_CONTROLLER_NAME_KEY
+ */
+JNIEXPORT jstring JNICALL
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeGetDefineJsonControllerNameKey (JNIEnv *env, jclass class)
+{
+    return  (*env)->NewStringUTF(env, ARDISCOVERY_CONNECTION_JSON_CONTROLLER_NAME_KEY);
+}
+
+/**
+ * @brief get ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_SIZE_KEY
+ * @return value of ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_SIZE_KEY
  */
 JNIEXPORT jstring JNICALL
 Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeGetDefineJsonARStreamFragmentSizeKey (JNIEnv *env, jclass class)
 {
-    return  (*env)->NewStringUTF(env, ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_SIZE_STRING);
+    return  (*env)->NewStringUTF(env, ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_SIZE_KEY);
 }
 
 /**
