@@ -1,5 +1,6 @@
 #include <errno.h>
 #include <stdlib.h>
+#include <fcntl.h>
 
 #include <libARSAL/ARSAL_Print.h>
 #include <libARSAL/ARSAL_Socket.h>
@@ -204,10 +205,17 @@ eARDISCOVERY_ERROR ARDISCOVERY_Connection_Delete (ARDISCOVERY_Connection_Connect
                 }
                 
                 /* close the abortPipe */
-                close ((*connectionData)->abortPipe[0]);
-                (*connectionData)->abortPipe[0] = -1;
-                close ((*connectionData)->abortPipe[1]);
-                (*connectionData)->abortPipe[1] = -1;
+                if((*connectionData)->abortPipe[0] != -1)
+                {
+                    close ((*connectionData)->abortPipe[0]);
+                    (*connectionData)->abortPipe[0] = -1;
+                }
+                
+                if((*connectionData)->abortPipe[1] != -1)
+                {
+                    close ((*connectionData)->abortPipe[1]);
+                    (*connectionData)->abortPipe[1] = -1;
+                }
                 
                 free (*connectionData);
                 (*connectionData) = NULL;
@@ -479,8 +487,17 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_ControllerInitSocket (ARDISCOVE
     /*
      * On controller, port is known once received from device.
      */
+    
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
     int connectError;
+    int flags = 0;
+    fd_set readSet;
+    fd_set writeSet;
+    fd_set errorSet;
+    int maxFd = 0;
+    struct timeval tv = {ARDISCOVERY_CONNECTION_TIMEOUT_SEC, 0};
+    int selectErr = 0;
+    char dump[10];
 
     /* Create TCP socket */
     if (error == ARDISCOVERY_OK)
@@ -496,16 +513,22 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_ControllerInitSocket (ARDISCOVE
         connectionData->address.sin_family = AF_INET;
         connectionData->address.sin_port = htons (port);
         
+        /* set the socket non blocking */
+        flags = fcntl(connectionData->socket, F_GETFL, 0);
+        fcntl(connectionData->socket, F_SETFL, flags | O_NONBLOCK);
+        
         ARSAL_PRINT(ARSAL_PRINT_DEBUG, ARDISCOVERY_CONNECTION_TAG, "contoller try to connect ip:%s port:%d", ip, port);
         
         connectError = ARSAL_Socket_Connect (connectionData->socket, (struct sockaddr*) &(connectionData->address), sizeof (connectionData->address));
         
         if (connectError != 0)
         {
-            ARSAL_PRINT(ARSAL_PRINT_ERROR, ARDISCOVERY_CONNECTION_TAG, "connect() failed: %s", strerror(errno));
-            
             switch (errno)
             {
+            case EINPROGRESS:
+                /* in connection */
+                /* do nothing */
+                break;
             case EACCES:
                 error = ARDISCOVERY_ERROR_SOCKET_PERMISSION_DENIED;
                 break;
@@ -514,6 +537,79 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_ControllerInitSocket (ARDISCOVE
                 error = ARDISCOVERY_ERROR;
                 break;
             }
+            
+            if (error != ARDISCOVERY_OK)
+            {
+                ARSAL_PRINT(ARSAL_PRINT_ERROR, ARDISCOVERY_CONNECTION_TAG, "connect() failed: %d %s", errno, strerror(errno));
+            }
+        }
+        
+        /* set the socket non blocking */
+        flags = fcntl(connectionData->socket, F_GETFL, 0);
+        fcntl(connectionData->socket, F_SETFL, flags & (~O_NONBLOCK));
+        
+        /* Initialize set */
+        FD_ZERO(&readSet);
+        FD_ZERO(&writeSet);
+        FD_ZERO(&errorSet);
+        FD_SET(connectionData->socket, &writeSet);
+        FD_SET(connectionData->abortPipe[0], &readSet);
+        FD_SET(connectionData->socket, &errorSet);
+        
+        /* Get the max fd +1 for select call */
+        maxFd = (connectionData->socket > connectionData->abortPipe[0]) ? connectionData->socket +1 : connectionData->abortPipe[0] +1;
+        
+        /* Wait for either file to be reading for a read */
+        selectErr = select (maxFd, &readSet, &writeSet, &errorSet, &tv);
+        
+        if (selectErr < 0)
+        {
+            /* Read error */
+            error = ARDISCOVERY_ERROR_SELECT;
+        }
+        else if(selectErr == 0)
+        {
+            /* timeout error*/
+            error = ARDISCOVERY_ERROR_TIMEOUT;
+        }
+        else
+        {
+            if (FD_ISSET(connectionData->socket, &errorSet))
+            {
+                error = ARDISCOVERY_ERROR_SOCKET_PERMISSION_DENIED;
+            }
+            /* No else: no socket error*/
+            
+            if (FD_ISSET(connectionData->socket, &writeSet))
+            {
+                int valopt = 0;
+                socklen_t lon;
+                int getsockoptRes = 0;
+                
+                lon = sizeof(int);
+                getsockoptRes = getsockopt(connectionData->socket, SOL_SOCKET, SO_ERROR, (void*)(&valopt), &lon);
+                if (getsockoptRes < 0)
+                {
+                    error = ARDISCOVERY_ERROR_SOCKET_PERMISSION_DENIED;
+                }
+                else
+                {
+                    if (valopt)
+                    {
+                        error = ARDISCOVERY_ERROR_SOCKET_PERMISSION_DENIED;
+                    }
+                    /* No else: socket successfully connected */
+                }
+            }
+            /* No else: socket not ready */
+            
+            if (FD_ISSET(connectionData->abortPipe[0], &readSet))
+            {
+                /* If the abortPipe is ready for a read, dump bytes from it (so it won't be ready next time) */
+                read (connectionData->abortPipe[0], &dump, 10);
+                error = ARDISCOVERY_ERROR_ABORT;
+            }
+            /* No else: no timeout */
         }
     }
     
@@ -578,11 +674,12 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_DeviceAccept (ARDISCOVERY_Conne
 static eARDISCOVERY_ERROR ARDISCOVERY_Connection_RxPending (ARDISCOVERY_Connection_ConnectionData_t *connectionData)
 {
     /* - read connection data - */
+    
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
     fd_set set;
     int maxFd = 0;
     struct timeval tv = { ARDISCOVERY_CONNECTION_TIMEOUT_SEC, 0 };
-    int selectErr =0;
+    int selectErr = 0;
     char dump[10];
     
     /* Initialize set */
@@ -652,7 +749,7 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_TxPending (ARDISCOVERY_Connecti
     fd_set writeSet;
     int maxFd = 0;
     struct timeval tv = { ARDISCOVERY_CONNECTION_TIMEOUT_SEC, 0 };
-    int selectErr =0;
+    int selectErr = 0;
     char dump[10];
     
     /* initilize set */
