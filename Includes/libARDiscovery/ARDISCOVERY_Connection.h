@@ -6,11 +6,12 @@
 /**
  * @brief JSON strings for UDP ports extraction
  */
-#define ARDISCOVERY_CONNECTION_JSON_C2DPORT_KEY                     "c2d_port"
-#define ARDISCOVERY_CONNECTION_JSON_D2CPORT_KEY                     "d2c_port"
-#define ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_SIZE_KEY      "arstream_fragment_size"
-#define ARDISCOVERY_CONNECTION_JSON_CONTROLLER_TYPE_KEY             "controller_type"
-#define ARDISCOVERY_CONNECTION_JSON_CONTROLLER_NAME_KEY             "controller_name"
+#define ARDISCOVERY_CONNECTION_JSON_C2DPORT_KEY                             "c2d_port"
+#define ARDISCOVERY_CONNECTION_JSON_D2CPORT_KEY                             "d2c_port"
+#define ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_SIZE_KEY              "arstream_fragment_size"
+#define ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_MAXIMUM_NUMBER_KEY    "arstream_fragment_maximum_number"
+#define ARDISCOVERY_CONNECTION_JSON_CONTROLLER_TYPE_KEY                     "controller_type"
+#define ARDISCOVERY_CONNECTION_JSON_CONTROLLER_NAME_KEY                     "controller_name"
 
 /**
  * @brief Read/Write buffers max size
