@@ -948,6 +948,25 @@ public class ARDiscoveryService extends Service
     {
         return ARDISCOVERY_PRODUCT_ENUM.getFromValue (nativeGetProductFromProductID (productID));
     }
+
+    /**
+     * @brief Converts a product enum to a generic (network type) product enum
+     * @param product The product to convert
+     * @return The corresponding network type product enum
+     */
+    public static ARDISCOVERY_PRODUCT_ENUM getProductNetworkFromProduct (ARDISCOVERY_PRODUCT_ENUM product)
+    {
+	int bleOrdinal = ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_BLESERVICE.getValue();
+	int productOrdinal = product.getValue();
+	ARDISCOVERY_PRODUCT_ENUM retVal = ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_NSNETSERVICE;
+
+	if (productOrdinal >= bleOrdinal)
+	{
+	    retVal = ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_BLESERVICE;
+	}
+
+	return retVal;
+    }
     
     /**
      * @brief Converts a product ID in product name

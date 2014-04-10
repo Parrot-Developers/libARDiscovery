@@ -2,8 +2,11 @@
 package com.parrot.arsdk.ardiscovery;
 
 import android.bluetooth.BluetoothDevice;
+//import android.bluetooth.BluetoothGattCallback;
 import android.os.Parcel;
 import android.os.Parcelable;
+//import com.parrot.arsdk.argraphics.ARApplication;
+import android.content.Intent;
 
 import com.parrot.arsdk.arsal.ARSALPrint;
 
@@ -15,7 +18,6 @@ public class ARDiscoveryDeviceBLEService implements Parcelable
 
     private static String TAG = "ARDiscoveryDeviceBLEService";
     
-    private int test;
     private BluetoothDevice bluetoothDevice;
     
     public static final Parcelable.Creator<ARDiscoveryDeviceBLEService> CREATOR = new Parcelable.Creator<ARDiscoveryDeviceBLEService>()
@@ -84,10 +86,17 @@ public class ARDiscoveryDeviceBLEService implements Parcelable
     {
         return bluetoothDevice;
     }
-    
+
     public void setBluetoothDevice (BluetoothDevice bluetoothDevice)
     {
         this.bluetoothDevice = bluetoothDevice;
+
+    }
+
+    public short getSignal()
+    {
+        //TODO
+        return 0;
     }
 
     @Override
