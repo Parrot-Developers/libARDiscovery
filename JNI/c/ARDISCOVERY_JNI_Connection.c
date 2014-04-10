@@ -200,6 +200,27 @@ Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeGetDefineJsonARStr
 }
 
 /**
+ * @brief get ARDISCOVERY_CONNECTION_JSON_C2D_UPDATE_PORT_KEY
+ * @return value of ARDISCOVERY_CONNECTION_JSON_C2D_UPDATE_PORT_KEY
+ */
+JNIEXPORT jstring JNICALL
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeGetDefineJsonC2DUpdatePortKey (JNIEnv *env, jclass class)
+{
+    return  (*env)->NewStringUTF(env, ARDISCOVERY_CONNECTION_JSON_C2D_UPDATE_PORT_KEY);
+}
+
+/**
+ * @brief get ARDISCOVERY_CONNECTION_JSON_C2D_USER_PORT_KEY
+ * @return value of ARDISCOVERY_CONNECTION_JSON_C2D_USER_PORT_KEY
+ */
+JNIEXPORT jstring JNICALL
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeGetDefineJsonC2DUserPortKey (JNIEnv *env, jclass class)
+{
+    return  (*env)->NewStringUTF(env, ARDISCOVERY_CONNECTION_JSON_C2D_USER_PORT_KEY);
+}
+
+
+/**
  * @brief get ARDISCOVERY_CONNECTION_TX_BUFFER_SIZE
  * @return value of ARDISCOVERY_CONNECTION_TX_BUFFER_SIZE
  */

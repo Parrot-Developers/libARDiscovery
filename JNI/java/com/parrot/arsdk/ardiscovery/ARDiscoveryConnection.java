@@ -28,6 +28,8 @@ public abstract class ARDiscoveryConnection
     public static String ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_MAXIMUM_NUMBER_KEY = "";
     public static String ARDISCOVERY_CONNECTION_JSON_CONTROLLER_TYPE_KEY = "";
     public static String ARDISCOVERY_CONNECTION_JSON_CONTROLLER_NAME_KEY = "";
+    public static String ARDISCOVERY_CONNECTION_JSON_C2D_UPDATE_PORT_KEY = "";
+    public static String ARDISCOVERY_CONNECTION_JSON_C2D_USER_PORT_KEY = "";
     
     public static int ARDISCOVERY_CONNECTION_SEND_JSON_SIZE = 0;
     
@@ -38,6 +40,9 @@ public abstract class ARDiscoveryConnection
     private static native String nativeGetDefineJsonARStreamFragmentMaximumNumberKey();
     private static native String nativeGetDefineJsonControllerTypeKey();
     private static native String nativeGetDefineJsonControllerNameKey();
+    private static native String nativeGetDefineJsonC2DUpdatePortKey ();
+    private static native String nativeGetDefineJsonC2DUserPortKey ();
+
     private static native int nativeGetDefineTxBufferSize ();
     
     private native long nativeNew();
@@ -58,6 +63,9 @@ public abstract class ARDiscoveryConnection
         ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_MAXIMUM_NUMBER_KEY = nativeGetDefineJsonARStreamFragmentMaximumNumberKey();
         ARDISCOVERY_CONNECTION_JSON_CONTROLLER_TYPE_KEY = nativeGetDefineJsonControllerTypeKey();
         ARDISCOVERY_CONNECTION_JSON_CONTROLLER_NAME_KEY = nativeGetDefineJsonControllerNameKey();
+        ARDISCOVERY_CONNECTION_JSON_C2D_UPDATE_PORT_KEY = nativeGetDefineJsonC2DUpdatePortKey();
+        ARDISCOVERY_CONNECTION_JSON_C2D_USER_PORT_KEY = nativeGetDefineJsonC2DUserPortKey();
+        
         ARDISCOVERY_CONNECTION_SEND_JSON_SIZE = nativeGetDefineTxBufferSize() -1; /* -1 for the null character of the native json */
     }
     
