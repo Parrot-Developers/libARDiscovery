@@ -90,7 +90,6 @@ public class ARDiscoveryDeviceBLEService implements Parcelable
     public void setBluetoothDevice (BluetoothDevice bluetoothDevice)
     {
         this.bluetoothDevice = bluetoothDevice;
-
     }
 
     public short getSignal()
