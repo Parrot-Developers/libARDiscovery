@@ -18,7 +18,7 @@ static const char* ARDISCOVERY_Discovery_ProductNameTable[ARDISCOVERY_PRODUCT_MA
     [ARDISCOVERY_PRODUCT_JS]            = "Jumping Sumo",
     
     // BLE Service
-    [ARDISCOVERY_PRODUCT_MINIDRONE]     = "MiniDrone"
+    [ARDISCOVERY_PRODUCT_MINIDRONE]     = "Mini Drone"
 };
 
 eARDISCOVERY_PRODUCT ARDISCOVERY_getProductService(eARDISCOVERY_PRODUCT product)
@@ -51,6 +51,31 @@ const char* ARDISCOVERY_getProductName(eARDISCOVERY_PRODUCT product)
         name = (char *)ARDISCOVERY_Discovery_ProductNameTable[product];
         
     return (const char *)name;
+}
+
+void ARDISCOVERY_getProductPathName(eARDISCOVERY_PRODUCT product, char *buffer, int length)
+{
+    if ((buffer != NULL) && (length > 0))
+    {
+        const char *name = ARDISCOVERY_getProductName(product);
+        int nameLen = strlen(name);
+        char *index;
+        
+        if (length > nameLen)
+        {
+            strncpy(buffer, name, nameLen + 1);
+            index = buffer;
+            while ((index = strstr(index, " ")) != NULL)
+            {
+                *index = '_';
+                index++;
+            }
+        }
+        else
+        {
+            *buffer = '\0';
+        }
+    }
 }
 
 eARDISCOVERY_PRODUCT ARDISCOVERY_getProductFromName(const char *name)

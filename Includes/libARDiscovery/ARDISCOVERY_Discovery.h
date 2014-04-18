@@ -48,6 +48,17 @@ uint16_t ARDISCOVERY_getProductID(eARDISCOVERY_PRODUCT product);
 const char* ARDISCOVERY_getProductName(eARDISCOVERY_PRODUCT product);
 
 /**
+ * @brief Converts from product enumerator to product path name
+ * This function is the only one knowing the correspondance
+ * between the product enumerator and the products path name.
+ * @param product The product's enumerator
+ * @param buffer The application buffer that will receive the product path name 
+ * @param length The length of the application buffer that will receive the product path name
+ * @return The corresponding product path name
+ */
+void ARDISCOVERY_getProductPathName(eARDISCOVERY_PRODUCT product, char *buffer, int length);
+
+/**
  * @brief Converts from product name to product enumerator
  * This function is the only one knowing the correspondance
  * between the products name and the product enumerator.
