@@ -69,6 +69,29 @@ Java_com_parrot_arsdk_ardiscovery_ARDiscoveryService_nativeGetProductName (JNIEn
     return jName;
 }
 
+/**
+ * @brief Converts a product ID in product path name
+ * This function is the only one knowing the correspondance
+ * between the products' IDs and the product path names.
+ * @param product The product ID
+ * @return The corresponding product path name
+ */
+JNIEXPORT jstring JNICALL
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryService_nativeGetProductPathName (JNIEnv *env, jclass thizz, int product)
+{
+    char nativePathName[128];
+    jstring jPathName = NULL;
+
+    ARDISCOVERY_getProductPathName (product, nativePathName, sizeof(nativePathName));
+
+    if (nativePathName != NULL)
+    {
+        jPathName = (*env)->NewStringUTF(env, nativePathName);
+    }
+
+    return jPathName;
+}
+
  /**
  * @brief Converts a product product name in product ID
  * This function is the only one knowing the correspondance

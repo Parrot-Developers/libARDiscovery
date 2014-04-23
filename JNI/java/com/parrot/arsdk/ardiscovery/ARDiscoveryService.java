@@ -50,6 +50,7 @@ public class ARDiscoveryService extends Service
     /* Native Functions */
     private static native int nativeGetProductID (int product);
     private static native String nativeGetProductName(int product);
+    private static native String nativeGetProductPathName(int product);
     private static native int nativeGetProductFromName(String name);
     private static native int nativeGetProductFromProductID(int productID);
     
@@ -978,6 +979,18 @@ public class ARDiscoveryService extends Service
     public static String getProductName (ARDISCOVERY_PRODUCT_ENUM product)
     {
         return nativeGetProductName (product.getValue());
+    }
+    
+    /**
+     * @brief Converts a product ID in product path name
+     * This function is the only one knowing the correspondance
+     * between the products' IDs and the product path names.
+     * @param product The product ID
+     * @return The corresponding product path name
+     */
+    public static String getProductPathName (ARDISCOVERY_PRODUCT_ENUM product)
+    {
+        return nativeGetProductPathName (product.getValue());
     }
     
     /**
