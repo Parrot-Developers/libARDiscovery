@@ -78,6 +78,8 @@ public class ARDiscoveryService extends Service
     private ServiceListener mDNSListener;
     private List<String> devicesServiceArray;
     
+    private ServiceInfo publishedService;
+    
     private AsyncTask<Object, Object, Object> jmdnsCreatorAsyncTask;
     private Boolean inWifiConnection = false;
     
@@ -396,6 +398,7 @@ public class ARDiscoveryService extends Service
         
         /* reset */
         hostAddress = nullAddress;
+        unpublishServices();
         mdnsDestroy ();
         
         ArrayList<ARDiscoveryDeviceService> netDeviceServicesArray = new ArrayList<ARDiscoveryDeviceService> (netDeviceServicesHmap.values());
@@ -925,7 +928,70 @@ public class ARDiscoveryService extends Service
         
         return res;
     }
-    
+
+    /**
+     * @brief Publishes a service of the given product
+     * This function unpublishes any previously published service
+     * @param product The product to publish
+     * @param name The name of the service
+     * @param port The port of the service
+     */
+    public boolean publishService(ARDISCOVERY_PRODUCT_ENUM product, String name, int port)
+    {
+        return publishService(getProductID(product), name, port);
+    }
+
+    /**
+     * @brief Publishes a service of the given product_id
+     * This function unpublishes any previously published service
+     * @param product_id The product ID to publish
+     * @param name The name of the service
+     * @param port The port of the service
+     */
+    public boolean publishService(final int product_id, final String name, final int port)
+    {
+        unpublishServices();
+
+        Thread t = new Thread(new Runnable()
+            {
+                public void run()
+                {
+                    String type = String.format("_arsdk-%04x._udp.local.", product_id);
+                    ARSALPrint.e(TAG, "Publish service <" + type + " | " + name + " | " + port + " >");
+                    publishedService = ServiceInfo.create(type, name, port, 1, 1, ServiceInfo.NO_VALUE);
+                    boolean success = false;
+                    try
+                    {
+                        mDNSManager.registerService(publishedService);
+                        success = true;
+                    }
+                    catch (IOException ioe)
+                    {
+                        ARSALPrint.e(TAG, "Error publishing service");
+                        ioe.printStackTrace();
+                    }
+                    catch (Throwable t)
+                    {
+                        ARSALPrint.e(TAG, "Oops ...");
+                        t.printStackTrace();
+                    }
+                }
+            });
+        t.start();
+        // return success;
+        return true;
+    }
+
+    /**
+     * @brief Unpublishes any published service
+     */
+    public void unpublishServices()
+    {
+        mDNSManager.unregisterAllServices();
+        publishedService = null;
+    }
+
+
     /**
      * @brief Converts a product enumerator in product ID
      * This function is the only one knowing the correspondance
