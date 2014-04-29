@@ -11,7 +11,7 @@
 #import <libARDiscovery/ARDISCOVERY_Discovery.h>
 #import <netdb.h>
 
-#define ARDISCOVERY_BONJOURDISCOVERY_TAG "ARDISCOVERY_BonjourDiscovery"
+#define ARDISCOVERY_BONJOURDISCOVERY_TAG            "ARDISCOVERY_BonjourDiscovery"
 
 #define kServiceNetControllerType                   @"_arsdk-ff3._udp"
 #define kServiceNetDomain                           @ARDISCOVERY_SERVICE_NET_DEVICE_DOMAIN
@@ -426,6 +426,11 @@
             }
             aService.name = [aNetService name];
             aService.signal = [NSNumber numberWithInt:0];
+            NSDictionary *dict = [NSNetService dictionaryFromTXTRecordData:aNetService.TXTRecordData];
+            if(dict != nil && [dict objectForKey:[NSString stringWithUTF8String:ARDISCOVERY_SERVICE_NET_RSSI_SIGNAL_KEY]] != nil)
+            {
+                aService.signal = [dict objectForKey:[NSString stringWithUTF8String:ARDISCOVERY_SERVICE_NET_RSSI_SIGNAL_KEY]];
+            }
             aService.product = ARDISCOVERY_PRODUCT_MAX;
             
             [self.controllersServicesList setObject:aService forKey:aService.name];
@@ -455,6 +460,11 @@
             
             aService.name = [aNetService name];
             aService.signal = [NSNumber numberWithInt:0];
+            NSDictionary *dict = [NSNetService dictionaryFromTXTRecordData:aNetService.TXTRecordData];
+            if(dict != nil && [dict objectForKey:[NSString stringWithUTF8String:ARDISCOVERY_SERVICE_NET_RSSI_SIGNAL_KEY]] != nil)
+            {
+                aService.signal = [dict objectForKey:[NSString stringWithUTF8String:ARDISCOVERY_SERVICE_NET_RSSI_SIGNAL_KEY]];
+            }
             aService.product = ARDISCOVERY_PRODUCT_MAX;
             
             for (int i = ARDISCOVERY_PRODUCT_NSNETSERVICE; (aService.product == ARDISCOVERY_PRODUCT_MAX) && (i < ARDISCOVERY_PRODUCT_BLESERVICE); ++i)

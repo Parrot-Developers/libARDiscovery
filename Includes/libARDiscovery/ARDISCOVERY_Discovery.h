@@ -2,8 +2,9 @@
 #define _ARDISCOVERY_DISCOVERY_H_
 #include <inttypes.h>
 
-#define ARDISCOVERY_SERVICE_NET_DEVICE_DOMAIN "local"
-#define ARDISCOVERY_SERVICE_NET_DEVICE_FORMAT "_arsdk-%04x._udp"
+#define ARDISCOVERY_SERVICE_NET_DEVICE_DOMAIN   "local"
+#define ARDISCOVERY_SERVICE_NET_DEVICE_FORMAT   "_arsdk-%04x._udp"
+#define ARDISCOVERY_SERVICE_NET_RSSI_SIGNAL_KEY "rssi_signal"
 
 /**
  * Enum characterizing every Parrot's product and categorizing them
