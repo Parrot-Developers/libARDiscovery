@@ -18,8 +18,8 @@
 /**
  * @brief Read/Write buffers max size
  */
-#define ARDISCOVERY_CONNECTION_TX_BUFFER_SIZE 128
-#define ARDISCOVERY_CONNECTION_RX_BUFFER_SIZE 128
+#define ARDISCOVERY_CONNECTION_TX_BUFFER_SIZE 256
+#define ARDISCOVERY_CONNECTION_RX_BUFFER_SIZE 256
 
 /**
  * @brief callback use to send json information of the connection
