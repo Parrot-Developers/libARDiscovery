@@ -17,11 +17,11 @@ import com.parrot.arsdk.arsal.ARSALPrint;
 public abstract class ARDiscoveryConnection
 {
     /**
-     * 
+     *
      */
-    
+
     private static String TAG = "ARDiscoveryConnection";
-    
+
     public static String ARDISCOVERY_CONNECTION_JSON_C2DPORT_KEY = "";
     public static String ARDISCOVERY_CONNECTION_JSON_D2CPORT_KEY = "";
     public static String ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_SIZE_KEY = "";
@@ -30,9 +30,9 @@ public abstract class ARDiscoveryConnection
     public static String ARDISCOVERY_CONNECTION_JSON_CONTROLLER_NAME_KEY = "";
     public static String ARDISCOVERY_CONNECTION_JSON_C2D_UPDATE_PORT_KEY = "";
     public static String ARDISCOVERY_CONNECTION_JSON_C2D_USER_PORT_KEY = "";
-    
+
     public static int ARDISCOVERY_CONNECTION_SEND_JSON_SIZE = 0;
-    
+
     private static native void nativeStaticInit ();
     private static native String nativeGetDefineJsonC2DPortKey();
     private static native String nativeGetDefineJsonD2CPortKey();
@@ -44,16 +44,16 @@ public abstract class ARDiscoveryConnection
     private static native String nativeGetDefineJsonC2DUserPortKey ();
 
     private static native int nativeGetDefineTxBufferSize ();
-    
+
     private native long nativeNew();
     private native int nativeDelete(long jARDiscoveryConnection);
-    
+
     private native int nativeControllerConnection (long jConnectionData, int port, String javaIP);
     private native void nativeControllerConnectionAbort (long jConnectionData);
-    
+
     private long nativeARDiscoveryConnection;
     private boolean initOk;
-    
+
     static
     {
         nativeStaticInit();
@@ -65,10 +65,10 @@ public abstract class ARDiscoveryConnection
         ARDISCOVERY_CONNECTION_JSON_CONTROLLER_NAME_KEY = nativeGetDefineJsonControllerNameKey();
         ARDISCOVERY_CONNECTION_JSON_C2D_UPDATE_PORT_KEY = nativeGetDefineJsonC2DUpdatePortKey();
         ARDISCOVERY_CONNECTION_JSON_C2D_USER_PORT_KEY = nativeGetDefineJsonC2DUserPortKey();
-        
+
         ARDISCOVERY_CONNECTION_SEND_JSON_SIZE = nativeGetDefineTxBufferSize() -1; /* -1 for the null character of the native json */
     }
-    
+
     /**
      * Constructor
      */
@@ -76,35 +76,35 @@ public abstract class ARDiscoveryConnection
     {
         initOk = false;
         nativeARDiscoveryConnection = nativeNew();
-        
+
         if (nativeARDiscoveryConnection != 0)
         {
             initOk = true;
         }
     }
-    
+
     /**
      * Dispose
      */
     public ARDISCOVERY_ERROR_ENUM dispose()
     {
         ARDISCOVERY_ERROR_ENUM error = ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_OK;
-        
+
         if(initOk == true)
         {
             int nativeError = nativeDelete(nativeARDiscoveryConnection);
             error = ARDISCOVERY_ERROR_ENUM.getFromValue(nativeError);
-            
+
             if (error == ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_OK)
             {
                 nativeARDiscoveryConnection = 0;
                 initOk = false;
             }
         }
-        
+
         return error;
     }
-    
+
     /**
      * Destructor
      */
@@ -119,7 +119,7 @@ public abstract class ARDiscoveryConnection
             super.finalize ();
         }
     }
-    
+
     /**
      * @brief Initialize connection
      * @post close() must be called to close the connection.
@@ -131,10 +131,10 @@ public abstract class ARDiscoveryConnection
     public ARDISCOVERY_ERROR_ENUM ControllerConnection (int port, String ip)
     {
         int nativeError = nativeControllerConnection (nativeARDiscoveryConnection, port, ip);
-        
+
         return ARDISCOVERY_ERROR_ENUM.getFromValue(nativeError);
     }
-    
+
     /**
      * @brief Close connection
      * @see openAsController()
@@ -143,44 +143,44 @@ public abstract class ARDiscoveryConnection
     {
         nativeControllerConnectionAbort (nativeARDiscoveryConnection);
     }
-    
+
     /**
      * @brief callback use to send json information of the connection
      * @warning the json must not exceed ARDISCOVERY_CONNECTION_SEND_JSON_SIZE
-     * @return json information of the connection 
+     * @return json information of the connection
      */
-    abstract public String onSendJson (); 
-    
+    protected abstract String onSendJson ();
+
     /**
      * @brief callback use to receive json information of the connection
      * @param[in] dataRx json information of the connection
      * @param[in] ip ip address of the sender
      * @return error during callback execution
      */
-    abstract public ARDISCOVERY_ERROR_ENUM onReceiveJson (String dataRx, String ip);
-    
+    protected abstract ARDISCOVERY_ERROR_ENUM onReceiveJson (String dataRx, String ip);
+
     private ARDiscoveryConnectionCallbackReturn sendJsonCallback ()
     {
         ARDiscoveryConnectionCallbackReturn callbackReturn = new ARDiscoveryConnectionCallbackReturn();
         String dataTx = null;
         ARDISCOVERY_ERROR_ENUM callbackError = ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_OK;
-        
+
         /* asking the Port use for the device to controller */
         dataTx = onSendJson ();
         callbackReturn.setDataTx (dataTx);
-    
+
         return callbackReturn;
     }
-    
+
     private int receiveJsonCallback (byte[] dataRx, String ip)
     {
         ARDISCOVERY_ERROR_ENUM callbackError = ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_OK;
         String dataRxString = null;
-        
+
         if (dataRx != null)
         {
             /* connected */
-            
+
             try
             {
                 /* convert data to string */
@@ -191,49 +191,48 @@ public abstract class ARDiscoveryConnection
                 callbackError = ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_ERROR;
                 e.printStackTrace();
             }
-            
+
             callbackError = onReceiveJson (dataRxString, ip);
         }
-        
+
         return callbackError.getValue();
     }
-    
+
     private class ARDiscoveryConnectionCallbackReturn
     {
         private int error;
         private String dataTx;
-        
+
         public ARDiscoveryConnectionCallbackReturn ()
         {
             this.error = ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_OK.getValue();
             this.dataTx = null;
         }
-        
+
         public ARDiscoveryConnectionCallbackReturn (String dataTx, int error)
         {
             this.error = error;
             this.dataTx = dataTx;
         }
-        
+
         public void setError (int error)
         {
             this.error = error;
         }
-        
+
         public void setDataTx (String dataTx)
         {
             this.dataTx = dataTx;
         }
-        
+
         public int getError ()
         {
             return error;
         }
-        
+
         public String getDataTx ()
         {
             return dataTx;
         }
     }
 };
-
