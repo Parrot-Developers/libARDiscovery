@@ -425,7 +425,7 @@
                 aService.service = aNetService;
             }
             aService.name = [aNetService name];
-            aService.signal = [NSNumber numberWithInt:-100];
+            aService.signal = [NSNumber numberWithInt:0];
             NSDictionary *dict = [NSNetService dictionaryFromTXTRecordData:aNetService.TXTRecordData];
             if(dict != nil && [dict objectForKey:[NSString stringWithUTF8String:ARDISCOVERY_SERVICE_NET_RSSI_SIGNAL_KEY]] != nil)
             {
@@ -459,7 +459,7 @@
             }
             
             aService.name = [aNetService name];
-            aService.signal = [NSNumber numberWithInt:-100];
+            aService.signal = [NSNumber numberWithInt:0];
             NSDictionary *dict = [NSNetService dictionaryFromTXTRecordData:aNetService.TXTRecordData];
             if(dict != nil && [dict objectForKey:[NSString stringWithUTF8String:ARDISCOVERY_SERVICE_NET_RSSI_SIGNAL_KEY]] != nil)
             {
