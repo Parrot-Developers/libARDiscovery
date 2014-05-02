@@ -4,7 +4,7 @@
  **/
 
 /*****************************************
- * 
+ *
  *             include file :
  *
  *****************************************/
@@ -92,7 +92,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_JNIConnection_ReceiveJsonCallback (uint8_t *dataR
  *             implementation :
  *
  *****************************************/
- 
+
 static JavaVM* ARDISCOVERY_JNICONNECTION_VM = NULL; /** reference to the java virtual machine */
 
 /**
@@ -106,10 +106,10 @@ JNIEXPORT jint JNICALL
 JNI_OnLoad(JavaVM *VM, void *reserved)
 {
     ARSAL_PRINT(ARSAL_PRINT_DEBUG, ARDISCOVERY_JNICONNECTION_TAG, "Library has been loaded");
-    
+
     /* Saving the reference to the java virtual machine */
     ARDISCOVERY_JNICONNECTION_VM = VM;
-    
+
     /* Return the JNI version */
     return JNI_VERSION_1_6;
 }
@@ -121,19 +121,19 @@ Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeStaticInit (JNIEnv
     /* local declarations */
     jclass jARDiscoveryConnectionCls = NULL;
     jclass jARDiscoveryConnectionCallbackReturnCls = NULL;
-    
+
     /* get ARDiscoveryConnection */
     jARDiscoveryConnectionCls = (*env)->FindClass(env, "com/parrot/arsdk/ardiscovery/ARDiscoveryConnection");
-    
+
     ARDISCOVERY_JNICONNECTION_METHOD_CONNECTION_SEND_JSON_CALLBACK = (*env)->GetMethodID (env, jARDiscoveryConnectionCls, "sendJsonCallback", "()Lcom/parrot/arsdk/ardiscovery/ARDiscoveryConnection$ARDiscoveryConnectionCallbackReturn;");
     ARDISCOVERY_JNICONNECTION_METHOD_CONNECTION_RECEIVE_JSON_CALLBACK = (*env)->GetMethodID (env, jARDiscoveryConnectionCls, "receiveJsonCallback", "([BLjava/lang/String;)I");
-    
+
     /* get ARDiscoveryConnectionCallbackReturn */
     jARDiscoveryConnectionCallbackReturnCls = (*env)->FindClass(env, "com/parrot/arsdk/ardiscovery/ARDiscoveryConnection$ARDiscoveryConnectionCallbackReturn");
-    
-    ARDISCOVERY_JNICONNECTIONCALLBACKRETURN_METHOD_DATA_GET_ERROR = (*env)->GetMethodID(env, jARDiscoveryConnectionCallbackReturnCls, "getError", "()I");  
+
+    ARDISCOVERY_JNICONNECTIONCALLBACKRETURN_METHOD_DATA_GET_ERROR = (*env)->GetMethodID(env, jARDiscoveryConnectionCallbackReturnCls, "getError", "()I");
     ARDISCOVERY_JNICONNECTIONCALLBACKRETURN_METHOD_DATA_GET_DATA_TX = (*env)->GetMethodID(env, jARDiscoveryConnectionCallbackReturnCls, "getDataTx", "()Ljava/lang/String;");
-    
+
     /* cleanup */
     (*env)->DeleteLocalRef (env, jARDiscoveryConnectionCls);
     (*env)->DeleteLocalRef (env, jARDiscoveryConnectionCallbackReturnCls);
@@ -230,14 +230,14 @@ Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeGetDefineTxBufferS
     return ARDISCOVERY_CONNECTION_TX_BUFFER_SIZE;
 }
 
- /**
-  * @brief Create and initialize connection data
-  * @param env reference to the java environment
-  * @param thizz reference to the object calling this function
-  * @param[in] callback Connection data management callback
-  * @param[in] customData custom data
-  * @return new jni connection data object
-  */
+/**
+ * @brief Create and initialize connection data
+ * @param env reference to the java environment
+ * @param thizz reference to the object calling this function
+ * @param[in] callback Connection data management callback
+ * @param[in] customData custom data
+ * @return new jni connection data object
+ */
 JNIEXPORT jlong JNICALL
 Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeNew (JNIEnv *env, jobject thizz)
 {
@@ -247,7 +247,7 @@ Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeNew (JNIEnv *env, 
 
     /* allocate the jniConnectionData */
     jniConnectionData = ARDISCOVERY_JNIConnectionData_New (env, &error);
-    
+
     return (long) jniConnectionData;
 }
 
@@ -263,7 +263,7 @@ Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeDelete (JNIEnv *en
 {
     /* local declarations */
     ARDISCOVERY_JNICONNECTIONDATA_t *jniConnectionData = (ARDISCOVERY_JNICONNECTIONDATA_t *) (intptr_t) jConnectionData;
-    
+
     return ARNETWORKAL_ARDISCOVERY_JNIConnectionData_Delete (env, &jniConnectionData);
 }
 
@@ -286,25 +286,25 @@ Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeControllerConnecti
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
     ARDISCOVERY_JNICONNECTIONDATA_t *jniConnectionData = (ARDISCOVERY_JNICONNECTIONDATA_t *) (intptr_t) jConnectionData;
     const char *nativeIP = (*env)->GetStringUTFChars(env, javaIP, 0);
-    
+
     /* check parameters */
     if (jniConnectionData == NULL)
     {
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;
     }
-    
+
     if (error == ARDISCOVERY_OK)
     {
         /* create a global reference of the java object calling the fuction, delete by the close */
         jniConnectionData->javaConnectionData = (*env)->NewGlobalRef (env, thizz);
-        
+
         /* call the native fonction */
         error = ARDISCOVERY_Connection_ControllerConnection (jniConnectionData->nativeConnectionData, port, nativeIP);
     }
-    
+
     /* clean up */
     (*env)->ReleaseStringUTFChars(env, javaIP, nativeIP);
-    
+
     return error;
 }
 
@@ -320,13 +320,66 @@ Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeControllerConnecti
 {
     /* local declarations */
     ARDISCOVERY_JNICONNECTIONDATA_t *jniConnectionData = (ARDISCOVERY_JNICONNECTIONDATA_t *) (intptr_t) jConnectionData;
-    
+
     ARDISCOVERY_Connection_ControllerConnectionAbort (jniConnectionData->nativeConnectionData);
-    
+
     /* free javaConnectionData */
     /* delete global references */
     (*env)->DeleteGlobalRef (env, jniConnectionData->javaConnectionData);
     jniConnectionData->javaConnectionData = NULL;
+}
+
+/**
+ * @brief Open a connection as a Device
+ * @param env reference to the java environment
+ * @param thizz reference to the object calling this function
+ * @param[in] jConnectionData JNI Connection data
+ * @param[in] port port use to the discovery
+ * @return error during execution
+ * @see nativeDeviceStopListening()
+ */
+JNIEXPORT jint JNICALL
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeDeviceListeningLoop (JNIEnv *env, jobject thizz, jlong jConnectionData, jint port)
+{
+    /* local declarations */
+    eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
+    ARDISCOVERY_JNICONNECTIONDATA_t *jniConnectionData = (ARDISCOVERY_JNICONNECTIONDATA_t *) (intptr_t) jConnectionData;
+
+    /* check parameters */
+    if (jniConnectionData == NULL)
+    {
+        error = ARDISCOVERY_ERROR_BAD_PARAMETER;
+    }
+
+    if (error == ARDISCOVERY_OK)
+    {
+        /* create a global reference of the java object calling the fuction, delete by the close */
+        jniConnectionData->javaConnectionData = (*env)->NewGlobalRef (env, thizz);
+
+        /* call the native fonction */
+        error = ARDISCOVERY_Connection_DeviceListeningLoop (jniConnectionData->nativeConnectionData, port);
+    }
+
+    (*env)->DeleteGlobalRef (env, jniConnectionData->javaConnectionData);
+    jniConnectionData->javaConnectionData = NULL;
+
+    return error;
+}
+
+/**
+ * @brief Stop listening as a device
+ * @param env reference to the java environment
+ * @param thizz reference to the object calling this function
+ * @param[in] jConnectionData Connection data
+ * @see nativeDeviceListeningLoop()
+ */
+JNIEXPORT void JNICALL
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeDeviceStopListening (JNIEnv *env, jobject thizz, jlong jConnectionData)
+{
+    /* local declarations */
+    ARDISCOVERY_JNICONNECTIONDATA_t *jniConnectionData = (ARDISCOVERY_JNICONNECTIONDATA_t *) (intptr_t) jConnectionData;
+
+    ARDISCOVERY_Connection_Device_StopListening (jniConnectionData->nativeConnectionData);
 }
 
 
@@ -339,10 +392,10 @@ Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeControllerConnecti
 ARDISCOVERY_JNICONNECTIONDATA_t *ARDISCOVERY_JNIConnectionData_New (JNIEnv *env, eARDISCOVERY_ERROR *error)
 {
     /* - Create a new ARDISCOVERY_JNICONNECTIONDATA - */
-    
+
     eARDISCOVERY_ERROR localError = ARDISCOVERY_OK;
     ARDISCOVERY_JNICONNECTIONDATA_t *jniConnectionData = NULL;
-    
+
     /* allocate the jniConnectionData */
     jniConnectionData = malloc (sizeof (ARDISCOVERY_JNICONNECTIONDATA_t));
     if (jniConnectionData != NULL)
@@ -355,41 +408,41 @@ ARDISCOVERY_JNICONNECTIONDATA_t *ARDISCOVERY_JNIConnectionData_New (JNIEnv *env,
     {
         localError = ARDISCOVERY_ERROR_ALLOC;
     }
-    
+
     if (localError == ARDISCOVERY_OK)
     {
         jniConnectionData->nativeConnectionData = ARDISCOVERY_Connection_New (&ARDISCOVERY_JNIConnection_SendJsonCallback, &ARDISCOVERY_JNIConnection_ReceiveJsonCallback, jniConnectionData, error);
     }
-    
+
     /* delete the jniBLENetwork if an error occurred */
     if (localError != ARDISCOVERY_OK)
     {
         ARSAL_PRINT (ARSAL_PRINT_ERROR, ARDISCOVERY_JNICONNECTION_TAG, "error: %s", ARDISCOVERY_Error_ToString (localError));
         ARNETWORKAL_ARDISCOVERY_JNIConnectionData_Delete (env, &jniConnectionData);
     }
-    
+
     /* error return */
     if (error != NULL)
     {
         *error = localError;
     }
-    
+
     return jniConnectionData;
 }
 
 eARDISCOVERY_ERROR ARNETWORKAL_ARDISCOVERY_JNIConnectionData_Delete (JNIEnv *env, ARDISCOVERY_JNICONNECTIONDATA_t **jniConnectionData)
 {
     /* - ARDISCOVERY_JNICONNECTIONDATA - */
-    
+
     /* local declarations */
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
-    
+
     /* check parameters */
     if (jniConnectionData == NULL)
     {
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;
     }
-    
+
     if (error == ARDISCOVERY_OK)
     {
         if (*jniConnectionData != NULL)
@@ -397,70 +450,70 @@ eARDISCOVERY_ERROR ARNETWORKAL_ARDISCOVERY_JNIConnectionData_Delete (JNIEnv *env
             /* delete javaConnectionData */
             (*env)->DeleteGlobalRef (env, (*jniConnectionData)->javaConnectionData);
             (*jniConnectionData)->javaConnectionData = NULL;
-            
+
             /* delete the nativeConnectionData */
             error = ARDISCOVERY_Connection_Delete (&((*jniConnectionData)->nativeConnectionData));
-            
+
             /* free jniConnectionData */
             free (*jniConnectionData);
             *jniConnectionData = NULL;
         }
     }
-    
+
     return error;
 }
 
 eARDISCOVERY_ERROR ARDISCOVERY_JNIConnection_SendJsonCallback (uint8_t *dataTx, uint32_t *dataTxSize, void *customData)
 {
     /* - callback use to send json information of the connection -*/
-    
+
     /* local declarations */
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
     JNIEnv* env = NULL;
     jint getEnvResult = JNI_OK;
     jint attachResult = 1;
-    
+
     ARDISCOVERY_JNICONNECTIONDATA_t *jniConnectionData = (ARDISCOVERY_JNICONNECTIONDATA_t *) customData;
     jobject jcallbackReturn = NULL;
     jstring jDataTx = NULL;
     char *nativeDataTx = NULL;
     int nativeDataTxLength = 0;
-    
+
     /* check the virtual machine */
     if (ARDISCOVERY_JNICONNECTION_VM == NULL)
     {
         error = ARDISCOVERY_ERROR_JNI_VM;
     }
-    
+
     /* check parameters */
     if ((jniConnectionData == NULL) || (jniConnectionData->javaConnectionData == NULL))
     {
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;
     }
-    
+
     if (error == ARDISCOVERY_OK)
     {
         /* get the environment */
         getEnvResult = (*ARDISCOVERY_JNICONNECTION_VM)->GetEnv(ARDISCOVERY_JNICONNECTION_VM, (void **) &env, JNI_VERSION_1_6);
-        
+
         /* if no environment then attach the thread to the virtual machine */
         if (getEnvResult == JNI_EDETACHED)
         {
             ARSAL_PRINT(ARSAL_PRINT_DEBUG, ARDISCOVERY_JNICONNECTION_TAG, "attach the thread to the virtual machine ...");
             attachResult = (*ARDISCOVERY_JNICONNECTION_VM)->AttachCurrentThread(ARDISCOVERY_JNICONNECTION_VM, &env, NULL);
         }
-        
+
         if (env == NULL)
         {
             error = ARDISCOVERY_ERROR_JNI_ENV;
         }
     }
-    
+
     if (error == ARDISCOVERY_OK)
     {
         /* java send json callback */
         jcallbackReturn = (*env)->CallObjectMethod(env, jniConnectionData->javaConnectionData, ARDISCOVERY_JNICONNECTION_METHOD_CONNECTION_SEND_JSON_CALLBACK);
-        
+
         /* get callback return */
         if (jcallbackReturn != NULL)
         {
@@ -471,85 +524,85 @@ eARDISCOVERY_ERROR ARDISCOVERY_JNIConnection_SendJsonCallback (uint8_t *dataTx, 
                 /* copy jDataTx in dataTx */
                 nativeDataTx = (char *) (*env)->GetStringUTFChars(env, jDataTx, NULL);
                 nativeDataTxLength = strlen(nativeDataTx);
-                
+
                 memcpy (dataTx, nativeDataTx, nativeDataTxLength);
                 *dataTxSize = nativeDataTxLength;
-                
+
                 (*env)->ReleaseStringUTFChars(env, jDataTx, nativeDataTx);
                 nativeDataTx = NULL;
                 nativeDataTxLength = 0;
             }
-            
+
             /* get the java callback error */
             error = (*env)->CallIntMethod (env, jcallbackReturn, ARDISCOVERY_JNICONNECTIONCALLBACKRETURN_METHOD_DATA_GET_ERROR);
         }
     }
-    
+
     /* cleanup */
     /* delete local references */
     (*env)->DeleteLocalRef (env, jcallbackReturn);
     jcallbackReturn = NULL;
     (*env)->DeleteLocalRef (env, jDataTx);
     jDataTx = NULL;
-    
+
     /* if the thread has been attached then detach the thread from the virtual machine */
     if ((getEnvResult == JNI_EDETACHED) && (env != NULL))
     {
         (*ARDISCOVERY_JNICONNECTION_VM)->DetachCurrentThread(ARDISCOVERY_JNICONNECTION_VM);
     }
-    
+
     if (error != ARDISCOVERY_OK)
     {
         ARSAL_PRINT (ARSAL_PRINT_ERROR, ARDISCOVERY_JNICONNECTION_TAG, "error occured: %s", ARDISCOVERY_Error_ToString (error));
     }
-    
+
     return error;
 }
 
 eARDISCOVERY_ERROR ARDISCOVERY_JNIConnection_ReceiveJsonCallback (uint8_t *dataRx, uint32_t dataRxSize, char *ip, void *customData)
 {
     /* - callback use to receive json information of the connection - */
-    
+
     /* local declarations */
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
     JNIEnv* env = NULL;
     jint getEnvResult = JNI_OK;
     jint attachResult = 1;
-    
+
     ARDISCOVERY_JNICONNECTIONDATA_t *jniConnectionData = (ARDISCOVERY_JNICONNECTIONDATA_t *) customData;
     jbyteArray jDataRx = NULL;
     jstring jIP = NULL;
-    
+
     /* check the virtual machine */
     if (ARDISCOVERY_JNICONNECTION_VM == NULL)
     {
         error = ARDISCOVERY_ERROR_JNI_VM;
     }
-    
+
     /* check parameters */
     if ((jniConnectionData == NULL) || (jniConnectionData->javaConnectionData == NULL))
     {
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;
     }
-    
+
     if (error == ARDISCOVERY_OK)
     {
         /* get the environment */
         getEnvResult = (*ARDISCOVERY_JNICONNECTION_VM)->GetEnv(ARDISCOVERY_JNICONNECTION_VM, (void **) &env, JNI_VERSION_1_6);
-        
+
         /* if no environment then attach the thread to the virtual machine */
         if (getEnvResult == JNI_EDETACHED)
         {
             ARSAL_PRINT(ARSAL_PRINT_DEBUG, ARDISCOVERY_JNICONNECTION_TAG, "attach the thread to the virtual machine ...");
             attachResult = (*ARDISCOVERY_JNICONNECTION_VM)->AttachCurrentThread(ARDISCOVERY_JNICONNECTION_VM, &env, NULL);
         }
-        
+
         if (env == NULL)
         {
             error = ARDISCOVERY_ERROR_JNI_ENV;
         }
     }
-    
+
     if (error == ARDISCOVERY_OK)
     {
         /* convert native IP to java IP */
@@ -557,36 +610,36 @@ eARDISCOVERY_ERROR ARDISCOVERY_JNIConnection_ReceiveJsonCallback (uint8_t *dataR
         {
             jIP = (*env)->NewStringUTF(env,ip);
         }
-        
+
         if (dataRx != NULL && dataRxSize != 0)
         {
             /* create the data array jDataRx to send to the java callback */
             jDataRx = (*env)->NewByteArray(env, dataRxSize);
             (*env)->SetByteArrayRegion(env, jDataRx, 0, dataRxSize, (jbyte *)dataRx);
         }
-        
+
         /* java receive json callback */
         error = (*env)->CallIntMethod(env, jniConnectionData->javaConnectionData, ARDISCOVERY_JNICONNECTION_METHOD_CONNECTION_RECEIVE_JSON_CALLBACK, jDataRx, jIP);
-        
+
     }
-    
+
     /* cleanup */
     /* delete local references */
     (*env)->DeleteLocalRef (env, jDataRx);
     jDataRx = NULL;
     (*env)->DeleteLocalRef (env, jIP);
     jIP = NULL;
-    
+
     /* if the thread has been attached then detach the thread from the virtual machine */
     if ((getEnvResult == JNI_EDETACHED) && (env != NULL))
     {
         (*ARDISCOVERY_JNICONNECTION_VM)->DetachCurrentThread(ARDISCOVERY_JNICONNECTION_VM);
     }
-    
+
     if (error != ARDISCOVERY_OK)
     {
         ARSAL_PRINT (ARSAL_PRINT_ERROR, ARDISCOVERY_JNICONNECTION_TAG, "error occured: %s", ARDISCOVERY_Error_ToString (error));
     }
-    
+
     return error;
 }

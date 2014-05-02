@@ -48,8 +48,12 @@ public abstract class ARDiscoveryConnection
     private native long nativeNew();
     private native int nativeDelete(long jARDiscoveryConnection);
 
+    // Controller Connection
     private native int nativeControllerConnection (long jConnectionData, int port, String javaIP);
     private native void nativeControllerConnectionAbort (long jConnectionData);
+    // Device Connection
+    private native int nativeDeviceListeningLoop (long jConnectionData, int port);
+    private native int nativeDeviceStopListening (long jConnectionData);
 
     private long nativeARDiscoveryConnection;
     private boolean initOk;
@@ -142,6 +146,28 @@ public abstract class ARDiscoveryConnection
     public void ControllerConnectionAbort ()
     {
         nativeControllerConnectionAbort (nativeARDiscoveryConnection);
+    }
+
+    /**
+     * @brief Initialize connection as a Device
+     * @warning Must be called in its own thread
+     * @param[in] port port use to the discovery
+     * @return error during execution
+     */
+    public ARDISCOVERY_ERROR_ENUM DeviceListeningLoop (int port)
+    {
+        int nativeError = nativeDeviceListeningLoop (nativeARDiscoveryConnection, port);
+
+        return ARDISCOVERY_ERROR_ENUM.getFromValue(nativeError);
+    }
+
+    /**
+     * @brief Close connection
+     * @see openAsController()
+     */
+    public void DeviceStopListening ()
+    {
+        nativeDeviceStopListening (nativeARDiscoveryConnection);
     }
 
     /**

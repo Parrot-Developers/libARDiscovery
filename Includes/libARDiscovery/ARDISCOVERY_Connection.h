@@ -64,7 +64,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_Connection_Delete (ARDISCOVERY_Connection_Connect
 
 /**
  * @brief Initialize connection as a Device
- * @warning Must be called in its own thread 
+ * @warning Must be called in its own thread
  * @post ARDISCOVERY_Connection_Device_StopListening() must be called to close the connection.
  * @param[in] connectionData Connection data
  * @param[in] port port use to the discovery
@@ -74,7 +74,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_Connection_Delete (ARDISCOVERY_Connection_Connect
 eARDISCOVERY_ERROR ARDISCOVERY_Connection_DeviceListeningLoop (ARDISCOVERY_Connection_ConnectionData_t *connectionData, int port);
 
 /**
- * @brief Close connection 
+ * @brief Close connection
  * @warning blocking function ; wait the end of the run
  * @param[in] connectionData Connection data
  * @see ARDISCOVERY_Connection_DeviceListeningLoop()
