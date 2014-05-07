@@ -987,7 +987,10 @@ public class ARDiscoveryService extends Service
      */
     public void unpublishServices()
     {
-        mDNSManager.unregisterAllServices();
+        if (mDNSManager != null)
+        {
+            mDNSManager.unregisterAllServices();
+        }
         publishedService = null;
     }
 
