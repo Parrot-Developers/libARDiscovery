@@ -80,7 +80,6 @@ public abstract class ARDiscoveryConnection
     {
         initOk = false;
         nativeARDiscoveryConnection = nativeNew();
-
         if (nativeARDiscoveryConnection != 0)
         {
             initOk = true;
@@ -98,7 +97,6 @@ public abstract class ARDiscoveryConnection
         {
             int nativeError = nativeDelete(nativeARDiscoveryConnection);
             error = ARDISCOVERY_ERROR_ENUM.getFromValue(nativeError);
-
             if (error == ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_OK)
             {
                 nativeARDiscoveryConnection = 0;
@@ -145,7 +143,10 @@ public abstract class ARDiscoveryConnection
      */
     public void ControllerConnectionAbort ()
     {
-        nativeControllerConnectionAbort (nativeARDiscoveryConnection);
+        if(initOk == true)
+        {
+            nativeControllerConnectionAbort (nativeARDiscoveryConnection);
+        }
     }
 
     /**
@@ -156,8 +157,13 @@ public abstract class ARDiscoveryConnection
      */
     public ARDISCOVERY_ERROR_ENUM DeviceListeningLoop (int port)
     {
-        int nativeError = nativeDeviceListeningLoop (nativeARDiscoveryConnection, port);
-
+        int nativeError = 0;
+        
+        if(initOk == true)
+        {
+            nativeDeviceListeningLoop (nativeARDiscoveryConnection, port);
+        }
+        
         return ARDISCOVERY_ERROR_ENUM.getFromValue(nativeError);
     }
 
@@ -167,7 +173,10 @@ public abstract class ARDiscoveryConnection
      */
     public void DeviceStopListening ()
     {
-        nativeDeviceStopListening (nativeARDiscoveryConnection);
+        if(initOk == true)
+        {
+            nativeDeviceStopListening (nativeARDiscoveryConnection);
+        }
     }
 
     /**
