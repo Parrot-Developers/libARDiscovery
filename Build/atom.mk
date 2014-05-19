@@ -11,6 +11,7 @@ LOCAL_DESCRIPTION := ARSDK Discovery and Connection Management Layer
 
 LOCAL_LIBRARIES := libARSAL avahi
 LOCAL_EXPORT_LDLIBS := -lardiscovery
+LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/../Includes
 
 #Autotools variables
 LOCAL_AUTOTOOLS_CONFIGURE_ARGS := --with-libARSALInstallDir=""
