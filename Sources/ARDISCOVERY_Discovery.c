@@ -3,22 +3,22 @@
 
 static const uint16_t ARDISCOVERY_Discovery_ProductTable[ARDISCOVERY_PRODUCT_MAX] =
 {
+    // BLE Service
+    [ARDISCOVERY_PRODUCT_MINIDRONE]     = 0x0900,
+
     // NSNet Service
     [ARDISCOVERY_PRODUCT_ARDRONE]       = 0x0901,
-    [ARDISCOVERY_PRODUCT_JS]            = 0x0902,
-
-    // BLE Service
-    [ARDISCOVERY_PRODUCT_MINIDRONE]  = 0x0900
+    [ARDISCOVERY_PRODUCT_JS]            = 0x0902
 };
 
 static const char* ARDISCOVERY_Discovery_ProductNameTable[ARDISCOVERY_PRODUCT_MAX] =
 {
-    // NSNet Service
-    [ARDISCOVERY_PRODUCT_ARDRONE]       = "AR.Drone",
-    [ARDISCOVERY_PRODUCT_JS]            = "Jumping Sumo",
-    
     // BLE Service
-    [ARDISCOVERY_PRODUCT_MINIDRONE]     = "Mini Drone"
+    [ARDISCOVERY_PRODUCT_MINIDRONE]     = "Rolling Spider",
+
+    // NSNet Service
+    [ARDISCOVERY_PRODUCT_ARDRONE]       = "Bebop Drone",
+    [ARDISCOVERY_PRODUCT_JS]            = "Jumping Sumo"
 };
 
 eARDISCOVERY_PRODUCT ARDISCOVERY_getProductService(eARDISCOVERY_PRODUCT product)
