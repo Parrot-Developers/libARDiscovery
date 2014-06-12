@@ -315,9 +315,46 @@
         [self.devicesServicesList removeAllObjects];
         [self sendDevicesListUpdateNotification];
         
-
         [self.controllersServicesList removeAllObjects];
         [self sendControllersListUpdateNotification];
+    }
+}
+
+- (void)removeAllBLEServices
+{
+    @synchronized (self)
+    {
+        NSMutableArray *bleDevices = [[NSMutableArray alloc] init];
+        for (NSString *key in devicesServicesList)
+        {
+            ARService *aService = [devicesServicesList objectForKey:key];
+            if([aService.service isKindOfClass:[ARBLEService class]])
+            {
+                [bleDevices addObject:key];
+            }
+        }
+
+        [devicesServicesList removeObjectsForKeys:bleDevices];
+        [self sendDevicesListUpdateNotification];
+    }
+}
+
+- (void)removeAllWifiServices
+{
+    @synchronized (self)
+    {
+        NSMutableArray *wifiDevices = [[NSMutableArray alloc] init];
+        for (NSString *key in devicesServicesList)
+        {
+            ARService *aService = [devicesServicesList objectForKey:key];
+            if([aService.service isKindOfClass:[NSNetService class]])
+            {
+                [wifiDevices addObject:key];
+            }
+        }
+        
+        [devicesServicesList removeObjectsForKeys:wifiDevices];
+        [self sendDevicesListUpdateNotification];
     }
 }
 
@@ -611,6 +648,7 @@
             centralManagerInitialized = NO;
             isCBDiscovering = NO;
             askForCBDiscovering = YES;
+            
             break;
             
         case CBCentralManagerStateUnsupported:
@@ -628,6 +666,9 @@
             centralManagerInitialized = NO;
             isCBDiscovering = NO;
             askForCBDiscovering = YES;
+            
+            [self removeAllBLEServices];
+            
             break;
             
         default:
