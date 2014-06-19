@@ -58,6 +58,7 @@ public class ARDiscoveryDeviceService implements Parcelable
     {
         
         this.name = in.readString();
+        this.productID = in.readInt();
         eARDISCOVERY_DEVICE_SERVICE_TYPE type = in.readParcelable(eARDISCOVERY_DEVICE_SERVICE_TYPE.class.getClassLoader());
         
         switch(type)
@@ -170,6 +171,7 @@ public class ARDiscoveryDeviceService implements Parcelable
     public void writeToParcel(Parcel dest, int flags)
     {    
         dest.writeString(this.name);
+        dest.writeInt(this.productID);
         
         eARDISCOVERY_DEVICE_SERVICE_TYPE type = null;
         
