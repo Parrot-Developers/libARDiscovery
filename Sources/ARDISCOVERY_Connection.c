@@ -11,7 +11,7 @@
 
 #define ARDISCOVERY_CONNECTION_TAG "ARDISCOVERY_Connection"
 
-#define ARDISCOVERY_CONNECTION_TIMEOUT_SEC 1
+#define ARDISCOVERY_CONNECTION_TIMEOUT_SEC 5
 
 /*************************
  * Private header
