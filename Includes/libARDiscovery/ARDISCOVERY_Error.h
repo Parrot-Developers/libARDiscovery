@@ -33,11 +33,14 @@ typedef enum
     ARDISCOVERY_ERROR_BAD_PARAMETER, /**< Bad parameters */
     ARDISCOVERY_ERROR_BUSY, /**< discovery is busy*/
     
-    
     ARDISCOVERY_ERROR_JNI = -3000, /**< JNI error */
     ARDISCOVERY_ERROR_JNI_VM, /**< JNI virtual machine, not initialized */
     ARDISCOVERY_ERROR_JNI_ENV, /**< null JNI environment  */
     ARDISCOVERY_ERROR_JNI_CALLBACK_LISTENER, /**<  null jni callback listener*/
+
+    ARDISCOVERY_ERROR_CONNECTION = -4000, /**< Connection error */
+    ARDISCOVERY_ERROR_CONNECTION_BUSY, /**< Product already connected */
+    ARDISCOVERY_ERROR_CONNECTION_NOT_READY, /**< Product not ready to connect */
 
 } eARDISCOVERY_ERROR;
 

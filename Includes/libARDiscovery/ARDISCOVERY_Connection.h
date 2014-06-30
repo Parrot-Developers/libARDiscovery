@@ -6,6 +6,7 @@
 /**
  * @brief JSON strings for UDP ports extraction
  */
+#define ARDISCOVERY_CONNECTION_JSON_STATUS_KEY                              "status"
 #define ARDISCOVERY_CONNECTION_JSON_C2DPORT_KEY                             "c2d_port"
 #define ARDISCOVERY_CONNECTION_JSON_D2CPORT_KEY                             "d2c_port"
 #define ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_SIZE_KEY              "arstream_fragment_size"
