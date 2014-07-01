@@ -95,6 +95,13 @@ void ARDISCOVERY_Connection_Device_StopListening (ARDISCOVERY_Connection_Connect
 eARDISCOVERY_ERROR ARDISCOVERY_Connection_ControllerConnection (ARDISCOVERY_Connection_ConnectionData_t *connectionData, int port, const char *ip);
 
 /**
+ * @brief Copy the IP address of the connected controller device
+ * @param[in] connectionData Connection data
+ * @param[in] buffer String buffer to copy the IP
+ */
+void ARDISCOVERY_Connection_getControllerIP (ARDISCOVERY_Connection_ConnectionData_t *connectionData, char* buffer);
+
+/**
  * @brief Abort connection
  * @warning blocking function ; wait the end of the run
  * @param[in] connectionData Connection data

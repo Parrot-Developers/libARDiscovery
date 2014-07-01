@@ -819,3 +819,8 @@ void ARDISCOVERY_Connection_Unlock (ARDISCOVERY_Connection_ConnectionData_t *con
         write (connectionData->abortPipe[1], buff, 1);
     }
 }
+
+void ARDISCOVERY_Connection_getControllerIP (ARDISCOVERY_Connection_ConnectionData_t *connectionData, char* buffer)
+{
+    strncpy (buffer, inet_ntoa (connectionData->address.sin_addr), 17);
+}
