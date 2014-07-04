@@ -81,7 +81,10 @@ public class ARDiscoveryService extends Service
     private ServiceInfo publishedService;
     
     private AsyncTask<Object, Object, Object> jmdnsCreatorAsyncTask;
-    private Boolean inWifiConnection = false;
+    private Boolean isNetDiscovering = false;
+    private Boolean isLeDiscovering = false;
+    private Boolean askForNetDiscovering = false;
+    private Boolean askForLeDiscovering = false;
     
     private String hostIp;
     private InetAddress hostAddress;
@@ -104,7 +107,6 @@ public class ARDiscoveryService extends Service
     
     private final IBinder binder = new LocalBinder();
     
-    
     static
     {
         ARDISCOVERY_SERVICE_NET_DEVICE_FORMAT = nativeGetDefineNetDeviceFormat () + ".";
@@ -116,7 +118,7 @@ public class ARDiscoveryService extends Service
     {
         ARSALPrint.d(TAG,"onBind");
         
-        manageConnections();
+        start();
 
         return binder;
     }  
@@ -170,11 +172,28 @@ public class ARDiscoveryService extends Service
                     NetworkInfo wifiInfo = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
                     if (wifiInfo.isConnected())
                     {
-                        mdnsConnect();
+                        if(isNetDiscovering)
+                        {
+                            mdnsConnect();
+                            isNetDiscovering = false;
+                        }
                     }
                     else
                     {
+                        if(isNetDiscovering)
+                        {
+                            askForNetDiscovering = true;
+                        }
+                        
                         mdnsDisconnect();
+                        
+                        ArrayList<ARDiscoveryDeviceService> netDeviceServicesArray = new ArrayList<ARDiscoveryDeviceService> (netDeviceServicesHmap.values());
+                        
+                        /* remove all net services */
+                        for ( ARDiscoveryDeviceService s : netDeviceServicesArray)
+                        {
+                            notificationNetServiceDeviceRemoved (s);
+                        }
                     }
                 }
                 
@@ -190,10 +209,32 @@ public class ARDiscoveryService extends Service
                         switch (state)
                         {
                             case BluetoothAdapter.STATE_ON:
-                                bleConnect();
+                                if (askForLeDiscovering)
+                                {
+                                    bleConnect();
+                                    askForLeDiscovering = false;
+                                }
                                 break;
                             case BluetoothAdapter.STATE_TURNING_OFF:
+                                
+                                /* remove all BLE services */
+                                bleDeviceServicesHmap.clear();
+                                
+                                /* broadcast the new deviceServiceList */
+                                broadcastDeviceServiceArrayUpdated ();
+                                
+                                if(isLeDiscovering)
+                                {
+                                    askForLeDiscovering = true;
+                                }
                                 bleDisconnect();
+                                
+                                /* remove all BLE services */
+                                bleDeviceServicesHmap.clear();
+                                
+                                /* broadcast the new deviceServiceList */
+                                broadcastDeviceServiceArrayUpdated ();
+                                
                                 break;
                         }
                     }
@@ -210,7 +251,6 @@ public class ARDiscoveryService extends Service
         }
         
         registerReceiver(networkStateIntentReceiver, networkStateChangedFilter);
-        
     }
 
     @Override
@@ -240,7 +280,6 @@ public class ARDiscoveryService extends Service
         {
             if (mDNSListener != null)
             {
-                
                 /* remove the net service listeners */
                 for (String devicesService : devicesServiceArray)
                 {
@@ -293,7 +332,7 @@ public class ARDiscoveryService extends Service
     {
         ARSALPrint.d(TAG,"onRebind");
         
-        manageConnections();
+        start();
     }
     
     private void getBLEAvailability()
@@ -319,46 +358,71 @@ public class ARDiscoveryService extends Service
         /* Initializes Bluetooth adapter. */
         final BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         bluetoothAdapter = bluetoothManager.getAdapter();
-    
+        
         bleScanner = new BLEScanner();
         
         leScanCallback = new BluetoothAdapter.LeScanCallback()
-         {
-             @Override
-             public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord)
-             {
-                 ARSALPrint.d(TAG,"onLeScan");
-                 
-                 bleScanner.bleCallback(device, rssi, scanRecord);
+        {
+            @Override
+            public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord)
+            {
+                ARSALPrint.d(TAG,"onLeScan");
+                
+                bleScanner.bleCallback(device, rssi, scanRecord);
             }
-         };
+        };
     }
     
-    public void manageConnections()
+    public void start()
     {
-        ARSALPrint.d(TAG,"manageConnections");
+        ARSALPrint.d(TAG,"start");
         
-        /* if the wifi is connected get its hostAddress */
-        ConnectivityManager connManager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
-        NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-        if (mWifi.isConnected())
+        if (!isNetDiscovering)
         {
-            mdnsConnect();
+            /* if the wifi is connected get its hostAddress */
+            ConnectivityManager connManager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+            NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+            if (mWifi.isConnected())
+            {
+                mdnsConnect();
+            }
+            else
+            {
+                askForNetDiscovering = true;
+            }
         }
-        else
+        
+        if (!isLeDiscovering)
         {
+            if ((bleIsAvalaible == true) && bluetoothAdapter.isEnabled())
+            {
+                bleConnect();
+                isLeDiscovering = true;
+            }
+            else
+            {
+                askForLeDiscovering = true;
+            }
+        }
+    }
+    
+    public void stop()
+    {
+        ARSALPrint.d(TAG,"stop");
+        
+        if (isNetDiscovering)
+        {
+            /* Stop net scan */
             mdnsDisconnect();
         }
-
-        if ( (bleIsAvalaible == true) && bluetoothAdapter.isEnabled())
+        
+        if (isLeDiscovering)
         {
-            bleConnect();
-        }
-        else
-        {
+            /* Stop BLE scan */
             bleDisconnect();
+            isLeDiscovering = false;
         }
-    } 
+    }
     
     private void mdnsConnect()
     {
@@ -386,10 +450,10 @@ public class ARDiscoveryService extends Service
                 ARSALPrint.d(TAG,"hostAddress: " + hostAddress);
                 
             }
-                
-            if (! hostAddress.equals (nullAddress) && inWifiConnection == false)
+            
+            if (! hostAddress.equals (nullAddress) && isNetDiscovering == false)
             {
-                inWifiConnection = true;
+                isNetDiscovering = true;
                 
                 jmdnsCreatorAsyncTask = new JmdnsCreatorAsyncTask();
                 jmdnsCreatorAsyncTask.execute();
@@ -405,14 +469,6 @@ public class ARDiscoveryService extends Service
         hostAddress = nullAddress;
         unpublishServices();
         mdnsDestroy ();
-        
-        ArrayList<ARDiscoveryDeviceService> netDeviceServicesArray = new ArrayList<ARDiscoveryDeviceService> (netDeviceServicesHmap.values());
-        
-        /* remove all net services */
-        for ( ARDiscoveryDeviceService s : netDeviceServicesArray)
-        {
-            notificationNetServiceDeviceRemoved (s);
-        }
     }
     
     private void notificationNetServiceDeviceAdd( ServiceEvent serviceEvent )
@@ -453,7 +509,6 @@ public class ARDiscoveryService extends Service
             {
                 ARSALPrint.e(TAG,"Found an unknown service : " + deviceNetService);
             }
-            
         }
     }
     
@@ -470,7 +525,6 @@ public class ARDiscoveryService extends Service
             ARSALPrint.d(TAG,"service Resolved not know : "+ serviceEvent);
             notificationNetServiceDeviceAdd(serviceEvent);
         }
-
     }
     
     private void notificationNetServiceDeviceRemoved( ServiceEvent serviceEvent )
@@ -618,7 +672,7 @@ public class ARDiscoveryService extends Service
                 return null;
             }
             
-            inWifiConnection = false;
+            isNetDiscovering = false;
             
             return null;
         }
@@ -660,6 +714,7 @@ public class ARDiscoveryService extends Service
             for (String devicesService : devicesServiceArray)
             {
                 ARSALPrint.d(TAG,"addServiceListener:" + devicesService);
+                
                 if (mDNSManager != null)
                 {
                     mDNSManager.addServiceListener(devicesService, mDNSListener);
@@ -691,12 +746,6 @@ public class ARDiscoveryService extends Service
         if (bleIsAvalaible)
         {
             bleScanner.stop();
-            
-            /* remove all BLE services */
-            bleDeviceServicesHmap.clear();
-            
-            /* broadcast the new deviceServiceList */
-            broadcastDeviceServiceArrayUpdated ();
         }
     }
     
@@ -754,9 +803,8 @@ public class ARDiscoveryService extends Service
                 isStart = true;
                 startScanningRunnable.run();
             }
-
         }
-            
+        
         private void startScanLeDevice()
         {
             ARSALPrint.d(TAG,"start scanLeDevice: bluetoothAdapter: " + bluetoothAdapter);
@@ -1039,16 +1087,16 @@ public class ARDiscoveryService extends Service
      */
     public static ARDISCOVERY_PRODUCT_ENUM getProductNetworkFromProduct (ARDISCOVERY_PRODUCT_ENUM product)
     {
-	int bleOrdinal = ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_BLESERVICE.getValue();
-	int productOrdinal = product.getValue();
-	ARDISCOVERY_PRODUCT_ENUM retVal = ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_NSNETSERVICE;
+        int bleOrdinal = ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_BLESERVICE.getValue();
+        int productOrdinal = product.getValue();
+        ARDISCOVERY_PRODUCT_ENUM retVal = ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_NSNETSERVICE;
 
-	if (productOrdinal >= bleOrdinal)
-	{
-	    retVal = ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_BLESERVICE;
-	}
+        if (productOrdinal >= bleOrdinal)
+        {
+            retVal = ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_BLESERVICE;
+        }
 
-	return retVal;
+        return retVal;
     }
     
     /**
