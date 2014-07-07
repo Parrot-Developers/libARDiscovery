@@ -11,6 +11,7 @@
 #define ARDISCOVERY_CONNECTION_JSON_D2CPORT_KEY                             "d2c_port"
 #define ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_SIZE_KEY              "arstream_fragment_size"
 #define ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_MAXIMUM_NUMBER_KEY    "arstream_fragment_maximum_number"
+#define ARDISCOVERY_CONNECTION_JSON_ARSTREAM_MAX_ACK_INTERVAL_KEY           "arstream_max_ack_interval"
 #define ARDISCOVERY_CONNECTION_JSON_CONTROLLER_TYPE_KEY                     "controller_type"
 #define ARDISCOVERY_CONNECTION_JSON_CONTROLLER_NAME_KEY                     "controller_name"
 #define ARDISCOVERY_CONNECTION_JSON_C2D_UPDATE_PORT_KEY                     "c2d_update_port"
