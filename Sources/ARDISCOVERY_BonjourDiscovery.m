@@ -791,7 +791,7 @@
 #pragma mark - Notification sender
 - (void)sendPublishNotification
 {
-    NSDictionary *userInfos = @{kARDiscoveryServiceName: [self getCurrentPublishedServiceName]};
+    NSDictionary *userInfos = @{kARDiscoveryServiceName: ([self getCurrentPublishedServiceName] != nil) ? [self getCurrentPublishedServiceName] : @""};
     [[NSNotificationCenter defaultCenter] postNotificationName:kARDiscoveryNotificationServicePublished object:self userInfo:userInfos];
 }
 
