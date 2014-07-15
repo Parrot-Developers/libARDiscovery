@@ -324,7 +324,7 @@ public class ARDiscoveryService extends Service
              {
                  ARSALPrint.d(TAG,"onLeScan");
                  
-                 bleScanner.bleCallback(device, scanRecord);
+                 bleScanner.bleCallback(device, rssi, scanRecord);
             }
          };
     }
@@ -762,7 +762,7 @@ public class ARDiscoveryService extends Service
             startBLEHandler.postDelayed (startScanningRunnable, ARDISCOVERY_BLE_SCAN_PERIOD);
         }
         
-        public void bleCallback (BluetoothDevice bleService, byte[] scanRecord)
+        public void bleCallback (BluetoothDevice bleService, int rssi ,byte[] scanRecord)
         {
             ARSALPrint.d(TAG,"bleCallback");
             
@@ -771,7 +771,8 @@ public class ARDiscoveryService extends Service
             if (productID != 0)
              {
                 ARDiscoveryDeviceBLEService deviceBLEService = new ARDiscoveryDeviceBLEService(bleService);
-                
+                deviceBLEService.setSignal(rssi);
+
                 /* add the service in the array*/
                 ARDiscoveryDeviceService deviceService = new ARDiscoveryDeviceService (bleService.getName(), deviceBLEService, productID);
                 

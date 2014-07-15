@@ -19,6 +19,7 @@ public class ARDiscoveryDeviceBLEService implements Parcelable
     private static String TAG = "ARDiscoveryDeviceBLEService";
 
     private BluetoothDevice bluetoothDevice;
+    private int signal;
 
     public static final Parcelable.Creator<ARDiscoveryDeviceBLEService> CREATOR = new Parcelable.Creator<ARDiscoveryDeviceBLEService>()
     {
@@ -38,6 +39,7 @@ public class ARDiscoveryDeviceBLEService implements Parcelable
     public ARDiscoveryDeviceBLEService ()
     {
         bluetoothDevice = null;
+        signal = 0;
     }
 
     public ARDiscoveryDeviceBLEService (BluetoothDevice bluetoothDevice)
@@ -51,6 +53,7 @@ public class ARDiscoveryDeviceBLEService implements Parcelable
         ARSALPrint.d(TAG,"ARDiscoveryDeviceBLEService");
 
         this.bluetoothDevice = in.readParcelable(BluetoothDevice.class.getClassLoader());
+        this.signal = in.readInt();
     }
 
     @Override
@@ -94,10 +97,14 @@ public class ARDiscoveryDeviceBLEService implements Parcelable
 
     }
 
-    public short getSignal()
+    public int getSignal()
     {
-        //TODO
-        return 0;
+        return signal;
+    }
+
+    public void setSignal(int signal)
+    {
+        this.signal = signal;
     }
 
 
@@ -111,6 +118,7 @@ public class ARDiscoveryDeviceBLEService implements Parcelable
     public void writeToParcel(Parcel dest, int flags)
     {    
         dest.writeParcelable( this.bluetoothDevice, flags);
+        dest.writeInt(this.signal);
     }
 
 };
