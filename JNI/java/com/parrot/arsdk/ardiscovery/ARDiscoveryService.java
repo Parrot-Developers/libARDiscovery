@@ -230,6 +230,11 @@ public class ARDiscoveryService extends Service
     {
         ARSALPrint.d(TAG,"mdnsDestroy");
         
+        if (jmdnsCreatorAsyncTask != null)
+        {
+            jmdnsCreatorAsyncTask.cancel(true);
+        }
+
         /* if jmnds is running */
         if (mDNSManager != null)
         {
@@ -655,7 +660,14 @@ public class ARDiscoveryService extends Service
             for (String devicesService : devicesServiceArray)
             {
                 ARSALPrint.d(TAG,"addServiceListener:" + devicesService);
-                mDNSManager.addServiceListener(devicesService, mDNSListener);
+                if (mDNSManager != null)
+                {
+                    mDNSManager.addServiceListener(devicesService, mDNSListener);
+                }
+                else
+                {
+                    ARSALPrint.w(TAG,"mDNSManager is null");
+                }
             }
         }
         
