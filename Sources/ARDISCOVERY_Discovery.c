@@ -8,7 +8,8 @@ static const uint16_t ARDISCOVERY_Discovery_ProductTable[ARDISCOVERY_PRODUCT_MAX
 
     // NSNet Service
     [ARDISCOVERY_PRODUCT_ARDRONE]       = 0x0901,
-    [ARDISCOVERY_PRODUCT_JS]            = 0x0902
+    [ARDISCOVERY_PRODUCT_JS]            = 0x0902,
+    [ARDISCOVERY_PRODUCT_SKYCONTROLLER] = 0x0903,
 };
 
 static const char* ARDISCOVERY_Discovery_ProductNameTable[ARDISCOVERY_PRODUCT_MAX] =
@@ -18,13 +19,14 @@ static const char* ARDISCOVERY_Discovery_ProductNameTable[ARDISCOVERY_PRODUCT_MA
 
     // NSNet Service
     [ARDISCOVERY_PRODUCT_ARDRONE]       = "Bebop Drone",
-    [ARDISCOVERY_PRODUCT_JS]            = "Jumping Sumo"
+    [ARDISCOVERY_PRODUCT_JS]            = "Jumping Sumo",
+    [ARDISCOVERY_PRODUCT_SKYCONTROLLER] = "Sky Controller",
 };
 
 eARDISCOVERY_PRODUCT ARDISCOVERY_getProductService(eARDISCOVERY_PRODUCT product)
 {
     eARDISCOVERY_PRODUCT retval = ARDISCOVERY_PRODUCT_MAX;
-    
+
     if(ARDISCOVERY_PRODUCT_NSNETSERVICE <= product && product < ARDISCOVERY_PRODUCT_BLESERVICE)
     {
         retval = ARDISCOVERY_PRODUCT_NSNETSERVICE;
@@ -33,7 +35,7 @@ eARDISCOVERY_PRODUCT ARDISCOVERY_getProductService(eARDISCOVERY_PRODUCT product)
     {
         retval = ARDISCOVERY_PRODUCT_BLESERVICE;
     }
-    
+
     return retval;
 }
 

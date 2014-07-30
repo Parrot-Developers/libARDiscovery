@@ -14,6 +14,7 @@ typedef enum
     ARDISCOVERY_PRODUCT_NSNETSERVICE = 0,                               ///< WiFi products category
     ARDISCOVERY_PRODUCT_ARDRONE = ARDISCOVERY_PRODUCT_NSNETSERVICE,     ///< AR DRONE product
     ARDISCOVERY_PRODUCT_JS,                                             ///< JUMPING SUMO product
+    ARDISCOVERY_PRODUCT_SKYCONTROLLER,                                  ///< Sky controller product
     
     ARDISCOVERY_PRODUCT_BLESERVICE,                                     ///< BlueTooth products category
     ARDISCOVERY_PRODUCT_MINIDRONE = ARDISCOVERY_PRODUCT_BLESERVICE,         ///< DELOS product
