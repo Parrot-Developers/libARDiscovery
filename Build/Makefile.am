@@ -15,9 +15,10 @@ SOURCE_FILES                                        =   ../Sources/ARDISCOVERY_C
 # $(HEADER_FILES) will be added to $(SOURCE_FILES) later, in the discovery parts
 
 if AVAHI_NODBUS # Embedded case: dont use DBUS to communicate with avahi daemon
-HEADER_FILES                                        +=  ../Includes/libARDiscovery/ARDISCOVERY_AvahiDiscovery_nodbus.h
+HEADER_FILES                                        +=  ../Includes/libARDiscovery/ARDISCOVERY_AvahiDiscovery.h
 SOURCE_FILES                                        +=  $(HEADER_FILES) \
-                                                        ../Sources/ARDISCOVERY_AvahiDiscovery_nodbus.c
+                                                        ../Sources/ARDISCOVERY_AvahiDiscovery_nodbus.c \
+                                                        ../Sources/ARDISCOVERY_AvahiDiscovery_nodbus.h
 else
 if HAVE_BONJOUR # Bonjour specific files (iOS/OS X)
 HEADER_FILES                                        +=  ../Includes/libARDiscovery/ARDISCOVERY_BonjourDiscovery.h
