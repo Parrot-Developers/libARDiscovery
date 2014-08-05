@@ -6,7 +6,7 @@ ACLOCAL_AMFLAGS                                     =   -I m4
 
 # Common part (Negociation and ARNetwork creation ...)
 HEADER_FILES                                        =   ../Includes/libARDiscovery/ARDiscovery.h \
-							../Includes/libARDiscovery/ARDISCOVERY_Connection.h \
+                                                        ../Includes/libARDiscovery/ARDISCOVERY_Connection.h \
                                                         ../Includes/libARDiscovery/ARDISCOVERY_Discovery.h \
                                                         ../Includes/libARDiscovery/ARDISCOVERY_Error.h
 SOURCE_FILES                                        =   ../Sources/ARDISCOVERY_Connection.c \
@@ -14,6 +14,11 @@ SOURCE_FILES                                        =   ../Sources/ARDISCOVERY_C
                                                         ../Sources/ARDISCOVERY_Error.c
 # $(HEADER_FILES) will be added to $(SOURCE_FILES) later, in the discovery parts
 
+if AVAHI_NODBUS # Embedded case: dont use DBUS to communicate with avahi daemon
+HEADER_FILES                                        +=  ../Includes/libARDiscovery/ARDISCOVERY_AvahiDiscovery_nodbus.h
+SOURCE_FILES                                        +=  $(HEADER_FILES) \
+                                                        ../Sources/ARDISCOVERY_AvahiDiscovery_nodbus.c
+else
 if HAVE_BONJOUR # Bonjour specific files (iOS/OS X)
 HEADER_FILES                                        +=  ../Includes/libARDiscovery/ARDISCOVERY_BonjourDiscovery.h
 SOURCE_FILES                                        +=  $(HEADER_FILES) \
@@ -25,6 +30,7 @@ SOURCE_FILES                                        +=  $(HEADER_FILES) \
                                                         ../Sources/ARDISCOVERY_AvahiDiscovery.c
 else # Nether Bonjour nor Avahi (Android) --> Discovery is done by external files
 SOURCE_FILES                                        +=  $(HEADER_FILES)
+endif
 endif
 endif
 

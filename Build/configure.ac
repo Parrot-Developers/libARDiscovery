@@ -33,6 +33,16 @@ else
 fi
 AM_CONDITIONAL([DEBUG_MODE], [test "$debugit" = "yes"])
 
+AC_MSG_CHECKING([whether to build for avahi daemon])
+AC_ARG_ENABLE([avahi-nodbus],
+    [AS_HELP_STRING([--enable-avahi-nodbus],
+    [enable avahi wihtout dbus support (def=no)])],
+    [nodbus="$enableval"],
+    [nodbus=no])
+AC_MSG_RESULT([$nodbus])
+
+AM_CONDITIONAL([AVAHI_NODBUS], [test "$nodbus" = "yes"])
+
 ##########################################################################
 # Non versionned .so compilation support (for Android)
 ##########################################################################

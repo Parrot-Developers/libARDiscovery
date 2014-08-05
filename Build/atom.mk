@@ -15,6 +15,7 @@ LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/../Includes
 
 #Autotools variables
 LOCAL_AUTOTOOLS_CONFIGURE_ARGS := --with-libARSALInstallDir=""
+LOCAL_AUTOTOOLS_CONFIGURE_ARGS += --enable-avahi-nodbus
 
 ifeq ("$(TARGET_PBUILD_FORCE_STATIC)","1")
 LOCAL_AUTOTOOLS_CONFIGURE_ARGS += --disable-shared
