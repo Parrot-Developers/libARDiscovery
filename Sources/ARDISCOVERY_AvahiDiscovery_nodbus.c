@@ -4,7 +4,7 @@
 #include <libARSAL/ARSAL_Print.h>
 
 #include <libARDiscovery/ARDISCOVERY_AvahiDiscovery.h>
-#include "ARDISCOVERY_AvahiDiscovery.h"
+#include "ARDISCOVERY_AvahiDiscovery_nodbus.h"
 
 #define __ARDISCOVERY_AVAHIDISCOVERY_TAG__ "ARDISCOVERY_AvahiDiscovery"
 
