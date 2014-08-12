@@ -269,11 +269,6 @@ public class ARDiscoveryService extends Service
     public void mdnsDestroy()
     {
         ARSALPrint.d(TAG,"mdnsDestroy");
-        
-        if (jmdnsCreatorAsyncTask != null)
-        {
-            jmdnsCreatorAsyncTask.cancel(true);
-        }
 
         /* if jmnds is running */
         if (mDNSManager != null)
