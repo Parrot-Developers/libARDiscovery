@@ -917,7 +917,10 @@ public class ARDiscoveryService extends Service
         {
             ARSALPrint.d(TAG,"BLEScanningTask stop");
             
-            bluetoothAdapter.stopLeScan((BluetoothAdapter.LeScanCallback)leScanCallback);
+            if (leScanCallback != null)
+            {
+                bluetoothAdapter.stopLeScan((BluetoothAdapter.LeScanCallback)leScanCallback);
+            }
             startBLEHandler.removeCallbacks(startScanningRunnable);
             stopBLEHandler.removeCallbacks(stopScanningRunnable);
             scanning = false;
