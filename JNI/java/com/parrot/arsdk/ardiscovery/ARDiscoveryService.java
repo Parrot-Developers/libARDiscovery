@@ -618,6 +618,7 @@ public class ARDiscoveryService extends Service
             
             try 
             {
+                mDNSManager = null;
                 if ( (hostAddress != null) && (! hostAddress.equals( nullAddress )) )
                 {
                     mDNSManager = JmDNS.create(hostAddress);
@@ -663,8 +664,8 @@ public class ARDiscoveryService extends Service
             }
             catch (IOException e) 
             {
+                ARSALPrint.e(TAG, "mDNSManager creation failed.");
                 e.printStackTrace();
-                return null;
             }
             
             isNetDiscovering = false;
