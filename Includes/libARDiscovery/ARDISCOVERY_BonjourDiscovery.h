@@ -78,6 +78,11 @@
 - (void)start;
 
 /**
+ * Pause ARDiscovery BLE if it's discovering
+ */
+- (void)pauseBLE;
+
+/**
  * Stops ARDiscovery if it's discovering
  */
 - (void)stop;

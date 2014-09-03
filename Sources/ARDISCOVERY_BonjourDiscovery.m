@@ -279,6 +279,20 @@
     }
 }
 
+- (void)pauseBLE
+{
+    NSLog(@"%s:%d", __FUNCTION__, __LINE__);
+    
+    if (centralManagerInitialized && isCBDiscovering)
+    {
+        /**
+         * Stop CBCentralManager
+         */
+        isCBDiscovering = NO;
+        [centralManager stopScan];
+    }
+}
+
 - (void)stop
 {
     NSLog(@"%s:%d", __FUNCTION__, __LINE__);
