@@ -106,6 +106,7 @@ public class ARDiscoveryService extends Service
     private Object leScanCallback;/*< Device scan callback. (BluetoothAdapter.LeScanCallback) */
     
     private final IBinder binder = new LocalBinder();
+    private Handler mHandler;
     
     static
     {
@@ -117,8 +118,6 @@ public class ARDiscoveryService extends Service
     public IBinder onBind(Intent intent)
     {
         ARSALPrint.d(TAG,"onBind");
-        
-        start();
 
         return binder;
     }  
@@ -127,7 +126,8 @@ public class ARDiscoveryService extends Service
     public void onCreate() 
     {
         ARSALPrint.d(TAG,"onCreate");
-        
+        mHandler = new Handler();
+
         try 
         {
             nullAddress = InetAddress.getByName("0.0.0.0");
@@ -259,6 +259,7 @@ public class ARDiscoveryService extends Service
         super.onDestroy();
         
         ARSALPrint.d(TAG,"onDestroy");
+        mHandler.removeCallbacksAndMessages(null);
         
         unregisterReceiver(networkStateIntentReceiver);
         
@@ -327,7 +328,6 @@ public class ARDiscoveryService extends Service
     {
         ARSALPrint.d(TAG,"onRebind");
         
-        start();
     }
     
     private void getBLEAvailability()
@@ -400,7 +400,7 @@ public class ARDiscoveryService extends Service
             }
         }
     }
-    
+
     public void stop()
     {
         ARSALPrint.d(TAG,"stop");
@@ -410,6 +410,36 @@ public class ARDiscoveryService extends Service
             /* Stop net scan */
             mdnsDisconnect();
         }
+        
+        if (isLeDiscovering)
+        {
+            /* Stop BLE scan */
+            bleDisconnect();
+            isLeDiscovering = false;
+        }
+    }
+
+    public void startBLEDiscovering()
+    {
+        ARSALPrint.d(TAG,"startBLEDiscovering");
+        
+        if (!isLeDiscovering)
+        {
+            if ((bleIsAvalaible == true) && bluetoothAdapter.isEnabled())
+            {
+                bleConnect();
+                isLeDiscovering = true;
+            }
+            else
+            {
+                askForLeDiscovering = true;
+            }
+        }
+    }
+    
+    public void stopBLEDiscovering()
+    {
+        ARSALPrint.d(TAG,"stopBLEDiscovering");
         
         if (isLeDiscovering)
         {
@@ -445,8 +475,8 @@ public class ARDiscoveryService extends Service
                 ARSALPrint.d(TAG,"hostAddress: " + hostAddress);
                 
             }
-            
-            if (! hostAddress.equals (nullAddress) && isNetDiscovering == false)
+
+            if ((!hostAddress.equals (nullAddress)) && (isNetDiscovering == false))
             {
                 isNetDiscovering = true;
                 
@@ -750,7 +780,8 @@ public class ARDiscoveryService extends Service
     private class BLEScanner
     {
         private static final long ARDISCOVERY_BLE_SCAN_PERIOD = 10000;
-        private static final long ARDISCOVERY_BLE_SCAN_DURATION = 5000;
+        private static final long ARDISCOVERY_BLE_SCAN_DURATION = 4000;
+        public static final long ARDISCOVERY_BLE_TIMEOUT_DURATION = ARDISCOVERY_BLE_SCAN_PERIOD + ARDISCOVERY_BLE_SCAN_DURATION+6000;
         private boolean isStart;
         private boolean scanning;
         private Handler startBLEHandler;
@@ -943,6 +974,7 @@ public class ARDiscoveryService extends Service
     @TargetApi(18)
     private void notificationBLEServiceDeviceUpDate( HashMap<String, ARDiscoveryDeviceService> newBLEDeviceServicesHmap )
     {
+        mHandler.removeCallbacksAndMessages(null);
         ARSALPrint.d(TAG,"notificationBLEServiceDeviceAdd");
         
         /* if the BLEDeviceServices List has changed */
@@ -954,6 +986,18 @@ public class ARDiscoveryService extends Service
             /* broadcast the new deviceServiceList */
             broadcastDeviceServiceArrayUpdated ();
         }
+
+        mHandler.postDelayed(new Runnable(){
+
+            @Override
+            public void run()
+            {
+                ARSALPrint.d(TAG,"BLE scan timeout ! clear BLE devices");
+                bleDeviceServicesHmap.clear();
+                /* broadcast the new deviceServiceList */
+                broadcastDeviceServiceArrayUpdated();
+            }
+        }, BLEScanner.ARDISCOVERY_BLE_TIMEOUT_DURATION);
     }
     
     private boolean bleServicesListHasChanged ( HashMap<String, ARDiscoveryDeviceService> newBLEDeviceServicesHmap )
