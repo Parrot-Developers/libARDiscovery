@@ -126,6 +126,10 @@ public class ARDiscoveryDeviceService implements Parcelable
                     }
                 }
             }
+            else
+            {
+                isEqual = false;
+            }
         }
         
         return isEqual;

@@ -172,10 +172,13 @@ public class ARDiscoveryService extends Service
                     NetworkInfo wifiInfo = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
                     if (wifiInfo.isConnected())
                     {
-                        if(isNetDiscovering)
+
+                        if(askForNetDiscovering)
                         {
+
                             mdnsConnect();
-                            isNetDiscovering = false;
+
+                            askForNetDiscovering = false;
                         }
                     }
                     else
@@ -480,8 +483,11 @@ public class ARDiscoveryService extends Service
             {
                 isNetDiscovering = true;
                 
-                jmdnsCreatorAsyncTask = new JmdnsCreatorAsyncTask();
-                jmdnsCreatorAsyncTask.execute();
+                if (jmdnsCreatorAsyncTask == null)
+                {
+                    jmdnsCreatorAsyncTask = new JmdnsCreatorAsyncTask();
+                    jmdnsCreatorAsyncTask.execute();
+                }
             }
         }
     }
@@ -494,6 +500,14 @@ public class ARDiscoveryService extends Service
         hostAddress = nullAddress;
         unpublishServices();
         mdnsDestroy ();
+
+        if (jmdnsCreatorAsyncTask != null)
+        {
+            ARSALPrint.d(TAG,"cancel asynctask, status="+jmdnsCreatorAsyncTask.getStatus());
+            jmdnsCreatorAsyncTask.cancel(true);
+            jmdnsCreatorAsyncTask = null;
+        }
+        isNetDiscovering = false;
     }
     
     private void notificationNetServiceDeviceAdd( ServiceEvent serviceEvent )
@@ -698,9 +712,32 @@ public class ARDiscoveryService extends Service
                 e.printStackTrace();
             }
             
-            isNetDiscovering = false;
-            
+            /* add the net service listeners */
+            for (String devicesService : devicesServiceArray)
+            {
+                ARSALPrint.d(TAG,"addServiceListener:" + devicesService);
+                if (mDNSManager != null)
+                {
+                    mDNSManager.addServiceListener(devicesService, mDNSListener);
+                }
+                else
+                {
+                    ARSALPrint.w(TAG,"mDNSManager is null");
+                }
+            }
+            while(!isCancelled());
+
             return null;
+        }
+
+        protected void onCancelled()
+        {
+            ARSALPrint.d(TAG,"onCancelled");
+        }
+
+        protected void onCancelled(Object result)
+        {
+            ARSALPrint.d(TAG,"onCancelled result="+result);
         }
         
         protected void onProgressUpdate(Object... progress) 
@@ -736,20 +773,7 @@ public class ARDiscoveryService extends Service
         
         protected void onPostExecute(Object result)
         {
-            /* add the net service listeners */
-            for (String devicesService : devicesServiceArray)
-            {
-                ARSALPrint.d(TAG,"addServiceListener:" + devicesService);
-                
-                if (mDNSManager != null)
-                {
-                    mDNSManager.addServiceListener(devicesService, mDNSListener);
-                }
-                else
-                {
-                    ARSALPrint.w(TAG,"mDNSManager is null");
-                }
-            }
+            ARSALPrint.d(TAG,"onPostExecute");
         }
         
     }
