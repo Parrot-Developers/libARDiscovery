@@ -71,7 +71,8 @@ public class ARDiscoveryDeviceService implements Parcelable
             case ARDISCOVERY_DEVICE_SERVICE_TYPE_BLE:
                 this.device = in.readParcelable(ARDiscoveryDeviceBLEService.class.getClassLoader());
                 break;
-                
+            
+            case ARDISCOVERY_DEVICE_SERVICE_TYPE_MAX:
             default:
                 this.device = null;
                 break;
@@ -98,32 +99,42 @@ public class ARDiscoveryDeviceService implements Parcelable
             /* check */
             ARDiscoveryDeviceService otherDevice = (ARDiscoveryDeviceService) other;
             
-            /* check if the devices are of same class */
-            if (this.getDevice().getClass().equals(otherDevice.getDevice().getClass()))
+            if (this.getDevice() != otherDevice.getDevice())
             {
-                if (this.getDevice() instanceof ARDiscoveryDeviceNetService)
+                if((this.getDevice() != null) && (otherDevice.getDevice() != null))
                 {
-                    /* if it is a NetDevice */
-                    ARDiscoveryDeviceNetService deviceNetService = (ARDiscoveryDeviceNetService) this.getDevice();
-                    ARDiscoveryDeviceNetService otherDeviceNetService = (ARDiscoveryDeviceNetService) otherDevice.getDevice();
-                    
-                    if (!deviceNetService.equals(otherDeviceNetService))
+                    /* check if the devices are of same class */
+                    if (this.getDevice().getClass().equals(otherDevice.getDevice().getClass()))
                     {
-                        isEqual = false;
+                        if (this.getDevice() instanceof ARDiscoveryDeviceNetService)
+                        {
+                            /* if it is a NetDevice */
+                            ARDiscoveryDeviceNetService deviceNetService = (ARDiscoveryDeviceNetService) this.getDevice();
+                            ARDiscoveryDeviceNetService otherDeviceNetService = (ARDiscoveryDeviceNetService) otherDevice.getDevice();
+                            
+                            if (!deviceNetService.equals(otherDeviceNetService))
+                            {
+                                isEqual = false;
+                            }
+                        }
+                        else if (this.getDevice() instanceof ARDiscoveryDeviceBLEService)
+                        {
+                            ARSALPrint.d(TAG,"equals");
+                            
+                            /* if it is a BLEDevice */
+                            ARDiscoveryDeviceBLEService deviceBLEService = (ARDiscoveryDeviceBLEService) this.getDevice();
+                            ARDiscoveryDeviceBLEService otherDeviceBLEService = (ARDiscoveryDeviceBLEService) otherDevice.getDevice();
+                            
+                            if (!deviceBLEService.equals(otherDeviceBLEService))
+                            {
+                                isEqual = false;
+                            }
+                        }
                     }
                 }
-                else if (this.getDevice() instanceof ARDiscoveryDeviceBLEService)
+                else
                 {
-                    ARSALPrint.d(TAG,"equals");
-                    
-                    /* if it is a BLEDevice */
-                    ARDiscoveryDeviceBLEService deviceBLEService = (ARDiscoveryDeviceBLEService) this.getDevice();
-                    ARDiscoveryDeviceBLEService otherDeviceBLEService = (ARDiscoveryDeviceBLEService) otherDevice.getDevice();
-                    
-                    if (!deviceBLEService.equals(otherDeviceBLEService))
-                    {
-                        isEqual = false;
-                    }
+                    isEqual = false;
                 }
             }
             else
@@ -187,17 +198,24 @@ public class ARDiscoveryDeviceService implements Parcelable
         {
             type = eARDISCOVERY_DEVICE_SERVICE_TYPE.ARDISCOVERY_DEVICE_SERVICE_TYPE_BLE;
         }
+        else
+        {
+            type = eARDISCOVERY_DEVICE_SERVICE_TYPE.ARDISCOVERY_DEVICE_SERVICE_TYPE_MAX;
+        }
         
         dest.writeParcelable(type, flags);
 
-        
-        dest.writeParcelable((Parcelable) this.device, flags);
+        if((type != null) && (type != eARDISCOVERY_DEVICE_SERVICE_TYPE.ARDISCOVERY_DEVICE_SERVICE_TYPE_MAX))
+        {
+            dest.writeParcelable((Parcelable) this.device, flags);
+        }
     }
     
     private enum eARDISCOVERY_DEVICE_SERVICE_TYPE implements Parcelable
     {
         ARDISCOVERY_DEVICE_SERVICE_TYPE_NET, 
-        ARDISCOVERY_DEVICE_SERVICE_TYPE_BLE;
+        ARDISCOVERY_DEVICE_SERVICE_TYPE_BLE,
+        ARDISCOVERY_DEVICE_SERVICE_TYPE_MAX;
         
         @Override
         public int describeContents()
