@@ -273,13 +273,6 @@ public class ARDiscoveryJmdnsDiscovery implements ARDiscoveryWifiDiscovery
         mdnsDestroy();
         jmdnsCreatorAsyncTask = null;
         isNetDiscovering = false;
-        
-        /* remove all net services */
-        ArrayList<ARDiscoveryDeviceService> netDeviceServicesArray = new ArrayList<ARDiscoveryDeviceService> (netDeviceServicesHmap.values());
-        for (ARDiscoveryDeviceService s : netDeviceServicesArray)
-        {
-            notificationNetServiceDeviceRemoved (s);
-        }
     }
 
     private void notificationNetServiceDeviceAdd(ServiceEvent serviceEvent)
@@ -417,7 +410,7 @@ public class ARDiscoveryJmdnsDiscovery implements ARDiscoveryWifiDiscovery
                     mDNSManager = JmDNS.create(hostAddress);
                 }
                 else
-                {;
+                {
                     mDNSManager = JmDNS.create();
                 }
 
