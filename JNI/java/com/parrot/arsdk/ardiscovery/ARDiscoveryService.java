@@ -85,6 +85,7 @@ public class ARDiscoveryService extends Service
     
     private ARDiscoveryBLEDiscovery bleDiscovery;
     private ARDiscoveryWifiDiscovery wifiDiscovery;
+    private ARDiscoveryNsdPublisher wifiPublisher;
     
     private ARDISCOVERYSERVICE_WIFI_DISCOVERY_TYPE_ENUM wifiDiscoveryType = null;
     
@@ -112,6 +113,17 @@ public class ARDiscoveryService extends Service
         
         bleDiscovery = new ARDiscoveryBLEDiscoveryImpl();
         bleDiscovery.open(this, this);
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)
+        {
+            wifiPublisher = new ARDiscoveryNsdPublisher();
+            wifiPublisher.open(this, this);
+        }
+        else
+        {
+            ARSALPrint.w(TAG, "no wifiPublisher !");
+        }
+        
     }
 
     @Override
@@ -127,6 +139,11 @@ public class ARDiscoveryService extends Service
         if(wifiDiscovery != null)
         {
             wifiDiscovery.close();
+        }
+        
+        if(wifiPublisher != null)
+        {
+            wifiPublisher.close();
         }
         
     }
@@ -290,9 +307,9 @@ public class ARDiscoveryService extends Service
     {
         boolean ret = false;
         
-        if (wifiDiscovery != null)
+        if (wifiPublisher != null)
         {
-            ret = wifiDiscovery.publishService(product, name, port);
+            ret = wifiPublisher.publishService(product, name, port);
         }
         
         return ret;
@@ -309,9 +326,9 @@ public class ARDiscoveryService extends Service
     {
         boolean ret = false;
         
-        if (wifiDiscovery != null)
+        if (wifiPublisher != null)
         {
-            ret = wifiDiscovery.publishService(product_id, name, port);
+            ret = wifiPublisher.publishService(product_id, name, port);
         }
         
         return ret;
@@ -322,9 +339,9 @@ public class ARDiscoveryService extends Service
      */
     public void unpublishServices()
     {
-        if (wifiDiscovery != null)
+        if (wifiPublisher != null)
         {
-            wifiDiscovery.unpublishService();
+            wifiPublisher.unpublishService();
         }
     }
 
