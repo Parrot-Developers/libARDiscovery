@@ -16,7 +16,7 @@ import android.content.Context;
  */
 public class ARDiscoveryNsdPublisher implements ARDiscoveryWifiPublisher
 {
-    private static final String TAG = ARDiscoveryNsdDiscovery.class.getSimpleName();
+    private static final String TAG = ARDiscoveryNsdPublisher.class.getSimpleName();
 
     // NsdManager
     private NsdManager mNsdManager;
