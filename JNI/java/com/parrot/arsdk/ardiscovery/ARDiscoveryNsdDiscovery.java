@@ -46,12 +46,16 @@ public class ARDiscoveryNsdDiscovery implements ARDiscoveryWifiDiscovery
          * devicesServiceArray init
          */
         devicesServiceArray = new ArrayList<String>();
+        //TODO: workaround for the skyController
+        String devicesService = String.format (ARDiscoveryService.ARDISCOVERY_SERVICE_NET_DEVICE_FORMAT, ARDiscoveryService.nativeGetProductID(ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_ARDRONE.getValue()));
+        devicesServiceArray.add(devicesService);
+        /*
         for (int i = ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_NSNETSERVICE.getValue() ; i < ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_BLESERVICE.getValue(); ++i)
         {
             String devicesService = String.format (ARDiscoveryService.ARDISCOVERY_SERVICE_NET_DEVICE_FORMAT, ARDiscoveryService.nativeGetProductID(i));
             
             devicesServiceArray.add(devicesService);
-        }
+        }*/
 
         netDeviceServicesHmap = new HashMap<String, ARDiscoveryDeviceService> ();
 
