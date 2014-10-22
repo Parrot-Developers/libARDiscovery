@@ -538,6 +538,7 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_ControllerInitSocket (ARDISCOVE
                 case EHOSTUNREACH:
                 {
                     // in that particular case, we retry a connection because the host may be not resolved after a very recent connection
+                    ARSAL_PRINT(ARSAL_PRINT_ERROR, ARDISCOVERY_CONNECTION_TAG, "connect() failed: %d %s => Try reconnecting after %d seconds", errno, strerror(errno), ARDISCOVERY_RECONNECTION_TIME_SEC);
                     sleep(ARDISCOVERY_RECONNECTION_TIME_SEC);
                     connectError = ARSAL_Socket_Connect (connectionData->socket, (struct sockaddr*) &(connectionData->address), sizeof (connectionData->address));
                     if (connectError != 0)
