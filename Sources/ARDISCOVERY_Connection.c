@@ -13,6 +13,8 @@
 
 #define ARDISCOVERY_CONNECTION_TIMEOUT_SEC 5
 
+#define ARDISCOVERY_RECONNECTION_TIME_SEC  3
+
 /*************************
  * Private header
  *************************/
@@ -525,17 +527,41 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_ControllerInitSocket (ARDISCOVE
         {
             switch (errno)
             {
-            case EINPROGRESS:
-                /* in connection */
-                /* do nothing */
-                break;
-            case EACCES:
-                error = ARDISCOVERY_ERROR_SOCKET_PERMISSION_DENIED;
-                break;
-
-            default:
-                error = ARDISCOVERY_ERROR;
-                break;
+                case EINPROGRESS:
+                    /* in connection */
+                    /* do nothing */
+                    break;
+                case EACCES:
+                    error = ARDISCOVERY_ERROR_SOCKET_PERMISSION_DENIED;
+                    break;
+                case ENETUNREACH:
+                case EHOSTUNREACH:
+                {
+                    // in that particular case, we retry a connection because the host may be not resolved after a very recent connection
+                    sleep(ARDISCOVERY_RECONNECTION_TIME_SEC);
+                    connectError = ARSAL_Socket_Connect (connectionData->socket, (struct sockaddr*) &(connectionData->address), sizeof (connectionData->address));
+                    if (connectError != 0)
+                    {
+                        switch (errno)
+                        {
+                            case EINPROGRESS:
+                                /* in connection */
+                                /* do nothing */
+                                break;
+                            case EACCES:
+                                error = ARDISCOVERY_ERROR_SOCKET_PERMISSION_DENIED;
+                                break;
+                                
+                            default:
+                                error = ARDISCOVERY_ERROR;
+                                break;
+                        }
+                    }
+                    break;
+                }
+                default:
+                    error = ARDISCOVERY_ERROR;
+                    break;
             }
             
             if (error != ARDISCOVERY_OK)
