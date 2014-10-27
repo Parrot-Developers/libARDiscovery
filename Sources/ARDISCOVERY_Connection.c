@@ -11,9 +11,11 @@
 
 #define ARDISCOVERY_CONNECTION_TAG "ARDISCOVERY_Connection"
 
-#define ARDISCOVERY_CONNECTION_TIMEOUT_SEC 5
+#define ARDISCOVERY_CONNECTION_TIMEOUT_SEC      5
 
-#define ARDISCOVERY_RECONNECTION_TIME_SEC  3
+#define ARDISCOVERY_RECONNECTION_TIME_SEC       1
+
+#define ARDISCOVERY_RECONNECTION_NB_RETRY_MAX   10
 
 /*************************
  * Private header
@@ -46,6 +48,15 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_DeviceInitSocket (int *deviceSo
  * @return error during execution
  */
 static eARDISCOVERY_ERROR ARDISCOVERY_Connection_ControllerInitSocket (ARDISCOVERY_Connection_ConnectionData_t *connectionData, int port, const char *ip);
+
+/**
+ * @brief Init a socket
+ * @param sockfd The socket descriptor used to connect
+ * @param addr The address to connect.
+ * @param addrlen The size of the addr
+ * @retval On success, ARDISCOVERY_OK is returned. Otherwise, the error is returned
+ */
+static eARDISCOVERY_ERROR ARDISCOVERY_Socket_Connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 
 /**
  * @brief accepts the connection
@@ -491,7 +502,6 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_ControllerInitSocket (ARDISCOVE
      */
     
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
-    int connectError;
     int flags = 0;
     fd_set readSet;
     fd_set writeSet;
@@ -500,6 +510,7 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_ControllerInitSocket (ARDISCOVE
     struct timeval tv = {ARDISCOVERY_CONNECTION_TIMEOUT_SEC, 0};
     int selectErr = 0;
     char dump[10];
+    int nbTryToConnect = 0;
 
     /* Create TCP socket */
     if (error == ARDISCOVERY_OK)
@@ -521,15 +532,27 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_ControllerInitSocket (ARDISCOVE
         
         ARSAL_PRINT(ARSAL_PRINT_DEBUG, ARDISCOVERY_CONNECTION_TAG, "contoller try to connect ip:%s port:%d", ip, port);
         
-        connectError = ARSAL_Socket_Connect (connectionData->socket, (struct sockaddr*) &(connectionData->address), sizeof (connectionData->address));
+        // try to connect to the socket
+        // if host is unreachable (error ARDISCOVERY_ERROR_SOCKET_UNREACHABLE) retry 10 times
+        do
+        {
+            // in that particular case, we retry a connection because the host may be not resolved after a very recent connection
+            if (error == ARDISCOVERY_ERROR_SOCKET_UNREACHABLE)
+            {
+                sleep(ARDISCOVERY_RECONNECTION_TIME_SEC);
+            }
+            error = ARDISCOVERY_Socket_Connect(connectionData->socket, (struct sockaddr*) &(connectionData->address), sizeof (connectionData->address));
+            nbTryToConnect++;
+        }
+        while ((nbTryToConnect <= ARDISCOVERY_RECONNECTION_NB_RETRY_MAX) && (error == ARDISCOVERY_ERROR_SOCKET_UNREACHABLE));
+            
+        /*connectError = ARSAL_Socket_Connect (connectionData->socket, (struct sockaddr*) &(connectionData->address), sizeof (connectionData->address));
         
         if (connectError != 0)
         {
             switch (errno)
             {
                 case EINPROGRESS:
-                    /* in connection */
-                    /* do nothing */
                     break;
                 case EACCES:
                     error = ARDISCOVERY_ERROR_SOCKET_PERMISSION_DENIED;
@@ -546,8 +569,7 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_ControllerInitSocket (ARDISCOVE
                         switch (errno)
                         {
                             case EINPROGRESS:
-                                /* in connection */
-                                /* do nothing */
+
                                 break;
                             case EACCES:
                                 error = ARDISCOVERY_ERROR_SOCKET_PERMISSION_DENIED;
@@ -569,7 +591,7 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_ControllerInitSocket (ARDISCOVE
             {
                 ARSAL_PRINT(ARSAL_PRINT_ERROR, ARDISCOVERY_CONNECTION_TAG, "connect() failed: %d %s", errno, strerror(errno));
             }
-        }
+        }*/
         
         /* set the socket non blocking */
         flags = fcntl(connectionData->socket, F_GETFL, 0);
@@ -637,6 +659,42 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_ControllerInitSocket (ARDISCOVE
                 error = ARDISCOVERY_ERROR_ABORT;
             }
             /* No else: no timeout */
+        }
+    }
+    
+    return error;
+}
+
+static eARDISCOVERY_ERROR ARDISCOVERY_Socket_Connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
+{
+    eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
+    
+    int connectError = ARSAL_Socket_Connect (sockfd, addr, addrlen);
+    
+    if (connectError != 0)
+    {
+        switch (errno)
+        {
+            case EINPROGRESS:
+                /* in connection */
+                /* do nothing */
+                break;
+            case EACCES:
+                error = ARDISCOVERY_ERROR_SOCKET_PERMISSION_DENIED;
+                break;
+            case ENETUNREACH:
+            case EHOSTUNREACH:
+                ARSAL_PRINT(ARSAL_PRINT_ERROR, ARDISCOVERY_CONNECTION_TAG, "connect() failed: %d %s => Try reconnecting after %d seconds", errno, strerror(errno), ARDISCOVERY_RECONNECTION_TIME_SEC);
+                error = ARDISCOVERY_ERROR_SOCKET_UNREACHABLE;
+                break;
+            default:
+                error = ARDISCOVERY_ERROR;
+                break;
+        }
+        
+        if (error != ARDISCOVERY_OK)
+        {
+            ARSAL_PRINT(ARSAL_PRINT_ERROR, ARDISCOVERY_CONNECTION_TAG, "connect() failed: %d %s", errno, strerror(errno));
         }
     }
     
