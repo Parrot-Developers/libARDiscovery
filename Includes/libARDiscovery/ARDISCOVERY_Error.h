@@ -6,8 +6,10 @@
  */
 typedef enum
 {
+// Do not change these values, they are sent by the device in the Json of connection.
     ARDISCOVERY_OK = 0, /**< No error */
     ARDISCOVERY_ERROR = -1, /**< Unknown generic error */
+// End of values sent by the device in the Json of connection.
 
     ARDISCOVERY_ERROR_SIMPLE_POLL = -1000, /**< Avahi failed to create simple poll object */
     ARDISCOVERY_ERROR_BUILD_NAME, /**< Avahi failed to create simple poll object */
@@ -39,9 +41,11 @@ typedef enum
     ARDISCOVERY_ERROR_JNI_ENV, /**< null JNI environment  */
     ARDISCOVERY_ERROR_JNI_CALLBACK_LISTENER, /**<  null jni callback listener*/
 
+// Do not change these values, they are sent by the device in the Json of connection.
     ARDISCOVERY_ERROR_CONNECTION = -4000, /**< Connection error */
-    ARDISCOVERY_ERROR_CONNECTION_BUSY, /**< Product already connected */
-    ARDISCOVERY_ERROR_CONNECTION_NOT_READY, /**< Product not ready to connect */
+    ARDISCOVERY_ERROR_CONNECTION_BUSY = -3999, /**< Product already connected */
+    ARDISCOVERY_ERROR_CONNECTION_NOT_READY = -3998, /**< Product not ready to connect */
+// End of values sent by the device in the Json of connection.
 
 } eARDISCOVERY_ERROR;
 
