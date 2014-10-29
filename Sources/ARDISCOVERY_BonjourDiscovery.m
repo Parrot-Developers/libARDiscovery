@@ -238,7 +238,7 @@
         }
         
         self.currentResolutionService = aService;
-        [[self.currentResolutionService service] setDelegate:self];
+        [((NSNetService*)[self.currentResolutionService service]) setDelegate:self];
         [[self.currentResolutionService service] resolveWithTimeout:kServiceResolutionTimeout];
     }
 }
