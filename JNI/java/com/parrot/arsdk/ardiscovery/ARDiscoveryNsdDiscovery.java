@@ -80,9 +80,9 @@ public class ARDiscoveryNsdDiscovery implements ARDiscoveryWifiDiscovery
 
         for (String type : devicesServiceArray)
         {
-            ARSALPrint.w(TAG, "Will start searching for devices of type <" + type + ">");
+            ARSALPrint.i(TAG, "Will start searching for devices of type <" + type + ">");
             
-            ARSALPrint.w(TAG, "NsdManager.PROTOCOL_DNS_SD:" + NsdManager.PROTOCOL_DNS_SD +" mDiscoveryListeners.get(type):" + mDiscoveryListeners.get(type));
+            ARSALPrint.i(TAG, "NsdManager.PROTOCOL_DNS_SD:" + NsdManager.PROTOCOL_DNS_SD +" mDiscoveryListeners.get(type):" + mDiscoveryListeners.get(type));
             
             mNsdManager.discoverServices(type, NsdManager.PROTOCOL_DNS_SD, mDiscoveryListeners.get(type));
         }
@@ -98,7 +98,7 @@ public class ARDiscoveryNsdDiscovery implements ARDiscoveryWifiDiscovery
 
         for (String type : devicesServiceArray)
         {
-            ARSALPrint.w(TAG, "Will stop searching for devices of type <" + type + ">");
+            ARSALPrint.i(TAG, "Will stop searching for devices of type <" + type + ">");
             mNsdManager.stopServiceDiscovery(mDiscoveryListeners.get(type));
         }
 
@@ -116,12 +116,12 @@ public class ARDiscoveryNsdDiscovery implements ARDiscoveryWifiDiscovery
     
     public void start()
     {
-        ARSALPrint.w(TAG, "start ... not implemented");
+        ARSALPrint.d(TAG, "start ... not implemented");
     }
     
     public void stop()
     {
-        ARSALPrint.w(TAG, "stop ... not implemented");
+        ARSALPrint.d(TAG, "stop ... not implemented");
     }
 
     /**
@@ -225,14 +225,14 @@ public class ARDiscoveryNsdDiscovery implements ARDiscoveryWifiDiscovery
                     @Override
                     public void onDiscoveryStarted(String regType)
                     {
-                        ARSALPrint.e(TAG, "Service discovery started");
+                        ARSALPrint.i(TAG, "Service discovery started");
                     }
 
                     @Override
                     public void onServiceFound(NsdServiceInfo service)
                     {
                         // A service was found!  Do something with it.
-                        ARSALPrint.e(TAG, "Service discovery success" + service);
+                        ARSALPrint.i(TAG, "Service discovery success" + service);
                         boolean validType = false;
                         boolean shouldBeAdded = true;
                         for (String type : devicesServiceArray)
@@ -264,7 +264,7 @@ public class ARDiscoveryNsdDiscovery implements ARDiscoveryWifiDiscovery
                     {
                         // When the network service is no longer available.
                         // Internal bookkeeping code goes here.
-                        ARSALPrint.e(TAG, "service lost" + service);
+                        ARSALPrint.i(TAG, "service lost" + service);
 
                         /* remove from the deviceServicesHmap */
                         ARDiscoveryDeviceService deviceServiceRemoved = netDeviceServicesHmap.remove(service.getServiceName());
@@ -283,7 +283,7 @@ public class ARDiscoveryNsdDiscovery implements ARDiscoveryWifiDiscovery
                     @Override
                     public void onDiscoveryStopped(String serviceType)
                     {
-                        ARSALPrint.e(TAG, "Discovery stopped: " + serviceType);
+                        ARSALPrint.i(TAG, "Discovery stopped: " + serviceType);
                     }
 
                     @Override
@@ -321,11 +321,11 @@ public class ARDiscoveryNsdDiscovery implements ARDiscoveryWifiDiscovery
             @Override
             public void onServiceResolved(NsdServiceInfo serviceInfo)
             {
-                ARSALPrint.e(TAG, "Resolve Succeeded. " + serviceInfo);
+                ARSALPrint.i(TAG, "Resolve Succeeded. " + serviceInfo);
 
                 if (serviceInfo.getServiceName().equals(mServiceName))
                 {
-                    ARSALPrint.e(TAG, "Same IP.");
+                    ARSALPrint.w(TAG, "Same IP.");
                     return;
                 }
                 int port = serviceInfo.getPort();
@@ -334,7 +334,7 @@ public class ARDiscoveryNsdDiscovery implements ARDiscoveryWifiDiscovery
 
                 boolean known = netDeviceServicesHmap.containsKey(serviceInfo.getServiceName());
 
-                ARSALPrint.e (TAG, "IP = " + ip + ", Port = " + port + ", Known ? " + known);
+                ARSALPrint.i (TAG, "IP = " + ip + ", Port = " + port + ", Known ? " + known);
 
                 /* add the service if it not known yet*/
                 if ((ip != null) && (!known))
@@ -348,11 +348,11 @@ public class ARDiscoveryNsdDiscovery implements ARDiscoveryWifiDiscovery
                     for (int i = ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_NSNETSERVICE.getValue(); i < ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_BLESERVICE.getValue(); ++i)
                     {
                         String type = devicesServiceArray.get(i);
-                        ARSALPrint.e(TAG, "Checking <" + deviceNetService.getType() + "> against <" + type + ">");
+                        ARSALPrint.d(TAG, "Checking <" + deviceNetService.getType() + "> against <" + type + ">");
                         if (deviceNetService.getType().equals(type))
                         {
                             productID = ARDiscoveryService.nativeGetProductID(i);
-                            ARSALPrint.e(TAG, "Match ! Productid = " + productID);
+                            ARSALPrint.d(TAG, "Match ! Productid = " + productID);
                             break;
                         }
                     }
