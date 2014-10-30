@@ -239,6 +239,15 @@ Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeGetDefineJsonC2DUs
     return  (*env)->NewStringUTF(env, ARDISCOVERY_CONNECTION_JSON_C2D_USER_PORT_KEY);
 }
 
+/**
+ * @brief get ARDISCOVERY_CONNECTION_JSON_SKYCONTROLLER_VERSION
+ * @return value of ARDISCOVERY_CONNECTION_JSON_SKYCONTROLLER_VERSION
+ */
+JNIEXPORT jstring JNICALL
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeGetDefineJsonSkyControllerVersionKey (JNIEnv *env, jclass class)
+{
+    return  (*env)->NewStringUTF(env, ARDISCOVERY_CONNECTION_JSON_SKYCONTROLLER_VERSION);
+}
 
 /**
  * @brief get ARDISCOVERY_CONNECTION_TX_BUFFER_SIZE
