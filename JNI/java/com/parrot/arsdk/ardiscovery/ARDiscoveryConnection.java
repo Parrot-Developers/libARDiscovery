@@ -22,6 +22,7 @@ public abstract class ARDiscoveryConnection
 
     private static String TAG = "ARDiscoveryConnection";
 
+    public static String ARDISCOVERY_CONNECTION_JSON_STATUS_KEY = "";
     public static String ARDISCOVERY_CONNECTION_JSON_C2DPORT_KEY = "";
     public static String ARDISCOVERY_CONNECTION_JSON_D2CPORT_KEY = "";
     public static String ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_SIZE_KEY = "";
@@ -35,6 +36,7 @@ public abstract class ARDiscoveryConnection
     public static int ARDISCOVERY_CONNECTION_SEND_JSON_SIZE = 0;
 
     private static native void nativeStaticInit ();
+    private static native String nativeGetDefineJsonStatusKey();
     private static native String nativeGetDefineJsonC2DPortKey();
     private static native String nativeGetDefineJsonD2CPortKey();
     private static native String nativeGetDefineJsonARStreamFragmentSizeKey();
@@ -63,6 +65,7 @@ public abstract class ARDiscoveryConnection
     static
     {
         nativeStaticInit();
+        ARDISCOVERY_CONNECTION_JSON_STATUS_KEY = nativeGetDefineJsonStatusKey();
         ARDISCOVERY_CONNECTION_JSON_C2DPORT_KEY = nativeGetDefineJsonC2DPortKey();
         ARDISCOVERY_CONNECTION_JSON_D2CPORT_KEY = nativeGetDefineJsonD2CPortKey();
         ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_SIZE_KEY = nativeGetDefineJsonARStreamFragmentSizeKey();

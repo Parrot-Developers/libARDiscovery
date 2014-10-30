@@ -140,6 +140,16 @@ Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeStaticInit (JNIEnv
 }
 
 /**
+ * @brief get ARDISCOVERY_CONNECTION_JSON_STATUS_KEY
+ * @return value of ARDISCOVERY_CONNECTION_JSON_STATUS_KEY
+ */
+JNIEXPORT jstring JNICALL
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeGetDefineJsonStatusKey (JNIEnv *env, jclass class)
+{
+    return  (*env)->NewStringUTF(env, ARDISCOVERY_CONNECTION_JSON_STATUS_KEY);
+}
+
+/**
  * @brief get ARDISCOVERY_CONNECTION_JSON_C2DPORT_KEY
  * @return value of ARDISCOVERY_CONNECTION_JSON_C2DPORT_KEY
  */
