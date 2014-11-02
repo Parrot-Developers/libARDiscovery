@@ -118,10 +118,35 @@ public class ARDiscoveryNsdDiscovery implements ARDiscoveryWifiDiscovery
     {
         ARSALPrint.d(TAG, "start ... not implemented");
     }
+
+    public void restart()
+    {
+        ARSALPrint.d(TAG, "restarting discovery ...");
+        if (devicesServiceArray != null && mNsdManager != null && mDiscoveryListeners != null)
+        {
+            for (String type : devicesServiceArray)
+            {
+                ARSALPrint.i(TAG, "Will start searching for devices of type <" + type + ">");
+            
+                ARSALPrint.i(TAG, "NsdManager.PROTOCOL_DNS_SD:" + NsdManager.PROTOCOL_DNS_SD +" mDiscoveryListeners.get(type):" + mDiscoveryListeners.get(type));
+            
+                mNsdManager.discoverServices(type, NsdManager.PROTOCOL_DNS_SD, mDiscoveryListeners.get(type));
+            }
+        }
+    }
     
     public void stop()
     {
         ARSALPrint.d(TAG, "stop ... not implemented");
+        if (devicesServiceArray != null && mNsdManager != null && mDiscoveryListeners != null)
+        {
+            for (String type : devicesServiceArray)
+            {
+                ARSALPrint.i(TAG, "Will stop searching for devices of type <" + type + ">");
+                mNsdManager.stopServiceDiscovery(mDiscoveryListeners.get(type));
+            }
+        }
+        
     }
 
     /**
