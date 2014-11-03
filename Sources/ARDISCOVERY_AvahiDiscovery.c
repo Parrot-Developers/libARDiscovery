@@ -414,12 +414,15 @@ void ARDISCOVERY_AvahiDiscovery_Publish(ARDISCOVERY_AvahiDiscovery_PublisherData
             if (serviceData->client)
             {
                 avahi_client_free(serviceData->client);
+                serviceData->client = NULL;
             }
             if (serviceData->simplePoll)
             {
                 avahi_simple_poll_free(serviceData->simplePoll);
+                serviceData->simplePoll = NULL;
             }
             avahi_free(serviceData->serviceName);
+            serviceData->serviceName = NULL;
         }
     }
 
