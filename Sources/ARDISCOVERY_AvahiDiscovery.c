@@ -442,7 +442,10 @@ void ARDISCOVERY_AvahiDiscovery_StopPublishing(ARDISCOVERY_AvahiDiscovery_Publis
         return;
     }
 
-    avahi_simple_poll_quit(serviceData->simplePoll);
+    if (serviceData->simplePoll != NULL)
+    {
+        avahi_simple_poll_quit(serviceData->simplePoll);
+    }
 }
 
 void ARDISCOVERY_AvahiDiscovery_Publisher_Delete(ARDISCOVERY_AvahiDiscovery_PublisherData_t** serviceDataPtrAddr)
