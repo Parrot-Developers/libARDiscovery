@@ -34,6 +34,8 @@ public class ARDiscoveryNsdDiscovery implements ARDiscoveryWifiDiscovery
     private String mServiceName;
     private boolean published;
 
+    private Boolean isNetDiscovering = false;
+
     private boolean opened;
     private ARDiscoveryService broadcaster;
     private Context context;
@@ -77,16 +79,6 @@ public class ARDiscoveryNsdDiscovery implements ARDiscoveryWifiDiscovery
         mNsdManager = (NsdManager) context.getSystemService(Context.NSD_SERVICE);
 
         opened = true;
-
-        for (String type : devicesServiceArray)
-        {
-            ARSALPrint.i(TAG, "Will start searching for devices of type <" + type + ">");
-            
-            ARSALPrint.i(TAG, "NsdManager.PROTOCOL_DNS_SD:" + NsdManager.PROTOCOL_DNS_SD +" mDiscoveryListeners.get(type):" + mDiscoveryListeners.get(type));
-            
-            mNsdManager.discoverServices(type, NsdManager.PROTOCOL_DNS_SD, mDiscoveryListeners.get(type));
-        }
-        
     }
 
     public synchronized void close()
@@ -114,14 +106,40 @@ public class ARDiscoveryNsdDiscovery implements ARDiscoveryWifiDiscovery
         // Nothing here, we always are discovering, regardless of the network type
     }
     
-    public void start()
+    synchronized public void start()
     {
-        ARSALPrint.d(TAG, "start ... not implemented");
+        if (!isNetDiscovering)
+        {
+            if (devicesServiceArray != null && mNsdManager != null && mDiscoveryListeners != null)
+            {
+                
+                for (String type : devicesServiceArray)
+                {
+                    ARSALPrint.i(TAG, "Will start searching for devices of type <" + type + ">");
+                    
+                    ARSALPrint.i(TAG, "NsdManager.PROTOCOL_DNS_SD:" + NsdManager.PROTOCOL_DNS_SD +" mDiscoveryListeners.get(type):" + mDiscoveryListeners.get(type));
+                    
+                    mNsdManager.discoverServices(type, NsdManager.PROTOCOL_DNS_SD, mDiscoveryListeners.get(type));
+                }
+                isNetDiscovering = true;
+            }
+        }
     }
     
-    public void stop()
+    synchronized public void stop()
     {
-        ARSALPrint.d(TAG, "stop ... not implemented");
+        if (isNetDiscovering)
+        {
+            if (devicesServiceArray != null && mNsdManager != null && mDiscoveryListeners != null)
+            {
+                for (String type : devicesServiceArray)
+                {
+                    ARSALPrint.i(TAG, "Will stop searching for devices of type <" + type + ">");
+                    mNsdManager.stopServiceDiscovery(mDiscoveryListeners.get(type));
+                }
+                isNetDiscovering = false;
+            }
+        }
     }
 
     /**

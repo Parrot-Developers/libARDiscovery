@@ -261,6 +261,22 @@ public class ARDiscoveryService extends Service
         }
     }
     
+    public synchronized void startWifiDiscovering()
+    {
+        if (wifiDiscovery != null)
+        {
+            wifiDiscovery.start();
+        }
+    }
+    
+    public synchronized void stopWifiDiscovering()
+    {
+        if (wifiDiscovery != null)
+        {
+            wifiDiscovery.stop();
+        }
+    }
+    
     public synchronized void startBLEDiscovering()
     {
         if (bleDiscovery != null)
