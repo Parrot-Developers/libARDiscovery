@@ -260,14 +260,6 @@ public class ARDiscoveryService extends Service
             wifiDiscovery.stop();
         }
     }
-
-    public synchronized void restartNSDDiscovering()
-    {
-        if (wifiDiscovery instanceof ARDiscoveryNsdDiscovery)
-        {
-            ((ARDiscoveryNsdDiscovery)wifiDiscovery).restart();
-        }
-    }
     
     public synchronized void startBLEDiscovering()
     {
