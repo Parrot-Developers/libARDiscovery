@@ -187,7 +187,7 @@ static eARDISCOVERY_ERROR ARDISCOVERY_AvahiDiscovery_CreateService(ARDISCOVERY_A
     }
     else
     {
-        error = ARDISCOVERY_ERROR;
+        error = ARDISCOVERY_ERROR_CREATE_CONFIG;
     }
 
     return error;
@@ -208,7 +208,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_AvahiDiscovery_ResetService(ARDISCOVERY_AvahiDisc
 
     if (0!=unlink(ARDISCOVERY_CONFIG_FILE))
     {
-        error = ARDISCOVERY_ERROR;
+        error = ARDISCOVERY_ERROR_DELETE_CONFIG;
     }
 
     if (error == ARDISCOVERY_OK)

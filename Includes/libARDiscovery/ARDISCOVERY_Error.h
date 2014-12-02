@@ -44,6 +44,8 @@ typedef enum
     ARDISCOVERY_ERROR_SIMPLE_POLL = -1000, /**< Avahi failed to create simple poll object */
     ARDISCOVERY_ERROR_BUILD_NAME, /**< Avahi failed to create simple poll object */
     ARDISCOVERY_ERROR_CLIENT, /**< Avahi failed to create client */
+    ARDISCOVERY_ERROR_CREATE_CONFIG, /**< Failed to create config file */
+    ARDISCOVERY_ERROR_DELETE_CONFIG, /**< Failed to delete config file */
     ARDISCOVERY_ERROR_ENTRY_GROUP, /**< Avahi failed to create entry group */
     ARDISCOVERY_ERROR_ADD_SERVICE, /**< Avahi failed to add service */
     ARDISCOVERY_ERROR_GROUP_COMMIT, /**< Avahi failed to commit group */
