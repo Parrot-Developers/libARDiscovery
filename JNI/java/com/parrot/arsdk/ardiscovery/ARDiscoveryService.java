@@ -334,10 +334,14 @@ public class ARDiscoveryService extends Service
     
     public List<ARDiscoveryDeviceService> getDeviceServicesArray()
     {
-        List<ARDiscoveryDeviceService> deviceServicesArray =  wifiDiscovery.getDeviceServicesArray(); 
-        deviceServicesArray.addAll(bleDiscovery.getDeviceServicesArray());
-        
-        ARSALPrint.d(TAG,"getDeviceServicesArray: " + deviceServicesArray);
+        List<ARDiscoveryDeviceService> deviceServicesArray =  null;
+        if (wifiDiscovery != null)
+        {
+            deviceServicesArray =  wifiDiscovery.getDeviceServicesArray();
+            deviceServicesArray.addAll(bleDiscovery.getDeviceServicesArray());
+
+            ARSALPrint.d(TAG,"getDeviceServicesArray: " + deviceServicesArray);
+        }
 
         return deviceServicesArray;
     }
