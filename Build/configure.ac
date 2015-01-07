@@ -125,6 +125,11 @@ AC_CHECK_HEADERS([avahi-client/client.h avahi-client/publish.h avahi-common/erro
 AM_CONDITIONAL([HAVE_AVAHI], [test x"$ac_cv_header_avahi_client_client_h" = x"yes" && \
                               test x"$ac_cv_header_avahi_client_publish_h" = x"yes" && \
                               test x"$ac_cv_header_avahi_common_error_h" = x"yes"])
+if test x"$ac_cv_header_avahi_client_client_h" = x"yes" && \
+   test x"$ac_cv_header_avahi_client_publish_h" = x"yes" && \
+   test x"$ac_cv_header_avahi_common_error_h" = x"yes"; then
+   LDFLAGS+=" -lavahi-client -lavahi-common"
+fi
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_SIZE_T
