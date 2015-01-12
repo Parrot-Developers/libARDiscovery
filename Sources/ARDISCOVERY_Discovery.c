@@ -40,6 +40,7 @@ static const uint16_t ARDISCOVERY_Discovery_ProductTable[ARDISCOVERY_PRODUCT_MAX
     [ARDISCOVERY_PRODUCT_ARDRONE]       = 0x0901,
     [ARDISCOVERY_PRODUCT_JS]            = 0x0902,
     [ARDISCOVERY_PRODUCT_SKYCONTROLLER] = 0x0903,
+    [ARDISCOVERY_PRODUCT_JS_EVO]        = 0x0904,
 };
 
 static const char* ARDISCOVERY_Discovery_ProductNameTable[ARDISCOVERY_PRODUCT_MAX] =
@@ -51,6 +52,7 @@ static const char* ARDISCOVERY_Discovery_ProductNameTable[ARDISCOVERY_PRODUCT_MA
     [ARDISCOVERY_PRODUCT_ARDRONE]       = "Bebop Drone",
     [ARDISCOVERY_PRODUCT_JS]            = "Jumping Sumo",
     [ARDISCOVERY_PRODUCT_SKYCONTROLLER] = "Sky Controller",
+    [ARDISCOVERY_PRODUCT_JS_EVO]        = "Jumping Sumo Evo",
 };
 
 eARDISCOVERY_PRODUCT ARDISCOVERY_getProductService(eARDISCOVERY_PRODUCT product)
