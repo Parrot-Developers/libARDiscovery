@@ -157,6 +157,17 @@ public class ARDiscoveryService extends Service
     }
 
     @Override
+    public int onStartCommand(Intent intent, int flags, int startId) 
+    {
+        if (intent == null)
+        {
+            ARSALPrint.w(TAG, "recreated by the system, don't need! stop it");
+            stopSelf();
+        }
+        return START_STICKY;
+    }
+
+    @Override
     public void onDestroy()
     {
         super.onDestroy();
