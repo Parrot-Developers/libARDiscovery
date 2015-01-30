@@ -63,6 +63,7 @@ public abstract class ARDiscoveryConnection
     public static String ARDISCOVERY_CONNECTION_JSON_C2D_UPDATE_PORT_KEY = "";
     public static String ARDISCOVERY_CONNECTION_JSON_C2D_USER_PORT_KEY = "";
     public static String ARDISCOVERY_CONNECTION_JSON_SKYCONTROLLER_VERSION = "";
+    public static String ARDISCOVERY_CONNECTION_JSON_ARSDK_ARCOMMANDS_VERSION = "";
 
     public static int ARDISCOVERY_CONNECTION_SEND_JSON_SIZE = 0;
 
@@ -78,6 +79,7 @@ public abstract class ARDiscoveryConnection
     private static native String nativeGetDefineJsonC2DUpdatePortKey ();
     private static native String nativeGetDefineJsonC2DUserPortKey ();
     private static native String nativeGetDefineJsonSkyControllerVersionKey ();
+    private static native String nativeGetDefineJsonARSDKARCommandsVersionKey ();
 
     private static native int nativeGetDefineTxBufferSize ();
 
@@ -108,6 +110,7 @@ public abstract class ARDiscoveryConnection
         ARDISCOVERY_CONNECTION_JSON_C2D_UPDATE_PORT_KEY = nativeGetDefineJsonC2DUpdatePortKey();
         ARDISCOVERY_CONNECTION_JSON_C2D_USER_PORT_KEY = nativeGetDefineJsonC2DUserPortKey();
         ARDISCOVERY_CONNECTION_JSON_SKYCONTROLLER_VERSION = nativeGetDefineJsonSkyControllerVersionKey();
+        ARDISCOVERY_CONNECTION_JSON_ARSDK_ARCOMMANDS_VERSION = nativeGetDefineJsonARSDKARCommandsVersionKey();
 
         ARDISCOVERY_CONNECTION_SEND_JSON_SIZE = nativeGetDefineTxBufferSize() -1; /* -1 for the null character of the native json */
     }
