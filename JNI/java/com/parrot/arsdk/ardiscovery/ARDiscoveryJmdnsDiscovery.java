@@ -334,8 +334,11 @@ public class ARDiscoveryJmdnsDiscovery implements ARDiscoveryWifiDiscovery
                 ARDiscoveryDeviceService deviceService = new ARDiscoveryDeviceService (serviceEvent.getName(), deviceNetService, productID);
                 netDeviceServicesHmap.put(deviceService.getName(), deviceService);
 
-                /* broadcast the new deviceServiceList */
-                broadcaster.broadcastDeviceServiceArrayUpdated ();
+                if (broadcaster != null)
+                {
+                    /* broadcast the new deviceServiceList */
+                    broadcaster.broadcastDeviceServiceArrayUpdated ();
+                }
             }
             else
             {
@@ -368,7 +371,7 @@ public class ARDiscoveryJmdnsDiscovery implements ARDiscoveryWifiDiscovery
         /* remove from the deviceServicesHmap */
         ARDiscoveryDeviceService deviceServiceRemoved = netDeviceServicesHmap.remove(serviceEvent.getName());
 
-        if(deviceServiceRemoved != null)
+        if ((deviceServiceRemoved != null) && (broadcaster != null))
         {
             /* broadcast the new deviceServiceList */
             broadcaster.broadcastDeviceServiceArrayUpdated ();
@@ -386,7 +389,7 @@ public class ARDiscoveryJmdnsDiscovery implements ARDiscoveryWifiDiscovery
         /* remove from the deviceServicesHmap */
         ARDiscoveryDeviceService deviceServiceRemoved = netDeviceServicesHmap.remove(deviceService.getName());
 
-        if(deviceServiceRemoved != null)
+        if ((deviceServiceRemoved != null) && (broadcaster != null))
         {
             /* broadcast the new deviceServiceList */
             broadcaster.broadcastDeviceServiceArrayUpdated ();
