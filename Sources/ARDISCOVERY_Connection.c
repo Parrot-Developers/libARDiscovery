@@ -141,8 +141,10 @@ ARDISCOVERY_Connection_ConnectionData_t* ARDISCOVERY_Connection_New (ARDISCOVERY
             /* Initialize connectionData */
             connectionData->txData.buffer = NULL;
             connectionData->txData.size = 0;
+            connectionData->txData.capacity = 0;
             connectionData->rxData.buffer = NULL;
             connectionData->rxData.size = 0;
+            connectionData->rxData.capacity = 0;
             connectionData->isAlive = 0;
             ARSAL_Sem_Init (&(connectionData->runningSem), 0, 1);
             connectionData->sendJsoncallback = sendJsonCallback;
@@ -166,6 +168,7 @@ ARDISCOVERY_Connection_ConnectionData_t* ARDISCOVERY_Connection_New (ARDISCOVERY
         if (connectionData->rxData.buffer != NULL)
         {
             connectionData->rxData.size = 0;
+            connectionData->rxData.capacity = ARDISCOVERY_CONNECTION_RX_BUFFER_SIZE;
         }
         else
         {
@@ -180,6 +183,7 @@ ARDISCOVERY_Connection_ConnectionData_t* ARDISCOVERY_Connection_New (ARDISCOVERY
         if (connectionData->txData.buffer != NULL)
         {
             connectionData->txData.size = 0;
+            connectionData->txData.capacity = ARDISCOVERY_CONNECTION_TX_BUFFER_SIZE;
         }
         else
         {
@@ -239,12 +243,14 @@ eARDISCOVERY_ERROR ARDISCOVERY_Connection_Delete (ARDISCOVERY_Connection_Connect
                     free((*connectionData)->txData.buffer);
                     (*connectionData)->txData.buffer = NULL;
                     (*connectionData)->txData.size = 0;
+                    (*connectionData)->txData.capacity = 0;
                 }
                 if ((*connectionData)->rxData.buffer)
                 {
                     free((*connectionData)->rxData.buffer);
                     (*connectionData)->rxData.buffer = NULL;
                     (*connectionData)->rxData.size = 0;
+                    (*connectionData)->rxData.capacity = 0;
                 }
                 
                 /* close the abortPipe */
@@ -823,23 +829,49 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_RxPending (ARDISCOVERY_Connecti
         if (FD_ISSET(connectionData->socket, &set))
         {
             /* Read content from incoming connection */
-            int readSize = ARSAL_Socket_Recv (connectionData->socket, connectionData->rxData.buffer, ARDISCOVERY_CONNECTION_RX_BUFFER_SIZE, 0);
-            
-            ARSAL_PRINT(ARSAL_PRINT_DEBUG, ARDISCOVERY_CONNECTION_TAG, "data read size: %d", readSize);
-            
-            if (readSize > 0)
+            int readSize = 0;
+            readSize = ARSAL_Socket_Recv (connectionData->socket, connectionData->rxData.buffer, ARDISCOVERY_CONNECTION_RX_BUFFER_SIZE, 0);
+            connectionData->rxData.size += readSize;
+
+            while ((error == ARDISCOVERY_OK) && (readSize == ARDISCOVERY_CONNECTION_RX_BUFFER_SIZE))
             {
-                /* set the rxdata size */
-                connectionData->rxData.size = readSize;
+                ARSAL_PRINT(ARSAL_PRINT_DEBUG, ARDISCOVERY_CONNECTION_TAG, "realloc size: %d", (connectionData->rxData.capacity + ARDISCOVERY_CONNECTION_RX_BUFFER_SIZE));
                 
-                ARSAL_PRINT(ARSAL_PRINT_DEBUG, ARDISCOVERY_CONNECTION_TAG, "data read: %s", connectionData->rxData.buffer);
-                
-                /* receive callback */
-                error = connectionData->receiveJsoncallback (connectionData->rxData.buffer, connectionData->rxData.size, inet_ntoa(connectionData->address.sin_addr), connectionData->customData);
+                //increase the capacity of the buffer and read the following data from the socket
+                uint8_t *newBuffer = realloc (connectionData->rxData.buffer, connectionData->rxData.capacity + ARDISCOVERY_CONNECTION_RX_BUFFER_SIZE);
+                if (newBuffer != NULL)
+                {
+                    // update rxData
+                    connectionData->rxData.buffer = newBuffer;
+                    connectionData->rxData.capacity += ARDISCOVERY_CONNECTION_RX_BUFFER_SIZE;
+                    
+                    //read socket
+                    readSize = ARSAL_Socket_Recv (connectionData->socket, (connectionData->rxData.buffer + connectionData->rxData.size), ARDISCOVERY_CONNECTION_RX_BUFFER_SIZE, 0);
+                    
+                    /* update the rxdata size */
+                    connectionData->rxData.size += readSize;
+                }
+                else
+                {
+                    error = ARDISCOVERY_ERROR_ALLOC;
+                }
             }
-            else
+            
+            if (error == ARDISCOVERY_OK)
             {
-                error = ARDISCOVERY_ERROR_READ;
+                ARSAL_PRINT(ARSAL_PRINT_DEBUG, ARDISCOVERY_CONNECTION_TAG, "data read size: %d", connectionData->rxData.size);
+                
+                if (connectionData->rxData.size > 0)
+                {
+                    ARSAL_PRINT(ARSAL_PRINT_DEBUG, ARDISCOVERY_CONNECTION_TAG, "data read: %s", connectionData->rxData.buffer);
+                    
+                    /* receive callback */
+                    error = connectionData->receiveJsoncallback (connectionData->rxData.buffer, connectionData->rxData.size, inet_ntoa(connectionData->address.sin_addr), connectionData->customData);
+                }
+                else
+                {
+                    error = ARDISCOVERY_ERROR_READ;
+                }
             }
         }
         
