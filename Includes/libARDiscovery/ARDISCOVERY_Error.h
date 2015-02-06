@@ -77,6 +77,7 @@ typedef enum
     ARDISCOVERY_ERROR_CONNECTION = -4000, /**< Connection error */
     ARDISCOVERY_ERROR_CONNECTION_BUSY = -3999, /**< Product already connected */
     ARDISCOVERY_ERROR_CONNECTION_NOT_READY = -3998, /**< Product not ready to connect */
+    ARDISCOVERY_ERROR_CONNECTION_BAD_ID = -3997, /**< It is not the good Product */
 // End of values sent by the device in the Json of connection.
 
 } eARDISCOVERY_ERROR;
