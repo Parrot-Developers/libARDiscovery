@@ -8,7 +8,7 @@
       notice, this list of conditions and the following disclaimer.
     * Redistributions in binary form must reproduce the above copyright
       notice, this list of conditions and the following disclaimer in
-      the documentation and/or other materials provided with the 
+      the documentation and/or other materials provided with the
       distribution.
     * Neither the name of Parrot nor the names
       of its contributors may be used to endorse or promote products
@@ -22,7 +22,7 @@
     COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
     INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
     BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
-    OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED 
+    OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
     AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
     OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
     OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
@@ -64,7 +64,7 @@ static eARDISCOVERY_ERROR ARDISCOVERY_AvahiDiscovery_CreateService(ARDISCOVERY_A
  * Publisher
  */
 
-ARDISCOVERY_AvahiDiscovery_PublisherData_t* ARDISCOVERY_AvahiDiscovery_Publisher_New(char *serviceName, char *serviceType, uint32_t publishedPort, eARDISCOVERY_ERROR *errorPtr)
+ARDISCOVERY_AvahiDiscovery_PublisherData_t* ARDISCOVERY_AvahiDiscovery_Publisher_New(char *serviceName, char *serviceType, uint32_t publishedPort, char *serviceJsonData, eARDISCOVERY_ERROR *errorPtr)
 {
     /*
      * Create and initialize discovery data
@@ -111,6 +111,23 @@ ARDISCOVERY_AvahiDiscovery_PublisherData_t* ARDISCOVERY_AvahiDiscovery_Publisher
                 else
                 {
                     error = ARDISCOVERY_ERROR_ALLOC;
+                }
+            }
+
+            /* Set Service Custom Data */
+            if (error == ARDISCOVERY_OK)
+            {
+                if (serviceJsonData != NULL)
+                {
+                    serviceData->serviceJsonData = malloc(sizeof(uint8_t) * ARDISCOVERY_AVAHIDISCOVERY_SERVICEJSONDATA_SIZE);
+                    if (serviceData->serviceJsonData != NULL)
+                    {
+                        strcpy(serviceData->serviceJsonData, serviceJsonData);
+                    }
+                    else
+                    {
+                        error = ARDISCOVERY_ERROR_ALLOC;
+                    }
                 }
             }
         }
@@ -175,12 +192,19 @@ static eARDISCOVERY_ERROR ARDISCOVERY_AvahiDiscovery_CreateService(ARDISCOVERY_A
                 "<name replace-wildcards=\"yes\">%s</name>\n"
                 "<service>\n"
                 "<type>%s</type>\n"
-                "<port>%d</port>\n"
-                "</service>\n"
-                "</service-group>\n",
+                "<port>%d</port>\n",
                 (const char *)serviceData->serviceName,
                 (const char *)serviceData->serviceType,
                 serviceData->devicePort);
+
+        if (serviceData->serviceJsonData != NULL)
+        {
+            fprintf(configfile, "<txt-record>\"%s\"</txt-record>\n", (const char *)serviceData->serviceJsonData);
+        }
+
+        fprintf(configfile,
+                "</service>\n"
+                "</service-group>\n");
 
         fclose(configfile);
         configfile=NULL;
@@ -284,6 +308,11 @@ void ARDISCOVERY_AvahiDiscovery_Publisher_Delete(ARDISCOVERY_AvahiDiscovery_Publ
             {
                 free(serviceDataPtr->serviceType);
                 serviceDataPtr->serviceType = NULL;
+            }
+            if (serviceDataPtr->serviceJsonData)
+            {
+                free(serviceDataPtr->serviceJsonData);
+                serviceDataPtr->serviceJsonData = NULL;
             }
 
             free(serviceDataPtr);
