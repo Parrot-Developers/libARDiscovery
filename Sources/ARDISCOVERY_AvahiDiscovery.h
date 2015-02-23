@@ -60,6 +60,7 @@ struct ARDISCOVERY_AvahiDiscovery_PublisherData_t
     AvahiClient *client;            // Avahi client
     AvahiEntryGroup *entryGroup;    // Avahi entry group
     AvahiSimplePoll *simplePoll;    // Avahi simple poll
+    char* serviceJsonData;          // Custom data
 };
 
 /**
