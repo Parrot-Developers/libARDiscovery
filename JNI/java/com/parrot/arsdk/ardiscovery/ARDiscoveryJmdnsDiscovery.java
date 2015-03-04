@@ -174,26 +174,29 @@ public class ARDiscoveryJmdnsDiscovery implements ARDiscoveryWifiDiscovery
         /* if jmnds is running */
         if (mDNSManager != null)
         {
-            if (mDNSListener != null)
+            synchronized (mDNSManager)
             {
-                /* remove the net service listeners */
-                for (String devicesService : devicesServiceArray)
+                if (mDNSListener != null)
                 {
-                    ARSALPrint.d(TAG,"removeServiceListener:" + devicesService);
-                    mDNSManager.removeServiceListener(devicesService, mDNSListener);
+                /* remove the net service listeners */
+                    for (String devicesService : devicesServiceArray)
+                    {
+                        ARSALPrint.d(TAG,"removeServiceListener:" + devicesService);
+                        mDNSManager.removeServiceListener(devicesService, mDNSListener);
+                    }
+                    mDNSListener = null;
                 }
-                mDNSListener = null;
-            }
 
-            try
-            {
-                mDNSManager.close();
+                try
+                {
+                    mDNSManager.close();
+                }
+                catch (IOException e)
+                {
+                    e.printStackTrace();
+                }
+                mDNSManager = null;
             }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-            }
-            mDNSManager = null;
         }
     }
 
@@ -307,11 +310,19 @@ public class ARDiscoveryJmdnsDiscovery implements ARDiscoveryWifiDiscovery
 
     private void notificationNetServiceDeviceAdd(ServiceEvent serviceEvent)
     {
+        String ip = null;
+        int port = 0;
         int productID = 0;
 
-        /* get ip address */
-        String ip = getServiceIP (serviceEvent);
-        int port = getServicePort (serviceEvent);
+        if (mDNSManager != null)
+        {
+            synchronized (mDNSManager)
+            {
+                /* get ip address */
+                ip = getServiceIP (serviceEvent);
+                port = getServicePort (serviceEvent);
+            }
+        }
 
         if (ip != null)
         {
