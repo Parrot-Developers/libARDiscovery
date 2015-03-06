@@ -80,6 +80,9 @@ typedef enum
     ARDISCOVERY_ERROR_CONNECTION_BAD_ID = -3997, /**< It is not the good Product */
 // End of values sent by the device in the Json of connection.
 
+    ARDISCOVERY_ERROR_DEVICE = -5000,               /**< Device generic error */
+    ARDISCOVERY_ERROR_DEVICE_OPERATION_NOT_SUPPORTED, /**< The current device does not support this operation */
+
 } eARDISCOVERY_ERROR;
 
 /**

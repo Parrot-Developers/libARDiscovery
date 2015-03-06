@@ -28,13 +28,43 @@
     OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
     SUCH DAMAGE.
 */
-#ifndef _ARDISCOVERY_H_
-#define _ARDISCOVERY_H_
 
-#include <libARDiscovery/ARDISCOVERY_Connection.h>
-#include <libARDiscovery/ARDISCOVERY_Discovery.h>
-#include <libARDiscovery/ARDISCOVERY_NetworkConfiguration.h>
-#include <libARDiscovery/ARDISCOVERY_Device.h>
-#include <libARDiscovery/ARDISCOVERY_Error.h>
+/**
+ * @file ARDISCOVERY_NetworkConfiguration.h
+ * @brief network configuration used to create a network
+ * @date 02/03/2015
+ * @author maxime.maitre@parrot.com
+ */
 
-#endif /* _ARDISCOVERY_H_ */
+#ifndef _ARDISCOVERY_DISCOVERY_NETWORK_CONFIGURATION_H_
+#define _ARDISCOVERY_DISCOVERY_NETWORK_CONFIGURATION_H_
+
+#include <libARNetwork/ARNETWORK_IOBufferParam.h>
+
+/**
+ * @brief 
+ */
+typedef struct 
+{
+    int controllerToDeviceNotAckId;
+    int controllerToDeviceAckId;
+    int controllerToDeviceHightPriority;
+    int controllerToDeviceARStreamAck;
+    int deviceToControllerNotAckId;
+    int deviceToControllerAckId;
+    //int deviceToControllerHightPriority;
+    int deviceToControllerARStreamData;
+    
+    int numberOfControllerToDeviceParam;
+    ARNETWORK_IOBufferParam_t *controllerToDeviceParams;
+    int numberOfDeviceToControllerParam;
+    ARNETWORK_IOBufferParam_t *deviceToControllerParams;
+    
+    int *bleNotificationIDs;
+    int pingDelayMs;
+    
+    int numberOfDeviceToControllerCommandsBufferIds;
+    int *deviceToControllerCommandsBufferIds;
+} ARDISCOVERY_NetworkConfiguration_t;
+
+#endif // _ARDISCOVERY_DISCOVERY_NETWORK_CONFIGURATION_H_
