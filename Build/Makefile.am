@@ -8,9 +8,12 @@ ACLOCAL_AMFLAGS                                     =   -I m4
 HEADER_FILES                                        =   ../Includes/libARDiscovery/ARDiscovery.h \
                                                         ../Includes/libARDiscovery/ARDISCOVERY_Connection.h \
                                                         ../Includes/libARDiscovery/ARDISCOVERY_Discovery.h \
+                                                        ../Includes/libARDiscovery/ARDISCOVERY_NetworkConfiguration.h \
+                                                        ../Includes/libARDiscovery/ARDISCOVERY_Device.h \
                                                         ../Includes/libARDiscovery/ARDISCOVERY_Error.h
 SOURCE_FILES                                        =   ../Sources/ARDISCOVERY_Connection.c \
                                                         ../Sources/ARDISCOVERY_Discovery.c \
+                                                        ../Sources/ARDISCOVERY_Device.c \
                                                         ../Sources/ARDISCOVERY_Error.c
 # $(HEADER_FILES) will be added to $(SOURCE_FILES) later, in the discovery parts
 
