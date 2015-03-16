@@ -734,14 +734,14 @@
                 ARService *aService = [self.devicesServicesList objectForKey:[peripheral.identifier UUIDString]];
                 if(aService == nil)
                 {
-                    NSLog(@"New device %@", [peripheral name]);
+                    NSLog(@"New device %@", [advertisementData objectForKey:CBAdvertisementDataLocalNameKey]);
                     ARBLEService *bleService = [[ARBLEService alloc] init];
                     bleService.centralManager = self.centralManager;
                     bleService.peripheral = peripheral;
                     
                     aService = [[ARService alloc] init];
                     aService.service = bleService;
-                    aService.name = [peripheral name];
+                    aService.name = [advertisementData objectForKey:CBAdvertisementDataLocalNameKey];
                     aService.signal = RSSI;
                     
                     NSData *manufacturerData = [advertisementData valueForKey:CBAdvertisementDataManufacturerDataKey];
@@ -759,9 +759,9 @@
                 else
                 {
                     BOOL sendNotification = NO;
-                    if(![aService.name isEqualToString:[peripheral name]])
+                    if(![aService.name isEqualToString:[advertisementData objectForKey:CBAdvertisementDataLocalNameKey]])
                     {
-                        aService.name = [peripheral name];
+                        aService.name = [advertisementData objectForKey:CBAdvertisementDataLocalNameKey];
                         sendNotification = YES;
                     }
                     
