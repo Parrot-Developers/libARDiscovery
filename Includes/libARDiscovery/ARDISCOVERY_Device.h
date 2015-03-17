@@ -38,86 +38,170 @@
 #ifndef _ARDISCOVERY_DEVICE_H_
 #define _ARDISCOVERY_DEVICE_H_
 
+#include <json/json.h>
 #include <libARNetworkAL/ARNETWORKAL_Manager.h>
 #include <libARNetworkAL/ARNETWORKAL_Error.h>
 #include <libARNetwork/ARNETWORK_IOBufferParam.h>
 #include <libARDiscovery/ARDISCOVERY_Error.h>
+#include <libARDiscovery/ARDISCOVERY_Connection.h>
 #include <libARDiscovery/ARDISCOVERY_Discovery.h>
 #include <libARDiscovery/ARDISCOVERY_NetworkConfiguration.h>
 
 /**
+ * @brief DiscoveryDevice contains the informations of a device discovered
+ */
+typedef struct ARDISCOVERY_Device_t ARDISCOVERY_Device_t;
+
+/**
  * @brief Callback to create a new ARNetworkAL
  */
-typedef ARNETWORKAL_Manager_t *(*ARDISCOVERY_DISCOVERYDEVICE_NewARNetworkAL_t) (eARNETWORKAL_ERROR *error);
+typedef ARNETWORKAL_Manager_t *(*ARDISCOVERY_DEVICE_NewARNetworkAL_t) (ARDISCOVERY_Device_t *device, eARDISCOVERY_ERROR *error, eARNETWORKAL_ERROR *errorAL);
 
 /**
  * @brief Callback to delete the ARNetworkAL
  */
-typedef void (*ARDISCOVERY_DISCOVERYDEVICE_DeleteARNetworkAL_t) (ARNETWORKAL_Manager_t **networkAL);
+typedef eARDISCOVERY_ERROR (*ARDISCOVERY_DEVICE_DeleteARNetworkAL_t) (ARDISCOVERY_Device_t *device, ARNETWORKAL_Manager_t **networkAL);
 
 /**
- * @brief Callback to get the NetworkConfiguration to use with the device
+ * @brief Callback to Initialize the NetworkConfiguration to use with the device
  */
-typedef ARDISCOVERY_NetworkConfiguration_t (*ARDISCOVERY_DISCOVERYDEVICE_GetNetworkCongifuration_t) ();
+typedef eARDISCOVERY_ERROR (*ARDISCOVERY_DEVICE_InitNetworkCongifuration_t) (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration);
 
 /**
- * @brief network device
- * @note This is an application-provided object, OS Dependant
+ * @brief Callback to copy the specificParameters 
  */
-//typedef void* ARDISCOVERY_DISCOVERYDEVICE_NetworkDevice_t;
+typedef void *(*ARDISCOVERY_DEVICE_GetCopyOfSpecificParameters_t) (ARDISCOVERY_Device_t *device, eARDISCOVERY_ERROR *error);
+
+/**
+ * @brief Callback to delecte the specificParameters 
+ */
+typedef eARDISCOVERY_ERROR (*ARDISCOVERY_DEVICE_DelecteSpecificParameters_t) (ARDISCOVERY_Device_t *device);
+
 
 /**
  * @brief DiscoveryDevice contains the informations of a device discovered
  */
-typedef struct ARDISCOVERY_DiscoveryDevice_t ARDISCOVERY_DiscoveryDevice_t;
-
-/**
- * @brief DiscoveryDevice contains the informations of a device discovered
- */
-struct ARDISCOVERY_DiscoveryDevice_t
+struct ARDISCOVERY_Device_t
 {
     char *name;
-    int nameLength;
     eARDISCOVERY_PRODUCT productID;
-    //ARDISCOVERY_DISCOVERYDEVICE_NetworkDevice_t device;
-    ARDISCOVERY_DISCOVERYDEVICE_NewARNetworkAL_t newNetworkAL;
-    ARDISCOVERY_DISCOVERYDEVICE_DeleteARNetworkAL_t deleteNetworkAL;
-    ARDISCOVERY_DISCOVERYDEVICE_GetNetworkCongifuration_t getNetworkCongifuration;
-    void *customData;
+    ARDISCOVERY_DEVICE_NewARNetworkAL_t newNetworkAL;
+    ARDISCOVERY_DEVICE_DeleteARNetworkAL_t deleteNetworkAL;
+    ARDISCOVERY_DEVICE_InitNetworkCongifuration_t initNetworkCongifuration;
+    void *specificParameters; /**< Parameters specific, allocated by initializing functions and dealloc by the canceling functions. */
+    ARDISCOVERY_DEVICE_GetCopyOfSpecificParameters_t getCopyOfSpecificParameters;
+    ARDISCOVERY_DEVICE_DelecteSpecificParameters_t deleteSpecificParameters;
 };
 
-/**
- * @brief Create and initialize a DiscoveryDevice
- * @param[in] name of the device
- * @param[in] length of the name of the device
- * @param[in] device the OS network device
- * @param[out] error Error code
- * @return new DiscoveryDevice
- */
-//ARDISCOVERY_DiscoveryDevice_t* ARDISCOVERY_Connection_New (char *name, int nameLength, int productID, ARDISCOVERY_DISCOVERYDEVICE_NetworkDevice_t device, void* customData, eARDISCOVERY_ERROR *error);
 
 /**
- * @brief Delete connection data
- * @param[in] connectionData Connection data
- * @param[out] error Error code
- * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ * @brief Create a new Discovery Device
+ * @warning This function allocate memory
+ * @post ARDISCOVERY_Device_Delete() must be called to delete the Discovery Device and free the memory allocated.
+ * @param[out] error executing error.
+ * @return the new Discovery Device
+ * @see ARCONTROLLER_Device_Delete
  */
-//eARDISCOVERY_ERROR ARDISCOVERY_Connection_Delete (ARDISCOVERY_DiscoveryDevice_t **connectionData);
-
-
-/**
- * @brief create a new ARNetworkAL
- */
-ARNETWORKAL_Manager_t *ARDISCOVERY_Device_NewARNetworkAL (ARDISCOVERY_DiscoveryDevice_t *discoveryDevice, eARDISCOVERY_ERROR *error, eARNETWORKAL_ERROR *errorAL);
+ARDISCOVERY_Device_t *ARDISCOVERY_Device_New (eARDISCOVERY_ERROR *error);
 
 /**
- * @brief create a delete ARNetworkAL
+ * @brief Copy a Discovery Device
+ * @warning This function allocate memory
+ * @post ARDISCOVERY_Device_Delete() must be called to delete the Discovery Device copied and free the memory allocated.
+ * @param[in] deviceToCopy the device to copy.
+ * @param[out] error executing error.
+ * @return the new Discovery Device
+ * @see ARCONTROLLER_Device_Delete
  */
-eARDISCOVERY_ERROR ARDISCOVERY_Device_DeleteARNetworkAL (ARDISCOVERY_DiscoveryDevice_t *discoveryDevice, ARNETWORKAL_Manager_t **networkALManager);
+ARDISCOVERY_Device_t *ARDISCOVERY_Device_NewByCopy (ARDISCOVERY_Device_t *deviceToCopy, eARDISCOVERY_ERROR *error);
 
 /**
- * @brief get the NetworkConfiguration to use with the device
+ * @brief Delete the Discovery Device
+ * @warning This function free memory
+ * @param device The Discovery Device to delete
+ * @see ARDISCOVERY_Device_New
  */
-ARDISCOVERY_NetworkConfiguration_t ARDISCOVERY_Device_GetNetworkCongifuration (ARDISCOVERY_DiscoveryDevice_t *discoveryDevice, eARDISCOVERY_ERROR *error);
+void ARDISCOVERY_Device_Delete (ARDISCOVERY_Device_t **device);
+
+/**
+ * @brief Create a new ARNetworkAL  //TODO add commentary !!!!!!!!!!!!
+ */
+ARNETWORKAL_Manager_t *ARDISCOVERY_Device_NewARNetworkAL (ARDISCOVERY_Device_t *discoveryDevice, eARDISCOVERY_ERROR *error, eARNETWORKAL_ERROR *errorAL);
+
+/**
+ * @brief Delete a ARNetworkAL //TODO add commentary !!!!!!!!!!!!
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_Device_DeleteARNetworkAL (ARDISCOVERY_Device_t *discoveryDevice, ARNETWORKAL_Manager_t **networkALManager);
+
+/**
+ * @brief Initialize the NetworkConfiguration to use with the device  //TODO add commentary !!!!!!!!!!!!
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_Device_InitNetworkCongifuration (ARDISCOVERY_Device_t *discoveryDevice, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration);
+
+
+/***********************
+ * -- Wifi part --
+ ***********************/
+
+typedef eARDISCOVERY_ERROR (*ARDISCOVERY_DEVICE_WIFI_ConnectionCallback_t) (json_object *jsonObj, void *customData);
+
+/**
+ * @brief specific parameters for Wifi Device
+ */
+typedef struct
+{
+    char *address;
+    int dicoveryPort;
+    // Parameters sended by discovery Json :
+    int deviceToControllerPort;
+    ARDISCOVERY_DEVICE_WIFI_ConnectionCallback_t sendJsonCallback;
+    ARDISCOVERY_DEVICE_WIFI_ConnectionCallback_t receiveJsonCallback;
+    void *jsonCallbacksCustomData;
+    
+    //TODO add jsonSendingCallback: !!!!!!!!!!
+    //char *controllerName; //TODO remove and get from the deviceController !!!!!!!!!!!!!!
+    //char *controllerType; //TODO remove and get from the deviceController !!!!!!!!!!!!!
+    
+    // Parameters received by discovery Json :
+    int controllerToDevicePort;
+    eARDISCOVERY_ERROR connectionStatus;
+    
+    //TODO add jsonReceivinggCallback: !!!!!!!!!!!!!
+    //int streamFragmentSize;//TODO remove and get from the deviceController !!!!!!!!!!!
+    //int numberMaxOfStreamFragment;//TODO remove and get from the deviceController !!!!!!!!!!!!
+    //int videoMaxAckInterval;//TODO remove and get from the deviceController !!!!!!!!!!!
+    
+}ARDISCOVERY_DEVICE_WIFI_t;
+
+/**
+ * @brief Initialize the Discovery Device with a wifi device.
+ * @param device The Discovery Device to Initialize.
+ * @param[in] product Parrot's product to initialized
+ * @param[in] name Device Name ; must be Null-terminated.
+ * @param[in] address Device Address ; must be Null-terminated.
+ * @param[in] port Device Port. 
+ * @return executing error.
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_Device_InitWifi (ARDISCOVERY_Device_t *device, eARDISCOVERY_PRODUCT product, const char *name, const char *address, int port);
+
+/**
+ * @brief Add connection callbacks to a wifi device.
+ * @param device The Discovery Device to add callback.
+ * @param[in] sendJsonCallback Callback to add a json part durring the connection. 
+ * @param[in] receiveJsonCallback Callback to read a json part durring the connection.
+ * @param[in] customData custom data given as parameter to the callbacks.
+ * @return executing error.
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_Device_WifiAddConnectionCallbacks (ARDISCOVERY_Device_t *device, ARDISCOVERY_DEVICE_WIFI_ConnectionCallback_t sendJsonCallback, ARDISCOVERY_DEVICE_WIFI_ConnectionCallback_t receiveJsonCallback, void *customData);
+
+///**
+ //* @brief Create and initialize a DiscoveryDevice
+ //* @param[in] name of the device
+ //* @param[in] length of the name of the device
+ //* @param[in] device the OS network device
+ //* @param[out] error Error code
+ //* @return new DiscoveryDevice
+ //*/
+//ARDISCOVERY_DiscoveryDevice_t* ARDISCOVERY_Connection_New (char *name, int nameLength, eARDISCOVERY_PRODUCT productID, ARDISCOVERY_Device_t device, void* customData, eARDISCOVERY_ERROR *error);
 
 #endif // _ARDISCOVERY_DEVICE_H_

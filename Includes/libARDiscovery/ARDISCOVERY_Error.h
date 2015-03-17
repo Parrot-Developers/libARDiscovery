@@ -82,6 +82,10 @@ typedef enum
 
     ARDISCOVERY_ERROR_DEVICE = -5000,               /**< Device generic error */
     ARDISCOVERY_ERROR_DEVICE_OPERATION_NOT_SUPPORTED, /**< The current device does not support this operation */
+    
+    ARDISCOVERY_ERROR_JSON = -6000, /**< Json generic error */
+    ARDISCOVERY_ERROR_JSON_PARSSING, /**< Json parssing error */
+    ARDISCOVERY_ERROR_JSON_BUFFER_SIZE, /**< The size of the buffer storing the Json is too small */
 
 } eARDISCOVERY_ERROR;
 
