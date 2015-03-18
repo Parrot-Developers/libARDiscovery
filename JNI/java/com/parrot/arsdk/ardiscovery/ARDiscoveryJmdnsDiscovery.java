@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
+import java.util.concurrent.RejectedExecutionException;
 
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
@@ -87,6 +88,8 @@ public class ARDiscoveryJmdnsDiscovery implements ARDiscoveryWifiDiscovery
     private String hostIp;
     private InetAddress hostAddress;
     static private InetAddress nullAddress;
+
+    private final Object mJmDNSLock = new Object();
 
     public ARDiscoveryJmdnsDiscovery()
     {
@@ -172,9 +175,9 @@ public class ARDiscoveryJmdnsDiscovery implements ARDiscoveryWifiDiscovery
         ARSALPrint.d(TAG,"mdnsDestroy");
 
         /* if jmnds is running */
-        if (mDNSManager != null)
+        synchronized (mJmDNSLock)
         {
-            synchronized (mDNSManager)
+            if(mDNSManager != null)
             {
                 if (mDNSListener != null)
                 {
@@ -197,6 +200,7 @@ public class ARDiscoveryJmdnsDiscovery implements ARDiscoveryWifiDiscovery
                 }
                 mDNSManager = null;
             }
+            
         }
     }
 
@@ -314,9 +318,9 @@ public class ARDiscoveryJmdnsDiscovery implements ARDiscoveryWifiDiscovery
         int port = 0;
         int productID = 0;
 
-        if (mDNSManager != null)
+        synchronized (mJmDNSLock)
         {
-            synchronized (mDNSManager)
+            if(mDNSManager != null)
             {
                 /* get ip address */
                 ip = getServiceIP (serviceEvent);
@@ -417,7 +421,16 @@ public class ARDiscoveryJmdnsDiscovery implements ARDiscoveryWifiDiscovery
 
         String serviceIP = null;
 
-        ServiceInfo info = serviceEvent.getDNS().getServiceInfo(serviceEvent.getType(), serviceEvent.getName());
+        ServiceInfo info = null;
+        try
+        {
+            info = serviceEvent.getDNS().getServiceInfo(serviceEvent.getType(), serviceEvent.getName());
+        }
+        catch(RejectedExecutionException e)
+        {
+            e.printStackTrace();
+        }
+
         if((info != null) && (info.getInet4Addresses().length > 0))
         {
             serviceIP = info.getInet4Addresses()[0].getHostAddress();
@@ -432,7 +445,16 @@ public class ARDiscoveryJmdnsDiscovery implements ARDiscoveryWifiDiscovery
 
         int servicePort = 0;
 
-        ServiceInfo info = serviceEvent.getDNS().getServiceInfo(serviceEvent.getType(), serviceEvent.getName());
+        ServiceInfo info = null;
+        try
+        {
+            info = serviceEvent.getDNS().getServiceInfo(serviceEvent.getType(), serviceEvent.getName());
+        }
+        catch(RejectedExecutionException e)
+        {
+            e.printStackTrace();
+        }
+        
         if(info != null)
         {
             servicePort = info.getPort();
