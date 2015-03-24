@@ -131,15 +131,17 @@ public abstract class ARDiscoveryConnection
     public ARDISCOVERY_ERROR_ENUM dispose()
     {
         ARDISCOVERY_ERROR_ENUM error = ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_OK;
-
-        if(initOk == true)
+        synchronized (this)
         {
-            int nativeError = nativeDelete(nativeARDiscoveryConnection);
-            error = ARDISCOVERY_ERROR_ENUM.getFromValue(nativeError);
-            if (error == ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_OK)
+            if(initOk == true)
             {
-                nativeARDiscoveryConnection = 0;
-                initOk = false;
+                int nativeError = nativeDelete(nativeARDiscoveryConnection);
+                error = ARDISCOVERY_ERROR_ENUM.getFromValue(nativeError);
+                if (error == ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_OK)
+                {
+                    nativeARDiscoveryConnection = 0;
+                    initOk = false;
+                }
             }
         }
 
@@ -182,9 +184,12 @@ public abstract class ARDiscoveryConnection
      */
     public void ControllerConnectionAbort ()
     {
-        if(initOk == true)
+        synchronized (this)
         {
-            nativeControllerConnectionAbort (nativeARDiscoveryConnection);
+            if(initOk == true)
+            {
+                nativeControllerConnectionAbort (nativeARDiscoveryConnection);
+            }
         }
     }
 
