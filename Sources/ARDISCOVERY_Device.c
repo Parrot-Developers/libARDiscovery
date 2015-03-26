@@ -177,7 +177,7 @@ ARDISCOVERY_Device_t *ARDISCOVERY_Device_NewByCopy (ARDISCOVERY_Device_t *device
     }
     // No else: error is not returned
     
-    ARSAL_PRINT (ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_TAG, "localError :%d ; device: %p", localError, device);
+    ARSAL_PRINT (ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_TAG, "localError :%d ; device: %p ; device->specificParameters: %p", localError, device, device->specificParameters);
     
     return device;
 }
@@ -360,6 +360,8 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitWifi (ARDISCOVERY_Device_t *device, eA
                 break;
                 
             case ARDISCOVERY_PRODUCT_JS:
+                device->initNetworkCongifuration = ARDISCOVERY_DEVICE_Wifi_InitJumpingSumoNetworkCongifuration;
+                break;
             case ARDISCOVERY_PRODUCT_SKYCONTROLLER:
             case ARDISCOVERY_PRODUCT_MINIDRONE:
             case ARDISCOVERY_PRODUCT_MAX:
@@ -401,7 +403,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitWifi (ARDISCOVERY_Device_t *device, eA
     return error;
 }
 
-eARDISCOVERY_ERROR ARDISCOVERY_Device_WifiAddConnectionCallbacks (ARDISCOVERY_Device_t *device, ARDISCOVERY_DEVICE_WIFI_ConnectionCallback_t sendJsonCallback, ARDISCOVERY_DEVICE_WIFI_ConnectionCallback_t receiveJsonCallback, void *customData)
+eARDISCOVERY_ERROR ARDISCOVERY_Device_WifiAddConnectionCallbacks (ARDISCOVERY_Device_t *device, ARDISCOVERY_Device_ConnectionJsonCallback_t sendJsonCallback, ARDISCOVERY_Device_ConnectionJsonCallback_t receiveJsonCallback, void *customData)
 {
     // -- Wifi Add Connection Callbacks --
     

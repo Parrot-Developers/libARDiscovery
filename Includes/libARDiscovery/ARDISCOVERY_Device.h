@@ -47,6 +47,9 @@
 #include <libARDiscovery/ARDISCOVERY_Discovery.h>
 #include <libARDiscovery/ARDISCOVERY_NetworkConfiguration.h>
 
+//TODO add!!!
+typedef eARDISCOVERY_ERROR (*ARDISCOVERY_Device_ConnectionJsonCallback_t) (json_object *jsonObj, void *customData);
+
 /**
  * @brief DiscoveryDevice contains the informations of a device discovered
  */
@@ -143,8 +146,6 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitNetworkCongifuration (ARDISCOVERY_Devi
  * -- Wifi part --
  ***********************/
 
-typedef eARDISCOVERY_ERROR (*ARDISCOVERY_DEVICE_WIFI_ConnectionCallback_t) (json_object *jsonObj, void *customData);
-
 /**
  * @brief specific parameters for Wifi Device
  */
@@ -154,9 +155,9 @@ typedef struct
     int dicoveryPort;
     // Parameters sended by discovery Json :
     int deviceToControllerPort;
-    ARDISCOVERY_DEVICE_WIFI_ConnectionCallback_t sendJsonCallback;
-    ARDISCOVERY_DEVICE_WIFI_ConnectionCallback_t receiveJsonCallback;
-    void *jsonCallbacksCustomData;
+    ARDISCOVERY_Device_ConnectionJsonCallback_t sendJsonCallback; //TODO must be not wifi specific
+    ARDISCOVERY_Device_ConnectionJsonCallback_t receiveJsonCallback; //TODO must be not wifi specific
+    void *jsonCallbacksCustomData; //TODO must be not wifi specific
     
     //TODO add jsonSendingCallback: !!!!!!!!!!
     //char *controllerName; //TODO remove and get from the deviceController !!!!!!!!!!!!!!
@@ -192,7 +193,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitWifi (ARDISCOVERY_Device_t *device, eA
  * @param[in] customData custom data given as parameter to the callbacks.
  * @return executing error.
  */
-eARDISCOVERY_ERROR ARDISCOVERY_Device_WifiAddConnectionCallbacks (ARDISCOVERY_Device_t *device, ARDISCOVERY_DEVICE_WIFI_ConnectionCallback_t sendJsonCallback, ARDISCOVERY_DEVICE_WIFI_ConnectionCallback_t receiveJsonCallback, void *customData);
+eARDISCOVERY_ERROR ARDISCOVERY_Device_WifiAddConnectionCallbacks (ARDISCOVERY_Device_t *device, ARDISCOVERY_Device_ConnectionJsonCallback_t sendJsonCallback, ARDISCOVERY_Device_ConnectionJsonCallback_t receiveJsonCallback, void *customData);
 
 ///**
  //* @brief Create and initialize a DiscoveryDevice
