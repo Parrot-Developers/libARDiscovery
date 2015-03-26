@@ -649,14 +649,14 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitJumpingSumoNetworkCongifuration (
     {
         networkConfiguration->controllerLoopIntervalMs = 50;
         
-        networkConfiguration->controllerToDeviceNotAckId = BEBOP_CONTROLLER_TO_DEVICE_NONACK_ID;
-        networkConfiguration->controllerToDeviceAckId = BEBOP_CONTROLLER_TO_DEVICE_ACK_ID;
-        networkConfiguration->controllerToDeviceHightPriority = BEBOP_CONTROLLER_TO_DEVICE_EMERGENCY_ID;
-        networkConfiguration->controllerToDeviceARStreamAck = BEBOP_CONTROLLER_TO_DEVICE_VIDEO_ACK_ID;
-        networkConfiguration->deviceToControllerNotAckId = BEBOP_DEVICE_TO_CONTROLLER_NAVDATA_ID;
-        networkConfiguration->deviceToControllerAckId = BEBOP_DEVICE_TO_CONTROLLER_NAVDATA_ID;
+        networkConfiguration->controllerToDeviceNotAckId = JUMPINGSUMO_CONTROLLER_TO_DEVICE_NONACK_ID;
+        networkConfiguration->controllerToDeviceAckId = JUMPINGSUMO_CONTROLLER_TO_DEVICE_ACK_ID;
+        networkConfiguration->controllerToDeviceHightPriority = -1;
+        networkConfiguration->controllerToDeviceARStreamAck = JUMPINGSUMO_CONTROLLER_TO_DEVICE_VIDEO_ACK_ID;
+        networkConfiguration->deviceToControllerNotAckId = JUMPINGSUMO_DEVICE_TO_CONTROLLER_NAVDATA_ID;
+        networkConfiguration->deviceToControllerAckId = JUMPINGSUMO_DEVICE_TO_CONTROLLER_NAVDATA_ID;
         //int deviceToControllerHightPriority = -1;
-        networkConfiguration->deviceToControllerARStreamData = BEBOP_DEVICE_TO_CONTROLLER_VIDEO_DATA_ID;
+        networkConfiguration->deviceToControllerARStreamData = JUMPINGSUMO_DEVICE_TO_CONTROLLER_VIDEO_DATA_ID;
         
         networkConfiguration->controllerToDeviceParams = c2dParams;
         networkConfiguration->numberOfControllerToDeviceParam = numC2dParams;
