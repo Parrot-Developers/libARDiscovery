@@ -36,6 +36,9 @@ import android.os.Parcelable;
 
 import com.parrot.arsdk.arsal.ARSALPrint;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class ARDiscoveryDeviceNetService implements  Parcelable
 {
     /**
@@ -48,6 +51,7 @@ public class ARDiscoveryDeviceNetService implements  Parcelable
     private String type;
     private String ip;
     private int port;
+    private String txtRecord;
     
     public static final Parcelable.Creator<ARDiscoveryDeviceNetService> CREATOR = new Parcelable.Creator<ARDiscoveryDeviceNetService>()
     {
@@ -72,12 +76,13 @@ public class ARDiscoveryDeviceNetService implements  Parcelable
         port = 0;
     }
     
-    public ARDiscoveryDeviceNetService (String name, String type, String ip, int port)
+    public ARDiscoveryDeviceNetService (String name, String type, String ip, int port, String txtRecord)
     {
         this.name = name;
         this.type = type;
         this.ip = ip;
         this.port = port;
+        this.txtRecord = txtRecord;
     }
     
     /* Parcelling part */
@@ -87,6 +92,7 @@ public class ARDiscoveryDeviceNetService implements  Parcelable
         this.type = in.readString();
         this.ip = in.readString();
         this.port = in.readInt();
+        this.txtRecord = in.readString();
     }
     
     @Override
@@ -94,7 +100,7 @@ public class ARDiscoveryDeviceNetService implements  Parcelable
     {
         boolean isEqual = true;
             
-        if ( (other == null) || !(other instanceof ARDiscoveryDeviceNetService) )
+        if ((other == null) || !(other instanceof ARDiscoveryDeviceNetService))
         {
             isEqual = false;
         }
@@ -106,7 +112,81 @@ public class ARDiscoveryDeviceNetService implements  Parcelable
         {
             /* check */
             ARDiscoveryDeviceNetService otherDevice = (ARDiscoveryDeviceNetService) other;
-            if (!this.name.equals(otherDevice.name))
+            
+            if ((txtRecord != null) || (otherDevice.getTxtRecord() != null))
+            {
+                // compare txtRecord
+                
+                if (txtRecord == otherDevice.getTxtRecord())
+                {
+                    isEqual = true;
+                }
+                else if ((txtRecord == null) || (otherDevice.getTxtRecord() == null))
+                {
+                    isEqual = false;
+                }
+                else
+                {
+                    String discoveryID = null;
+                    String otherDiscoveryID = null;
+                    
+                    // get discoveryID
+                    try
+                    {
+                        JSONObject jsonObject = new JSONObject(txtRecord);
+
+                        if (!jsonObject.isNull(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_DEVICE_ID_KEY))
+                        {
+                            discoveryID = jsonObject.getString(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_DEVICE_ID_KEY);
+                        }
+                    }
+                    catch (JSONException e)
+                    {
+                        //e.printStackTrace();
+                        //Do Nothing
+                    }
+                    
+                    // get otherDiscoveryID
+                    try
+                    {
+                        JSONObject otherJsonObject = new JSONObject(otherDevice.getTxtRecord());
+
+                        if (!otherJsonObject.isNull(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_DEVICE_ID_KEY))
+                        {
+                            otherDiscoveryID = otherJsonObject.getString(ARDiscoveryConnection.ARDISCOVERY_CONNECTION_JSON_DEVICE_ID_KEY);
+                        }
+                    }
+                    catch (JSONException e)
+                    {
+                        //e.printStackTrace();
+                        //Do Nothing
+                    }
+                    
+                    // compare the device ID
+                    
+                    // Because nsdManager, used on skeController, can't set TxtRecord in its services
+                    // and an application workaround set the TxtRecord,
+                    // two services with TxtRecord and without TxtRecord can be the same (one before the workaround and the other after).
+                    // Compare the discoveryID only if the TWO services have a discoveryID, otherwise compare the name.
+                    if ((discoveryID != null) && (otherDiscoveryID != null)) 
+                    {
+                        if (discoveryID != null)
+                        {
+                            isEqual = discoveryID.equals(otherDiscoveryID);
+                        }
+                        else
+                        {
+                            isEqual = false;
+                        }
+                    }
+                    else
+                    {
+                        // no device ID : compare the name
+                        isEqual = this.name.equals(otherDevice.name);
+                    }
+                }
+            }
+            else if (!this.name.equals(otherDevice.name)) // compare the name
             {
                 isEqual = false;
             }
@@ -150,9 +230,19 @@ public class ARDiscoveryDeviceNetService implements  Parcelable
         return port;
     }
     
-    public void setport (int port)
+    public void setPort (int port)
     {
         this.port = port;
+    }
+    
+    public String getTxtRecord()
+    {
+        return txtRecord;
+    }
+    
+    public void setTxtRecord (String txtRecord)
+    {
+        this.txtRecord = txtRecord;
     }
 
     @Override
@@ -168,6 +258,7 @@ public class ARDiscoveryDeviceNetService implements  Parcelable
         dest.writeString(this.type);
         dest.writeString(this.ip);
         dest.writeInt(this.port);
+        dest.writeString(this.txtRecord);
     }
 
 };

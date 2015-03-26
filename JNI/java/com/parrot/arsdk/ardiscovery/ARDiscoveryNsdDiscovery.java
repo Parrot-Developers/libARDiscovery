@@ -389,7 +389,7 @@ public class ARDiscoveryNsdDiscovery implements ARDiscoveryWifiDiscovery
                 {
                     String serviceInfoType = serviceInfo.getServiceType().substring(1, serviceInfo.getServiceType().length()) + ".";
                     
-                    ARDiscoveryDeviceNetService deviceNetService = new ARDiscoveryDeviceNetService(serviceInfo.getServiceName(), serviceInfoType, ip, port);
+                    ARDiscoveryDeviceNetService deviceNetService = new ARDiscoveryDeviceNetService(serviceInfo.getServiceName(), serviceInfoType, ip, port, null);
                     int productID = 0;
 
                     /* find device type */

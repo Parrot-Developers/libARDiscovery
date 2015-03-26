@@ -56,6 +56,7 @@ import java.net.UnknownHostException;
 import android.net.wifi.WifiManager;
 import android.text.format.Formatter;
 
+import java.io.UnsupportedEncodingException;
 
 /**
  * Jmdns implementation of the wifi part of ARDiscoveryService
@@ -317,6 +318,7 @@ public class ARDiscoveryJmdnsDiscovery implements ARDiscoveryWifiDiscovery
         String ip = null;
         int port = 0;
         int productID = 0;
+        String txtRecord = null;
 
         synchronized (mJmDNSLock)
         {
@@ -325,13 +327,14 @@ public class ARDiscoveryJmdnsDiscovery implements ARDiscoveryWifiDiscovery
                 /* get ip address */
                 ip = getServiceIP (serviceEvent);
                 port = getServicePort (serviceEvent);
+                txtRecord = getServiceTxtRecord (serviceEvent);
             }
         }
 
         if (ip != null)
         {
             /* new ARDiscoveryDeviceNetService */
-            ARDiscoveryDeviceNetService deviceNetService = new ARDiscoveryDeviceNetService(serviceEvent.getName(), serviceEvent.getType(), ip, port);
+            ARDiscoveryDeviceNetService deviceNetService = new ARDiscoveryDeviceNetService(serviceEvent.getName(), serviceEvent.getType(), ip, port, txtRecord);
 
             /* find device type */
             for (int i = ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_NSNETSERVICE.getValue(); i < ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_BLESERVICE.getValue(); ++i)
@@ -437,6 +440,38 @@ public class ARDiscoveryJmdnsDiscovery implements ARDiscoveryWifiDiscovery
         }
 
         return serviceIP;
+    }
+    
+    private String getServiceTxtRecord (ServiceEvent serviceEvent)
+    {
+        String serviceData = null;
+
+        ServiceInfo info = null;
+        try
+        {
+            info = serviceEvent.getDNS().getServiceInfo(serviceEvent.getType(), serviceEvent.getName());
+        }
+        catch(RejectedExecutionException e)
+        {
+            e.printStackTrace();
+        }
+
+        if ((info != null) && (info.getTextBytes() != null))
+        {
+            byte[] data = info.getTextBytes();
+            int dataSize = data[0];
+            
+            try
+            {
+                serviceData = new String(data, 1, dataSize);
+            }
+            catch (IndexOutOfBoundsException e)
+            {
+                // Do Nothing
+            }
+        }
+
+        return serviceData;
     }
 
     private int getServicePort(ServiceEvent serviceEvent)
