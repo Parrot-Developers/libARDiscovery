@@ -46,6 +46,8 @@
  */
 typedef struct 
 {
+    int controllerLoopIntervalMs;
+    
     int controllerToDeviceNotAckId;
     int controllerToDeviceAckId;
     int controllerToDeviceHightPriority;

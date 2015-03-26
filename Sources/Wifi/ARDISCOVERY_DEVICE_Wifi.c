@@ -50,7 +50,8 @@
 /*************************
  * Private header
  *************************/
- 
+
+// Bebop
 #define BEBOP_DEVICE_TO_CONTROLLER_PORT 43210
 
 #define BEBOP_CONTROLLER_TO_DEVICE_NONACK_ID 10
@@ -60,6 +61,16 @@
 #define BEBOP_DEVICE_TO_CONTROLLER_NAVDATA_ID 127
 #define BEBOP_DEVICE_TO_CONTROLLER_EVENT_ID 126
 #define BEBOP_DEVICE_TO_CONTROLLER_VIDEO_DATA_ID 125
+
+// Jumping Sumo
+#define JUMPINGSUMO_DEVICE_TO_CONTROLLER_PORT 43210
+
+#define JUMPINGSUMO_CONTROLLER_TO_DEVICE_NONACK_ID 10
+#define JUMPINGSUMO_CONTROLLER_TO_DEVICE_ACK_ID 11
+#define JUMPINGSUMO_CONTROLLER_TO_DEVICE_VIDEO_ACK_ID 13
+#define JUMPINGSUMO_DEVICE_TO_CONTROLLER_NAVDATA_ID 127
+#define JUMPINGSUMO_DEVICE_TO_CONTROLLER_EVENT_ID 126
+#define JUMPINGSUMO_DEVICE_TO_CONTROLLER_VIDEO_DATA_ID 125
 
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_DiscoveryConnect (ARDISCOVERY_Device_t *device);
 
@@ -253,9 +264,10 @@ void *ARDISCOVERY_DEVICE_Wifi_GetCopyOfSpecificParameters (ARDISCOVERY_Device_t 
     return specificWifiParam;
 }
 
-eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_AddConnectionCallbacks (ARDISCOVERY_Device_t *device, ARDISCOVERY_DEVICE_WIFI_ConnectionCallback_t sendJsonCallback, ARDISCOVERY_DEVICE_WIFI_ConnectionCallback_t receiveJsonCallback, void *customData)
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_AddConnectionCallbacks (ARDISCOVERY_Device_t *device, ARDISCOVERY_Device_ConnectionJsonCallback_t sendJsonCallback, ARDISCOVERY_Device_ConnectionJsonCallback_t receiveJsonCallback, void *customData)
 {
     ARSAL_PRINT(ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_TAG, "ARDISCOVERY_DEVICE_Wifi_AddConnectionCallbacks ....");
+    ARSAL_PRINT(ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_TAG, "device %p  ....", device);
     ARSAL_PRINT(ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_TAG, "sendJsonCallback %p | receiveJsonCallback %p ....", sendJsonCallback, receiveJsonCallback);
     
     // -- Wifi Add Connection Callbacks --
@@ -272,11 +284,15 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_AddConnectionCallbacks (ARDISCOVERY_D
     }
     // No Else: the checking parameters sets error to ARNETWORK_ERROR_BAD_PARAMETER and stop the processing
     
+    ARSAL_PRINT(ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_TAG, "tata");
+    
     if (error == ARDISCOVERY_OK)
     {
         // cast device->specificWifiParam
         specificWifiParam = (ARDISCOVERY_DEVICE_WIFI_t *)device->specificParameters;
-         
+        
+        ARSAL_PRINT(ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_TAG, "specificWifiParam : %p", specificWifiParam);
+        
         specificWifiParam->sendJsonCallback = sendJsonCallback;
         specificWifiParam->receiveJsonCallback = receiveJsonCallback;
         specificWifiParam->jsonCallbacksCustomData = customData;
@@ -508,6 +524,8 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkCongifuration (ARDISC
     
     if (error == ARDISCOVERY_OK)
     {
+        networkConfiguration->controllerLoopIntervalMs = 25;
+        
         networkConfiguration->controllerToDeviceNotAckId = BEBOP_CONTROLLER_TO_DEVICE_NONACK_ID;
         networkConfiguration->controllerToDeviceAckId = BEBOP_CONTROLLER_TO_DEVICE_ACK_ID;
         networkConfiguration->controllerToDeviceHightPriority = BEBOP_CONTROLLER_TO_DEVICE_EMERGENCY_ID;
@@ -532,7 +550,131 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkCongifuration (ARDISC
     
     return error;
 }
- 
+
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitJumpingSumoNetworkCongifuration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration)
+{
+    ARSAL_PRINT(ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_TAG, "- ARDISCOVERY_DEVICE_Wifi_InitJumpingSumoNetworkCongifuration ...");
+    
+    eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
+    
+    // check parameters
+    if ((device == NULL) || 
+        (ARDISCOVERY_getProductService (device->productID) != ARDISCOVERY_PRODUCT_ARDRONE) ||
+        (networkConfiguration == NULL))
+    {
+        error = ARDISCOVERY_ERROR_BAD_PARAMETER;
+    }
+    // No Else: the checking parameters sets error to ARNETWORK_ERROR_BAD_PARAMETER and stop the processing
+    
+    static ARNETWORK_IOBufferParam_t c2dParams[] = {
+        /* Non-acknowledged commands. */
+        {
+            .ID = JUMPINGSUMO_CONTROLLER_TO_DEVICE_NONACK_ID,
+            .dataType = ARNETWORKAL_FRAME_TYPE_DATA,
+            .sendingWaitTimeMs = 5,
+            .ackTimeoutMs = ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
+            .numberOfRetry = ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
+            .numberOfCell = 10,
+            .dataCopyMaxSize = 128,
+            .isOverwriting = 0,
+        },
+        /* Acknowledged commands. */
+        {
+            .ID = JUMPINGSUMO_CONTROLLER_TO_DEVICE_ACK_ID,
+            .dataType = ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK,
+            .sendingWaitTimeMs = 20,
+            .ackTimeoutMs = 500,
+            .numberOfRetry = 3,
+            .numberOfCell = 20,
+            .dataCopyMaxSize = 128,
+            .isOverwriting = 0,
+        },
+        /* Video ACK (Initialized later) */
+        {
+            .ID = JUMPINGSUMO_CONTROLLER_TO_DEVICE_VIDEO_ACK_ID,
+            .dataType = ARNETWORKAL_FRAME_TYPE_UNINITIALIZED,
+            .sendingWaitTimeMs = 0,
+            .ackTimeoutMs = 0,
+            .numberOfRetry = 0,
+            .numberOfCell = 0,
+            .dataCopyMaxSize = 0,
+            .isOverwriting = 0,
+        },
+    };
+    size_t numC2dParams = sizeof(c2dParams) / sizeof(ARNETWORK_IOBufferParam_t);
+
+    static ARNETWORK_IOBufferParam_t d2cParams[] = {
+        {
+            .ID = JUMPINGSUMO_DEVICE_TO_CONTROLLER_NAVDATA_ID,
+            .dataType = ARNETWORKAL_FRAME_TYPE_DATA,
+            .sendingWaitTimeMs = 20,
+            .ackTimeoutMs = ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
+            .numberOfRetry = ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
+            .numberOfCell = 10,
+            .dataCopyMaxSize = 128,
+            .isOverwriting = 0,
+        },
+        {
+            .ID = JUMPINGSUMO_DEVICE_TO_CONTROLLER_EVENT_ID,
+            .dataType = ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK,
+            .sendingWaitTimeMs = 20,
+            .ackTimeoutMs = 500,
+            .numberOfRetry = 3,
+            .numberOfCell = 20,
+            .dataCopyMaxSize = 128,
+            .isOverwriting = 0,
+        },
+        /* Video data (Initialized later) */
+        {
+            .ID = JUMPINGSUMO_DEVICE_TO_CONTROLLER_VIDEO_DATA_ID,
+            .dataType = ARNETWORKAL_FRAME_TYPE_UNINITIALIZED,
+            .sendingWaitTimeMs = 0,
+            .ackTimeoutMs = 0,
+            .numberOfRetry = 0,
+            .numberOfCell = 0,
+            .dataCopyMaxSize = 0,
+            .isOverwriting = 0,
+        },
+    };
+    size_t numD2cParams = sizeof(d2cParams) / sizeof(ARNETWORK_IOBufferParam_t);
+
+    static int commandBufferIds[] = {
+        BEBOP_DEVICE_TO_CONTROLLER_NAVDATA_ID,
+        BEBOP_DEVICE_TO_CONTROLLER_EVENT_ID,
+    };
+    
+    size_t numOfCommandBufferIds = sizeof(commandBufferIds) / sizeof(int);
+    
+    if (error == ARDISCOVERY_OK)
+    {
+        networkConfiguration->controllerLoopIntervalMs = 50;
+        
+        networkConfiguration->controllerToDeviceNotAckId = BEBOP_CONTROLLER_TO_DEVICE_NONACK_ID;
+        networkConfiguration->controllerToDeviceAckId = BEBOP_CONTROLLER_TO_DEVICE_ACK_ID;
+        networkConfiguration->controllerToDeviceHightPriority = BEBOP_CONTROLLER_TO_DEVICE_EMERGENCY_ID;
+        networkConfiguration->controllerToDeviceARStreamAck = BEBOP_CONTROLLER_TO_DEVICE_VIDEO_ACK_ID;
+        networkConfiguration->deviceToControllerNotAckId = BEBOP_DEVICE_TO_CONTROLLER_NAVDATA_ID;
+        networkConfiguration->deviceToControllerAckId = BEBOP_DEVICE_TO_CONTROLLER_NAVDATA_ID;
+        //int deviceToControllerHightPriority = -1;
+        networkConfiguration->deviceToControllerARStreamData = BEBOP_DEVICE_TO_CONTROLLER_VIDEO_DATA_ID;
+        
+        networkConfiguration->controllerToDeviceParams = c2dParams;
+        networkConfiguration->numberOfControllerToDeviceParam = numC2dParams;
+        
+        networkConfiguration->deviceToControllerParams = d2cParams;
+        networkConfiguration->numberOfDeviceToControllerParam = numD2cParams;
+        
+        networkConfiguration->bleNotificationIDs = NULL;
+        networkConfiguration->pingDelayMs = 0;
+        
+        networkConfiguration->numberOfDeviceToControllerCommandsBufferIds = numOfCommandBufferIds;
+        networkConfiguration->deviceToControllerCommandsBufferIds = commandBufferIds;
+    }
+    
+    return error;
+}
+
+
  /*************************
  * local Implementation
  *************************/
