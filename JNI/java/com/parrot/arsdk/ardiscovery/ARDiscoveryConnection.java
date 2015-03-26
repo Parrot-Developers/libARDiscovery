@@ -60,6 +60,7 @@ public abstract class ARDiscoveryConnection
     public static String ARDISCOVERY_CONNECTION_JSON_ARSTREAM_MAX_ACK_INTERVAL_KEY = "";
     public static String ARDISCOVERY_CONNECTION_JSON_CONTROLLER_TYPE_KEY = "";
     public static String ARDISCOVERY_CONNECTION_JSON_CONTROLLER_NAME_KEY = "";
+    public static String ARDISCOVERY_CONNECTION_JSON_DEVICE_ID_KEY = "";
     public static String ARDISCOVERY_CONNECTION_JSON_C2D_UPDATE_PORT_KEY = "";
     public static String ARDISCOVERY_CONNECTION_JSON_C2D_USER_PORT_KEY = "";
     public static String ARDISCOVERY_CONNECTION_JSON_SKYCONTROLLER_VERSION = "";
@@ -75,6 +76,7 @@ public abstract class ARDiscoveryConnection
     private static native String nativeGetDefineJsonARStreamMaxAckIntervalKey();
     private static native String nativeGetDefineJsonControllerTypeKey();
     private static native String nativeGetDefineJsonControllerNameKey();
+    private static native String nativeGetDefineJsonDeviceNameIdKey();
     private static native String nativeGetDefineJsonC2DUpdatePortKey ();
     private static native String nativeGetDefineJsonC2DUserPortKey ();
     private static native String nativeGetDefineJsonSkyControllerVersionKey ();
@@ -105,6 +107,7 @@ public abstract class ARDiscoveryConnection
         ARDISCOVERY_CONNECTION_JSON_ARSTREAM_MAX_ACK_INTERVAL_KEY = nativeGetDefineJsonARStreamMaxAckIntervalKey();
         ARDISCOVERY_CONNECTION_JSON_CONTROLLER_TYPE_KEY = nativeGetDefineJsonControllerTypeKey();
         ARDISCOVERY_CONNECTION_JSON_CONTROLLER_NAME_KEY = nativeGetDefineJsonControllerNameKey();
+        ARDISCOVERY_CONNECTION_JSON_DEVICE_ID_KEY = nativeGetDefineJsonDeviceNameIdKey();
         ARDISCOVERY_CONNECTION_JSON_C2D_UPDATE_PORT_KEY = nativeGetDefineJsonC2DUpdatePortKey();
         ARDISCOVERY_CONNECTION_JSON_C2D_USER_PORT_KEY = nativeGetDefineJsonC2DUserPortKey();
         ARDISCOVERY_CONNECTION_JSON_SKYCONTROLLER_VERSION = nativeGetDefineJsonSkyControllerVersionKey();
