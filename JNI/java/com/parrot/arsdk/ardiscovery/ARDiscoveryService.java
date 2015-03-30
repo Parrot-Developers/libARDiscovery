@@ -142,18 +142,7 @@ public class ARDiscoveryService extends Service
         initIntents();
         
         bleDiscovery = new ARDiscoveryBLEDiscoveryImpl();
-        bleDiscovery.open(this, this);
-        
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)
-        {
-            wifiPublisher = new ARDiscoveryNsdPublisher();
-            wifiPublisher.open(this, this);
-        }
-        else
-        {
-            ARSALPrint.w(TAG, "no wifiPublisher !");
-        }
-        
+        bleDiscovery.open(this, this);     
     }
 
     @Override
@@ -230,6 +219,9 @@ public class ARDiscoveryService extends Service
                 {
                     wifiDiscoveryType = newWifiDiscoveryType;
                     wifiDiscovery = new ARDiscoveryNsdDiscovery();
+
+                    wifiPublisher = new ARDiscoveryNsdPublisher();
+                    wifiPublisher.open(this, this);
                 }
                 else
                 {
@@ -242,6 +234,8 @@ public class ARDiscoveryService extends Service
             default:
                 wifiDiscoveryType = newWifiDiscoveryType;
                 wifiDiscovery = new ARDiscoveryJmdnsDiscovery();
+
+                ARSALPrint.w(TAG, "no wifiPublisher !");
                 break;
             
         }
@@ -268,18 +262,27 @@ public class ARDiscoveryService extends Service
         }
 
         //manage wifi
-        if ((wifiDiscovery != null) && (wifiDiscoveryType != newWifiDiscoveryType))
+        if (wifiDiscoveryType != newWifiDiscoveryType)
         {
             //the wifiDiscoveryType is not the same of the previous
-            wifiDiscovery.close();
-            wifiDiscovery = null;
+            if (wifiDiscovery != null)
+            {
+                wifiDiscovery.close();
+                wifiDiscovery = null;
+            }
+
+            if (wifiPublisher != null)
+            {
+                wifiPublisher.close();
+                wifiPublisher = null;
+            }
         }
         //no else ; no wifiDiscovery or wifiDiscoveryType is the same of the previous
 
         if (wifiDiscovery == null)
         {
             //create a new wifiDiscovery
-            initWifiDiscovery(newWifiDiscoveryType);
+            initWifiDiscovery (newWifiDiscoveryType);
         }
         //no else ; wifiDiscovery already exits
 

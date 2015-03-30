@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
+import java.util.concurrent.RejectedExecutionException;
 
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
@@ -87,6 +88,8 @@ public class ARDiscoveryJmdnsDiscovery implements ARDiscoveryWifiDiscovery
     private String hostIp;
     private InetAddress hostAddress;
     static private InetAddress nullAddress;
+
+    private final Object mJmDNSLock = new Object();
 
     public ARDiscoveryJmdnsDiscovery()
     {
@@ -172,28 +175,32 @@ public class ARDiscoveryJmdnsDiscovery implements ARDiscoveryWifiDiscovery
         ARSALPrint.d(TAG,"mdnsDestroy");
 
         /* if jmnds is running */
-        if (mDNSManager != null)
+        synchronized (mJmDNSLock)
         {
-            if (mDNSListener != null)
+            if(mDNSManager != null)
             {
-                /* remove the net service listeners */
-                for (String devicesService : devicesServiceArray)
+                if (mDNSListener != null)
                 {
-                    ARSALPrint.d(TAG,"removeServiceListener:" + devicesService);
-                    mDNSManager.removeServiceListener(devicesService, mDNSListener);
+                /* remove the net service listeners */
+                    for (String devicesService : devicesServiceArray)
+                    {
+                        ARSALPrint.d(TAG,"removeServiceListener:" + devicesService);
+                        mDNSManager.removeServiceListener(devicesService, mDNSListener);
+                    }
+                    mDNSListener = null;
                 }
-                mDNSListener = null;
-            }
 
-            try
-            {
-                mDNSManager.close();
+                try
+                {
+                    mDNSManager.close();
+                }
+                catch (IOException e)
+                {
+                    e.printStackTrace();
+                }
+                mDNSManager = null;
             }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-            }
-            mDNSManager = null;
+            
         }
     }
 
@@ -307,11 +314,19 @@ public class ARDiscoveryJmdnsDiscovery implements ARDiscoveryWifiDiscovery
 
     private void notificationNetServiceDeviceAdd(ServiceEvent serviceEvent)
     {
+        String ip = null;
+        int port = 0;
         int productID = 0;
 
-        /* get ip address */
-        String ip = getServiceIP (serviceEvent);
-        int port = getServicePort (serviceEvent);
+        synchronized (mJmDNSLock)
+        {
+            if(mDNSManager != null)
+            {
+                /* get ip address */
+                ip = getServiceIP (serviceEvent);
+                port = getServicePort (serviceEvent);
+            }
+        }
 
         if (ip != null)
         {
@@ -406,7 +421,16 @@ public class ARDiscoveryJmdnsDiscovery implements ARDiscoveryWifiDiscovery
 
         String serviceIP = null;
 
-        ServiceInfo info = serviceEvent.getDNS().getServiceInfo(serviceEvent.getType(), serviceEvent.getName());
+        ServiceInfo info = null;
+        try
+        {
+            info = serviceEvent.getDNS().getServiceInfo(serviceEvent.getType(), serviceEvent.getName());
+        }
+        catch(RejectedExecutionException e)
+        {
+            e.printStackTrace();
+        }
+
         if((info != null) && (info.getInet4Addresses().length > 0))
         {
             serviceIP = info.getInet4Addresses()[0].getHostAddress();
@@ -421,7 +445,16 @@ public class ARDiscoveryJmdnsDiscovery implements ARDiscoveryWifiDiscovery
 
         int servicePort = 0;
 
-        ServiceInfo info = serviceEvent.getDNS().getServiceInfo(serviceEvent.getType(), serviceEvent.getName());
+        ServiceInfo info = null;
+        try
+        {
+            info = serviceEvent.getDNS().getServiceInfo(serviceEvent.getType(), serviceEvent.getName());
+        }
+        catch(RejectedExecutionException e)
+        {
+            e.printStackTrace();
+        }
+        
         if(info != null)
         {
             servicePort = info.getPort();
