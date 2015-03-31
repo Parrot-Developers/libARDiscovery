@@ -45,10 +45,16 @@ typedef enum
     ARDISCOVERY_PRODUCT_ARDRONE = ARDISCOVERY_PRODUCT_NSNETSERVICE,     ///< AR DRONE product
     ARDISCOVERY_PRODUCT_JS,                                             ///< JUMPING SUMO product
     ARDISCOVERY_PRODUCT_SKYCONTROLLER,                                  ///< Sky controller product
-    ARDISCOVERY_PRODUCT_JS_EVO,                                         ///< Evo variants of the Jumping Sumo product
+    ARDISCOVERY_PRODUCT_JS_EVO_SPINE,                                   ///< Jumping Sumo EVO Spine product
+    ARDISCOVERY_PRODUCT_JS_EVO_LIGHT,                                   ///< Jumping Sumo EVO Light product
+    ARDISCOVERY_PRODUCT_JS_EVO_RACE,                                    ///< Jumping Sumo EVO Race product
     
     ARDISCOVERY_PRODUCT_BLESERVICE,                                     ///< BlueTooth products category
-    ARDISCOVERY_PRODUCT_MINIDRONE = ARDISCOVERY_PRODUCT_BLESERVICE,         ///< DELOS product
+    ARDISCOVERY_PRODUCT_MINIDRONE = ARDISCOVERY_PRODUCT_BLESERVICE,     ///< DELOS product
+    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT,                            ///< Delos EVO Light product
+    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_TRUCK,                            ///< Delos EVO Truck product
+    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK,                            ///< Delos EVO Brick product
+    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL,                        ///< Delos EVO Hydrofoil product
     
     ARDISCOVERY_PRODUCT_MAX                                             ///< Max of products
 } eARDISCOVERY_PRODUCT;
