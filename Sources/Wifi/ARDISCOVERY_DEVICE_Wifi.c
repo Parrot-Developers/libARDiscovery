@@ -45,6 +45,8 @@
 #include <libARDiscovery/ARDISCOVERY_Discovery.h>
 #include <libARDiscovery/ARDISCOVERY_Device.h>
 
+#include "ARDISCOVERY_DEVICE_Wifi.h"
+
 #define ARDISCOVERY_DEVICE_TAG "ARDISCOVERY_DEVICE_WIFI"
 
 /*************************
@@ -376,7 +378,7 @@ ARNETWORKAL_Manager_t *ARDISCOVERY_DEVICE_Wifi_NewARNetworkAL (ARDISCOVERY_Devic
     // delete networkAL if an error occured
     if ((localError != ARDISCOVERY_OK) && (networkAL != NULL))
     {
-        ARDISCOVERY_DEVICE_Wifi_DeleteARNetworkAL (&networkAL);
+        ARDISCOVERY_DEVICE_Wifi_DeleteARNetworkAL (device, &networkAL);
     }
     
     ARSAL_PRINT(ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_TAG, "-networkAL :%p, localError : %d ...",networkAL, localError);
@@ -824,7 +826,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_ReceiveJsonCallback (uint8_t *dataRx,
         specificWifiParam = (ARDISCOVERY_DEVICE_WIFI_t *)device->specificParameters;
         
         // parssing of the json 
-        jsonObj = json_tokener_parse (dataRx);
+        jsonObj = json_tokener_parse ((char *)dataRx);
         if (is_error (jsonObj))
         {
             error = ARDISCOVERY_ERROR_JSON_PARSSING;
