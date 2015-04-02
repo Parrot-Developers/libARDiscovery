@@ -14,7 +14,10 @@ HEADER_FILES                                        =   ../Includes/libARDiscove
 SOURCE_FILES                                        =   ../Sources/ARDISCOVERY_Connection.c \
                                                         ../Sources/ARDISCOVERY_Discovery.c \
                                                         ../Sources/ARDISCOVERY_Device.c \
+                                                        ../Sources/Wifi/ARDISCOVERY_DEVICE_Wifi.h \
                                                         ../Sources/Wifi/ARDISCOVERY_DEVICE_Wifi.c \
+                                                        ../Sources/BLE/ARDISCOVERY_DEVICE_Ble.h \
+                                                        ../Sources/BLE/ARDISCOVERY_DEVICE_Ble.c \
                                                         ../Sources/ARDISCOVERY_Error.c
 # $(HEADER_FILES) will be added to $(SOURCE_FILES) later, in the discovery parts
 

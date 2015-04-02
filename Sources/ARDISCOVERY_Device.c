@@ -44,6 +44,7 @@
 #include <libARDiscovery/ARDISCOVERY_Device.h>
 
 #include "Wifi/ARDISCOVERY_DEVICE_Wifi.h"
+#include "BLE/ARDISCOVERY_DEVICE_Ble.h"
 
 #include "ARDISCOVERY_Device.h"
 
@@ -408,6 +409,76 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_WifiAddConnectionCallbacks (ARDISCOVERY_De
     
     return ARDISCOVERY_DEVICE_Wifi_AddConnectionCallbacks (device, sendJsonCallback, receiveJsonCallback, customData);
 }
+
+/***********************
+ * -- BLE part --
+ ***********************/
+
+eARDISCOVERY_ERROR ARDISCOVERY_Device_InitBLE (ARDISCOVERY_Device_t *device, eARDISCOVERY_PRODUCT product, ARNETWORKAL_BLEDeviceManager_t bleDeviceManager, ARNETWORKAL_BLEDevice_t bleDevice)
+{
+    ARSAL_PRINT (ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_TAG, "ARDISCOVERY_Device_InitBLE ...");
+    // -- Initialize the Discovery Device with a wifi device --
+    
+    ARSAL_PRINT (ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_TAG, "product : %d ...", product);
+    
+    eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
+    
+    // check parameters
+    if ((device == NULL) ||
+        (bleDeviceManager == NULL) ||
+        (bleDevice == NULL) ||
+        (ARDISCOVERY_getProductService (product) != ARDISCOVERY_PRODUCT_BLESERVICE))
+    {
+        error = ARDISCOVERY_ERROR_BAD_PARAMETER;
+    }
+    // No Else: the checking parameters sets error to ARNETWORK_ERROR_BAD_PARAMETER and stop the processing
+    
+    //TODO see to check fi the device is already initialized !!!!
+    
+    if (error == ARDISCOVERY_OK)
+    {
+        switch (product)
+        {
+            case ARDISCOVERY_PRODUCT_MINIDRONE:
+                device->initNetworkCongifuration = ARDISCOVERY_DEVICE_Ble_InitRollingSpiderNetworkCongifuration;
+            break;
+
+            case ARDISCOVERY_PRODUCT_SKYCONTROLLER:
+            case ARDISCOVERY_PRODUCT_ARDRONE:
+            case ARDISCOVERY_PRODUCT_JS:
+            case ARDISCOVERY_PRODUCT_MAX:
+                error = ARDISCOVERY_ERROR_BAD_PARAMETER;
+            break;
+            
+            default:
+                ARSAL_PRINT (ARSAL_PRINT_ERROR, ARDISCOVERY_DEVICE_TAG, "Product:%d not known", product);
+                error = ARDISCOVERY_ERROR_BAD_PARAMETER;
+            break;
+        }
+    }
+    
+    if (error == ARDISCOVERY_OK)
+    {
+        // Initialize common parameters
+        device->productID = product;
+        device->newNetworkAL = ARDISCOVERY_DEVICE_Ble_NewARNetworkAL;
+        device->deleteNetworkAL = ARDISCOVERY_DEVICE_Ble_DeleteARNetworkAL;
+        device->getCopyOfSpecificParameters = ARDISCOVERY_DEVICE_Ble_GetCopyOfSpecificParameters;
+        device->deleteSpecificParameters = ARDISCOVERY_DEVICE_Ble_DeleteSpecificParameters;
+    }
+    
+    if (error == ARDISCOVERY_OK)
+    {
+        // Initialize wifi specific parameters
+        error = ARDISCOVERY_DEVICE_Ble_CreateSpecificParameters (device, bleDeviceManager, bleDevice);
+    }
+    
+    ARSAL_PRINT (ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_TAG, "error:%d ; device->specificParameters:%p ...", error, device->specificParameters);
+    ARSAL_PRINT (ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_TAG, "device->productID : %d ...", device->productID);
+    
+    return error;
+}
+
 
  /*************************
  * local Implementation

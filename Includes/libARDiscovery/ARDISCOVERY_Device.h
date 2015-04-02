@@ -147,34 +147,6 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitNetworkCongifuration (ARDISCOVERY_Devi
  ***********************/
 
 /**
- * @brief specific parameters for Wifi Device
- */
-typedef struct
-{
-    char *address;
-    int dicoveryPort;
-    // Parameters sended by discovery Json :
-    int deviceToControllerPort;
-    ARDISCOVERY_Device_ConnectionJsonCallback_t sendJsonCallback; //TODO must be not wifi specific
-    ARDISCOVERY_Device_ConnectionJsonCallback_t receiveJsonCallback; //TODO must be not wifi specific
-    void *jsonCallbacksCustomData; //TODO must be not wifi specific
-    
-    //TODO add jsonSendingCallback: !!!!!!!!!!
-    //char *controllerName; //TODO remove and get from the deviceController !!!!!!!!!!!!!!
-    //char *controllerType; //TODO remove and get from the deviceController !!!!!!!!!!!!!
-    
-    // Parameters received by discovery Json :
-    int controllerToDevicePort;
-    eARDISCOVERY_ERROR connectionStatus;
-    
-    //TODO add jsonReceivinggCallback: !!!!!!!!!!!!!
-    //int streamFragmentSize;//TODO remove and get from the deviceController !!!!!!!!!!!
-    //int numberMaxOfStreamFragment;//TODO remove and get from the deviceController !!!!!!!!!!!!
-    //int videoMaxAckInterval;//TODO remove and get from the deviceController !!!!!!!!!!!
-    
-}ARDISCOVERY_DEVICE_WIFI_t;
-
-/**
  * @brief Initialize the Discovery Device with a wifi device.
  * @param device The Discovery Device to Initialize.
  * @param[in] product Parrot's product to initialized
@@ -204,5 +176,19 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_WifiAddConnectionCallbacks (ARDISCOVERY_De
  //* @return new DiscoveryDevice
  //*/
 //ARDISCOVERY_DiscoveryDevice_t* ARDISCOVERY_Connection_New (char *name, int nameLength, eARDISCOVERY_PRODUCT productID, ARDISCOVERY_Device_t device, void* customData, eARDISCOVERY_ERROR *error);
+
+/***********************
+ * -- BLE part --
+ ***********************/
+
+/**
+ * @brief Initialize the Discovery Device with a BLE device.
+ * @param device The Discovery Device to Initialize.
+ * @param[in] product Parrot's product to initialized
+ * @param[in] deviceManager the OS device manager which will be used for network functions
+ * @param[in] device the selected OS specific BLE device to connect to
+ * @return executing error.
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_Device_InitBLE (ARDISCOVERY_Device_t *device, eARDISCOVERY_PRODUCT product, ARNETWORKAL_BLEDeviceManager_t bleDeviceManager, ARNETWORKAL_BLEDevice_t bleDevice);
 
 #endif // _ARDISCOVERY_DEVICE_H_

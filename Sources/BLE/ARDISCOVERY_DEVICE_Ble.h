@@ -29,14 +29,14 @@
     SUCH DAMAGE.
 */
 /**
- * @file ARDISCOVERY_DEVICE_Wifi.h
- * @brief Discovery WIFI Device contains the informations of a device discovered
+ * @file ARDISCOVERY_DEVICE_Ble.h
+ * @brief Discovery BLE Device contains the informations of a device discovered
  * @date 02/03/2015
  * @author maxime.maitre@parrot.com
  */
 
-#ifndef _ARDISCOVERY_DEVICE_WIFI_H_
-#define _ARDISCOVERY_DEVICE_WIFI_H_
+#ifndef _ARDISCOVERY_DEVICE_BLE_H_
+#define _ARDISCOVERY_DEVICE_BLE_H_
 
 #include <json/json.h>
 #include <libARNetworkAL/ARNETWORKAL_Manager.h>
@@ -52,53 +52,39 @@
  */
 typedef struct
 {
-    char *address;
-    int dicoveryPort;
-    // Parameters sended by discovery Json :
-    int deviceToControllerPort;
-    ARDISCOVERY_Device_ConnectionJsonCallback_t sendJsonCallback; //TODO must be not wifi specific
-    ARDISCOVERY_Device_ConnectionJsonCallback_t receiveJsonCallback; //TODO must be not wifi specific
-    void *jsonCallbacksCustomData; //TODO must be not wifi specific
+    ARNETWORKAL_BLEDeviceManager_t deviceManager;
+    ARNETWORKAL_BLEDevice_t device;
     
-    // Parameters received by discovery Json :
-    int controllerToDevicePort;
-    eARDISCOVERY_ERROR connectionStatus;
-    
-}ARDISCOVERY_DEVICE_WIFI_t;
+}ARDISCOVERY_DEVICE_BLE_t;
 
 /**
  * @brief Create wifi SpecificParameters
  * @warning This function allocate memory.
  * @param device The Discovery Device to Initialize.
  * @return executing error.
- * @see ARDISCOVERY_DEVICE_Wifi_DeleteSpecificParameters.
+ * @see ARDISCOVERY_DEVICE_Ble_DeleteSpecificParameters.
  */
-eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_CreateSpecificParameters (ARDISCOVERY_Device_t *device, const char *name, const char *address, int port);
-
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Ble_CreateSpecificParameters (ARDISCOVERY_Device_t *device, ARNETWORKAL_BLEDeviceManager_t bleDeviceManager, ARNETWORKAL_BLEDevice_t bleDevice);
 /**
  * @brief Delete wifi SpecificParameters
  * @warning This function free memory.
  * @param device The Discovery Device to Initialize.
  * @return executing error.
- * @see ARDISCOVERY_DEVICE_Wifi_CreateSpecificParameters.
+ * @see ARDISCOVERY_DEVICE_Ble_CreateSpecificParameters.
  */
-eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_DeleteSpecificParameters (ARDISCOVERY_Device_t *device);
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Ble_DeleteSpecificParameters (ARDISCOVERY_Device_t *device);
 
 //TODO add commentary !!!!!!!!!!!!!!!!!!!!
-void *ARDISCOVERY_DEVICE_Wifi_GetCopyOfSpecificParameters (ARDISCOVERY_Device_t *deviceToCopy, eARDISCOVERY_ERROR *error);
-
-eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_AddConnectionCallbacks (ARDISCOVERY_Device_t *device, ARDISCOVERY_Device_ConnectionJsonCallback_t sendJsonCallback, ARDISCOVERY_Device_ConnectionJsonCallback_t receiveJsonCallback, void *customData);
+void *ARDISCOVERY_DEVICE_Ble_GetCopyOfSpecificParameters (ARDISCOVERY_Device_t *deviceToCopy, eARDISCOVERY_ERROR *error);
 
 
 //TODO add commentary !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-ARNETWORKAL_Manager_t *ARDISCOVERY_DEVICE_Wifi_NewARNetworkAL (ARDISCOVERY_Device_t *device, eARDISCOVERY_ERROR *error, eARNETWORKAL_ERROR *errorAL);
+ARNETWORKAL_Manager_t *ARDISCOVERY_DEVICE_Ble_NewARNetworkAL (ARDISCOVERY_Device_t *device, eARDISCOVERY_ERROR *error, eARNETWORKAL_ERROR *errorAL);
 
 //TODO add commentary !!!!!!!!!!!!!!!!!!!!
-eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_DeleteARNetworkAL (ARDISCOVERY_Device_t *device, ARNETWORKAL_Manager_t **networkAL);
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Ble_DeleteARNetworkAL (ARDISCOVERY_Device_t *device, ARNETWORKAL_Manager_t **networkAL);
 
 //TODO add commentary !!!!!!!!!!!!!!!!!!!!
-eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkCongifuration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration);
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Ble_InitRollingSpiderNetworkCongifuration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration);
 
-eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitJumpingSumoNetworkCongifuration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration);
-
-#endif // _ARDISCOVERY_DEVICE_WIFI_H_
+#endif // _ARDISCOVERY_DEVICE_BLE_H_
