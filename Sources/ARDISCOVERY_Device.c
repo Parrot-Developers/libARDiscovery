@@ -337,7 +337,6 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitWifi (ARDISCOVERY_Device_t *device, eA
     ARSAL_PRINT (ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_TAG, "product : %d ...", product);
     
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
-    ARDISCOVERY_DEVICE_WIFI_t *specificWifiParam = NULL;
     
     // check parameters
     if ((device == NULL) || 
