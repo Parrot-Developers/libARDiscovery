@@ -62,7 +62,6 @@ typedef struct
     int numberOfDeviceToControllerParam;
     ARNETWORK_IOBufferParam_t *deviceToControllerParams;
     
-    int *bleNotificationIDs;
     int pingDelayMs;
     
     int numberOfDeviceToControllerCommandsBufferIds;
