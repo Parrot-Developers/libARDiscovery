@@ -9,7 +9,7 @@ LOCAL_CATEGORY_PATH := dragon/libs
 LOCAL_MODULE := libARDiscovery
 LOCAL_DESCRIPTION := ARSDK Discovery and Connection Management Layer
 
-LOCAL_LIBRARIES := libARSAL avahi
+LOCAL_LIBRARIES := libARSAL libARNetwork libARNetworkAL avahi
 LOCAL_EXPORT_LDLIBS := -lardiscovery
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/../Includes
 
