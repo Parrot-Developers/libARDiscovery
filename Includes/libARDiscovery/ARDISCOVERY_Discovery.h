@@ -48,6 +48,7 @@ typedef enum
     ARDISCOVERY_PRODUCT_JS_EVO_SPINE,                                   ///< Jumping Sumo EVO Spine product
     ARDISCOVERY_PRODUCT_JS_EVO_LIGHT,                                   ///< Jumping Sumo EVO Light product
     ARDISCOVERY_PRODUCT_JS_EVO_RACE,                                    ///< Jumping Sumo EVO Race product
+    ARDISCOVERY_PRODUCT_SICILIA,                                        ///< Sicilia product
     
     ARDISCOVERY_PRODUCT_BLESERVICE,                                     ///< BlueTooth products category
     ARDISCOVERY_PRODUCT_MINIDRONE = ARDISCOVERY_PRODUCT_BLESERVICE,     ///< DELOS product
