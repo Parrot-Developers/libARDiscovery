@@ -179,3 +179,18 @@ Java_com_parrot_arsdk_ardiscovery_ARDiscoveryService_nativeGetProductFromProduct
 {
     return ARDISCOVERY_getProductFromProductID (productID);
 }
+
+ /**
+ * @brief Converts a product to product family
+ * This function is the only one knowing the correspondance
+ * between the the product's and the product's families.
+ * @param env reference to the java environment
+ * @param thizz reference to the object calling this function
+ * @param product The product
+ * @return The corresponding family enumerator
+ */
+JNIEXPORT jint JNICALL
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryService_nativeGetProductFamily (JNIEnv *env, jclass thizz, jint product)
+{
+    return ARDISCOVERY_getProductFamily (product);
+}

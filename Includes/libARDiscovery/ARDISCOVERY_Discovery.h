@@ -61,6 +61,17 @@ typedef enum
 } eARDISCOVERY_PRODUCT;
 
 /**
+ * Enum characterizing every Parrot's product family
+ */
+typedef enum
+{
+    ARDISCOVERY_PRODUCT_FAMYLY_ARDRONE,   ///< AR DRONE product family
+    ARDISCOVERY_PRODUCT_FAMYLY_JS,        ///< JUMPING SUMO product family
+    ARDISCOVERY_PRODUCT_FAMYLY_MINIDRONE, ///< DELOS product
+    ARDISCOVERY_PRODUCT_FAMYLY_MAX        ///< Max of product familys
+} eARDISCOVERY_PRODUCT_FAMYLY;
+
+/**
  * @brief Get service of product
  * This function is the only one knowing the correspondance between product 
  * and service.
@@ -115,5 +126,14 @@ eARDISCOVERY_PRODUCT ARDISCOVERY_getProductFromName(const char *name);
  * @return The corresponding product enumerator
  */
 eARDISCOVERY_PRODUCT ARDISCOVERY_getProductFromProductID(uint16_t productID);
+
+/**
+ * @brief Get family of product
+ * This function is the only one knowing the correspondance between product 
+ * and family.
+ * @param product The product's enumerator
+ * @return The corresponding product family enumerator value
+ */
+eARDISCOVERY_PRODUCT_FAMYLY ARDISCOVERY_getProductFamily(eARDISCOVERY_PRODUCT product);
 
 #endif // _ARDISCOVERY_DISCOVERY_H_
