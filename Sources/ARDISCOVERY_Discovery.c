@@ -156,3 +156,32 @@ eARDISCOVERY_PRODUCT ARDISCOVERY_getProductFromProductID(uint16_t productID)
     
     return product;
 }
+
+eARDISCOVERY_PRODUCT_FAMYLY ARDISCOVERY_getProductFamily(eARDISCOVERY_PRODUCT product)
+{
+    eARDISCOVERY_PRODUCT_FAMYLY family = ARDISCOVERY_PRODUCT_FAMYLY_MAX;
+    
+    switch (product)
+    {
+        case ARDISCOVERY_PRODUCT_ARDRONE:
+            family = ARDISCOVERY_PRODUCT_FAMYLY_ARDRONE;
+            break;
+        case ARDISCOVERY_PRODUCT_JS:
+        case ARDISCOVERY_PRODUCT_JS_EVO_SPINE:
+        case ARDISCOVERY_PRODUCT_JS_EVO_LIGHT:
+        case ARDISCOVERY_PRODUCT_JS_EVO_RACE:
+            family = ARDISCOVERY_PRODUCT_FAMYLY_JS;
+            break; 
+        case ARDISCOVERY_PRODUCT_MINIDRONE:
+        case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT:
+        case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_TRUCK:
+        case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK:
+        case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL:
+            family = ARDISCOVERY_PRODUCT_FAMYLY_MINIDRONE;
+            break;
+        default:
+            break;
+    }
+    
+    return family;
+}

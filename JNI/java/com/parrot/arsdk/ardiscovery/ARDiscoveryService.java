@@ -84,6 +84,7 @@ public class ARDiscoveryService extends Service
     private static native String nativeGetProductPathName(int product);
     private static native int nativeGetProductFromName(String name);
     private static native int nativeGetProductFromProductID(int productID);
+    private static native int nativeGetProductFamily(int product);
     
     public enum eARDISCOVERY_SERVICE_EVENT_STATUS
     {
@@ -488,6 +489,20 @@ public class ARDiscoveryService extends Service
         int product = nativeGetProductFromName(name);
         
         return ARDISCOVERY_PRODUCT_ENUM.getFromValue(product);
+    }
+    
+    /**
+     * @brief Converts a product family in product
+     * This function is the only one knowing the correspondance
+     * between the products and the products' families.
+     * @param product The product
+     * @return The corresponding product family
+     */
+    public static ARDISCOVERY_PRODUCT_FAMYLY_ENUM getProductFamily(ARDISCOVERY_PRODUCT_ENUM product)
+    {
+        int family = nativeGetProductFamily (product.getValue());
+        
+        return ARDISCOVERY_PRODUCT_FAMYLY_ENUM.getFromValue(family);
     }
 };
 
