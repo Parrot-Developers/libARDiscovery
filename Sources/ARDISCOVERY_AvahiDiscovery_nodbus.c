@@ -199,7 +199,7 @@ static eARDISCOVERY_ERROR ARDISCOVERY_AvahiDiscovery_CreateService(ARDISCOVERY_A
 
         if (serviceData->serviceJsonData != NULL)
         {
-            fprintf(configfile, "<txt-record>\"%s\"</txt-record>\n", (const char *)serviceData->serviceJsonData);
+            fprintf(configfile, "<txt-record>%s</txt-record>\n", (const char *)serviceData->serviceJsonData);
         }
 
         fprintf(configfile,

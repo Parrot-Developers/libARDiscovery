@@ -28,13 +28,20 @@
     OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
     SUCH DAMAGE.
 */
-#ifndef _ARDISCOVERY_H_
-#define _ARDISCOVERY_H_
 
-#include <libARDiscovery/ARDISCOVERY_Connection.h>
-#include <libARDiscovery/ARDISCOVERY_Discovery.h>
-#include <libARDiscovery/ARDISCOVERY_NetworkConfiguration.h>
-#include <libARDiscovery/ARDISCOVERY_Device.h>
+/**
+ * @file ARDISCOVERY_NetworkConfiguration.c
+ * @brief network configuration used to create a network
+ * @date 02/03/2015
+ * @author maxime.maitre@parrot.com
+ */
+
+#ifndef _ARDISCOVERY_DISCOVERY_DEVICE_PRIVATE_H_
+#define _ARDISCOVERY_DISCOVERY_DEVICE_PRIVATE_H_
+
 #include <libARDiscovery/ARDISCOVERY_Error.h>
+#include <libARDiscovery/ARDISCOVERY_NetworkConfiguration.h>
 
-#endif /* _ARDISCOVERY_H_ */
+
+
+#endif // _ARDISCOVERY_DISCOVERY_DEVICE_PRIVATE_H_

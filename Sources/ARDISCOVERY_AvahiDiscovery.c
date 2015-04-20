@@ -568,8 +568,7 @@ ARDISCOVERY_AvahiDiscovery_BrowserData_t* ARDISCOVERY_AvahiDiscovery_Browser_New
             browserData->serviceTypes = malloc(sizeof(char*) * serviceTypesNb);
             for (i = 0; i < serviceTypesNb; i++)
             {
-                *(browserData->serviceTypes + i) = malloc(sizeof(uint8_t) * ARDISCOVERY_AVAHIDISCOVERY_SERVICETYPE_SIZE);
-                memcpy(*(browserData->serviceTypes + i), *(serviceTypes + i), ARDISCOVERY_AVAHIDISCOVERY_SERVICETYPE_SIZE);
+                browserData->serviceTypes[i] = strdup(serviceTypes[i]);
             }
             browserData->serviceTypesNb = serviceTypesNb;
         }
@@ -842,7 +841,7 @@ void ARDISCOVERY_AvahiDiscovery_Browser_Delete(ARDISCOVERY_AvahiDiscovery_Browse
 
             for (i = 0; i < browserDataPtr->serviceTypesNb; i++)
             {
-                free(browserDataPtr->serviceTypes + i);
+                free(browserDataPtr->serviceTypes[i]);
             }
             free(browserDataPtr->serviceTypes);
 
