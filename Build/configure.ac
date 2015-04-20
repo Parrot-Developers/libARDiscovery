@@ -68,6 +68,9 @@ OBJCFLAGS+="$LOCAL_CFLAGS"
 # add libARxxx deps
 
 AR_DEPENDS([libARSAL], [Y], [libARSAL/ARSAL.h])
+AR_DEPENDS([libARNetworkAL], [Y], [libARNetworkAL/ARNetworkAL.h])
+AR_DEPENDS([libARNetwork], [Y], [libARNetwork/ARNETWORK_IOBufferParam.h])
+AR_DEPENDS([json], [N], [json/json.h], [N])
 
 
 ##########################################################################
