@@ -498,11 +498,11 @@ public class ARDiscoveryService extends Service
      * @param product The product
      * @return The corresponding product family
      */
-    public static ARDISCOVERY_PRODUCT_FAMYLY_ENUM getProductFamily(ARDISCOVERY_PRODUCT_ENUM product)
+    public static ARDISCOVERY_PRODUCT_FAMILY_ENUM getProductFamily(ARDISCOVERY_PRODUCT_ENUM product)
     {
         int family = nativeGetProductFamily (product.getValue());
         
-        return ARDISCOVERY_PRODUCT_FAMYLY_ENUM.getFromValue(family);
+        return ARDISCOVERY_PRODUCT_FAMILY_ENUM.getFromValue(family);
     }
 };
 

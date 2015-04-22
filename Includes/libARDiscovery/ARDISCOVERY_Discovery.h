@@ -65,12 +65,12 @@ typedef enum
  */
 typedef enum
 {
-    ARDISCOVERY_PRODUCT_FAMYLY_ARDRONE,       ///< AR DRONE product family
-    ARDISCOVERY_PRODUCT_FAMYLY_JS,            ///< JUMPING SUMO product family
-    ARDISCOVERY_PRODUCT_FAMYLY_SKYCONTROLLER, ///< SKY CONTROLLER product family
-    ARDISCOVERY_PRODUCT_FAMYLY_MINIDRONE,     ///< DELOS product
-    ARDISCOVERY_PRODUCT_FAMYLY_MAX            ///< Max of product familys
-} eARDISCOVERY_PRODUCT_FAMYLY;
+    ARDISCOVERY_PRODUCT_FAMILY_ARDRONE,       ///< AR DRONE product family
+    ARDISCOVERY_PRODUCT_FAMILY_JS,            ///< JUMPING SUMO product family
+    ARDISCOVERY_PRODUCT_FAMILY_SKYCONTROLLER, ///< SKY CONTROLLER product family
+    ARDISCOVERY_PRODUCT_FAMILY_MINIDRONE,     ///< DELOS product
+    ARDISCOVERY_PRODUCT_FAMILY_MAX            ///< Max of product familys
+} eARDISCOVERY_PRODUCT_FAMILY;
 
 /**
  * @brief Get service of product
@@ -135,6 +135,6 @@ eARDISCOVERY_PRODUCT ARDISCOVERY_getProductFromProductID(uint16_t productID);
  * @param product The product's enumerator
  * @return The corresponding product family enumerator value
  */
-eARDISCOVERY_PRODUCT_FAMYLY ARDISCOVERY_getProductFamily(eARDISCOVERY_PRODUCT product);
+eARDISCOVERY_PRODUCT_FAMILY ARDISCOVERY_getProductFamily(eARDISCOVERY_PRODUCT product);
 
 #endif // _ARDISCOVERY_DISCOVERY_H_
