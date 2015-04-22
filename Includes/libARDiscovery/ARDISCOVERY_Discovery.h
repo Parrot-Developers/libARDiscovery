@@ -65,10 +65,11 @@ typedef enum
  */
 typedef enum
 {
-    ARDISCOVERY_PRODUCT_FAMYLY_ARDRONE,   ///< AR DRONE product family
-    ARDISCOVERY_PRODUCT_FAMYLY_JS,        ///< JUMPING SUMO product family
-    ARDISCOVERY_PRODUCT_FAMYLY_MINIDRONE, ///< DELOS product
-    ARDISCOVERY_PRODUCT_FAMYLY_MAX        ///< Max of product familys
+    ARDISCOVERY_PRODUCT_FAMYLY_ARDRONE,       ///< AR DRONE product family
+    ARDISCOVERY_PRODUCT_FAMYLY_JS,            ///< JUMPING SUMO product family
+    ARDISCOVERY_PRODUCT_FAMYLY_SKYCONTROLLER, ///< SKY CONTROLLER product family
+    ARDISCOVERY_PRODUCT_FAMYLY_MINIDRONE,     ///< DELOS product
+    ARDISCOVERY_PRODUCT_FAMYLY_MAX            ///< Max of product familys
 } eARDISCOVERY_PRODUCT_FAMYLY;
 
 /**
