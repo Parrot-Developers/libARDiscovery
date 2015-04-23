@@ -822,10 +822,14 @@
 #endif
         
         if ((ids[0] == ARBLESERVICE_PARROT_BT_VENDOR_ID) &&
-            (ids[1] == ARBLESERVICE_PARROT_USB_VENDOR_ID) &&
-            (ids[2] == ARDISCOVERY_getProductID(ARDISCOVERY_PRODUCT_MINIDRONE)))
+            (ids[1] == ARBLESERVICE_PARROT_USB_VENDOR_ID))
         {
-            res = YES;
+            /* Compare with all known BLE product IDs */
+            uint16_t prod_id = ids[2];
+            eARDISCOVERY_PRODUCT product = ARDISCOVERY_getProductFromProductID(prod_id);
+            if (ARDISCOVERY_getProductFamily(product) == ARDISCOVERY_PRODUCT_FAMILY_MINIDRONE) {
+                res = YES;
+            }
         }
     }
 
