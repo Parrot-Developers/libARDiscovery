@@ -167,16 +167,6 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitWifi (ARDISCOVERY_Device_t *device, eA
  */
 eARDISCOVERY_ERROR ARDISCOVERY_Device_WifiAddConnectionCallbacks (ARDISCOVERY_Device_t *device, ARDISCOVERY_Device_ConnectionJsonCallback_t sendJsonCallback, ARDISCOVERY_Device_ConnectionJsonCallback_t receiveJsonCallback, void *customData);
 
-///**
- //* @brief Create and initialize a DiscoveryDevice
- //* @param[in] name of the device
- //* @param[in] length of the name of the device
- //* @param[in] device the OS network device
- //* @param[out] error Error code
- //* @return new DiscoveryDevice
- //*/
-//ARDISCOVERY_DiscoveryDevice_t* ARDISCOVERY_Connection_New (char *name, int nameLength, eARDISCOVERY_PRODUCT productID, ARDISCOVERY_Device_t device, void* customData, eARDISCOVERY_ERROR *error);
-
 /***********************
  * -- BLE part --
  ***********************/
