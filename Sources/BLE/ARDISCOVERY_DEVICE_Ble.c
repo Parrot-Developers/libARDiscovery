@@ -47,7 +47,7 @@
 
 #include "ARDISCOVERY_DEVICE_Ble.h"
 
-#define ARDISCOVERY_DEVICE_BLE_TAG "ARDISCOVERY_DEVICE_WIFI"
+#define ARDISCOVERY_DEVICE_BLE_TAG "ARDISCOVERY_DEVICE_BLE"
 
 /*************************
  * Private header
