@@ -9,12 +9,14 @@ LOCAL_CATEGORY_PATH := dragon/libs
 LOCAL_MODULE := libARDiscovery
 LOCAL_DESCRIPTION := ARSDK Discovery and Connection Management Layer
 
-LOCAL_LIBRARIES := libARSAL libARNetwork libARNetworkAL avahi
+LOCAL_LIBRARIES := libARSAL libARNetwork libARNetworkAL avahi json
 LOCAL_EXPORT_LDLIBS := -lardiscovery
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/../Includes
 
 #Autotools variables
-LOCAL_AUTOTOOLS_CONFIGURE_ARGS := --with-libARSALInstallDir=""
+LOCAL_AUTOTOOLS_CONFIGURE_ARGS := --with-libARSALInstallDir="" --with-jsonInstallDir="" --with-libARNetworkInstallDir="" --with-libARNetworkALInstallDir=""
+
+
 ifneq ($(TARGET_PRODUCT),pclinux)
 LOCAL_AUTOTOOLS_CONFIGURE_ARGS += --enable-avahi-nodbus
 endif
