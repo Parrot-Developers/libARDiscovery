@@ -63,7 +63,6 @@
 
 ARDISCOVERY_Device_t *ARDISCOVERY_Device_New (eARDISCOVERY_ERROR *error)
 {
-    ARSAL_PRINT (ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_TAG, "ARDISCOVERY_Device_New ...");
     // -- Create a new Discovery Device --
     
     //local declarations
@@ -105,14 +104,11 @@ ARDISCOVERY_Device_t *ARDISCOVERY_Device_New (eARDISCOVERY_ERROR *error)
     }
     // No else: error is not returned 
     
-    ARSAL_PRINT (ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_TAG, "localError :%d ; device: %p", localError, device);
-    
     return device;
 }
 
 ARDISCOVERY_Device_t *ARDISCOVERY_Device_NewByCopy (ARDISCOVERY_Device_t *deviceToCopy, eARDISCOVERY_ERROR *error)
 {
-    ARSAL_PRINT (ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_TAG, "ARDISCOVERY_Device_NewByCopy ...");
     // -- Copy a Discovery Device --
     
     //local declarations
@@ -177,15 +173,12 @@ ARDISCOVERY_Device_t *ARDISCOVERY_Device_NewByCopy (ARDISCOVERY_Device_t *device
         *error = localError;
     }
     // No else: error is not returned
-    
-    ARSAL_PRINT (ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_TAG, "localError :%d ; device: %p ; device->specificParameters: %p", localError, device, device->specificParameters);
-    
+        
     return device;
 }
 
 void ARDISCOVERY_Device_Delete (ARDISCOVERY_Device_t **device)
 {
-    ARSAL_PRINT (ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_TAG, "ARDISCOVERY_Device_Delete ...");
     // -- Delete the Discovery Device --
     
     if (device != NULL)
@@ -213,7 +206,6 @@ void ARDISCOVERY_Device_Delete (ARDISCOVERY_Device_t **device)
 
 ARNETWORKAL_Manager_t *ARDISCOVERY_Device_NewARNetworkAL (ARDISCOVERY_Device_t *discoveryDevice, eARDISCOVERY_ERROR *error, eARNETWORKAL_ERROR *errorAL)
 {
-    ARSAL_PRINT (ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_TAG, "ARDISCOVERY_Device_NewARNetworkAL ...");
     // -- Create a new ARNetworkAL --
     
     //local declarations
@@ -268,7 +260,6 @@ ARNETWORKAL_Manager_t *ARDISCOVERY_Device_NewARNetworkAL (ARDISCOVERY_Device_t *
 
 eARDISCOVERY_ERROR ARDISCOVERY_Device_DeleteARNetworkAL (ARDISCOVERY_Device_t *discoveryDevice, ARNETWORKAL_Manager_t **networkALManager)
 {
-    ARSAL_PRINT (ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_TAG, "ARDISCOVERY_Device_DeleteARNetworkAL ...");
     // -- Delete a ARNetworkAL  --
     
     //local declarations
@@ -298,18 +289,17 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_DeleteARNetworkAL (ARDISCOVERY_Device_t *d
 
 eARDISCOVERY_ERROR ARDISCOVERY_Device_InitNetworkCongifuration (ARDISCOVERY_Device_t *discoveryDevice, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration)
 {
-    ARSAL_PRINT (ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_TAG, "ARDISCOVERY_Device_InitNetworkCongifuration ...");
     // -- Initialize the NetworkConfiguration to use with the device  --
     
-    //local declarations
+    // Local declarations
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
     
-    // check parameters
+    // Check parameters
     if ((discoveryDevice == NULL) || (networkConfiguration == NULL))
     {
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;
     }
-    // No Else: the checking parameters sets localError to ARNETWORK_ERROR_BAD_PARAMETER and stop the processing
+    // No Else: The checking parameters sets localError to ARNETWORK_ERROR_BAD_PARAMETER and stop the processing
     
     if (error == ARDISCOVERY_OK)
     {
@@ -332,14 +322,11 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitNetworkCongifuration (ARDISCOVERY_Devi
  
 eARDISCOVERY_ERROR ARDISCOVERY_Device_InitWifi (ARDISCOVERY_Device_t *device, eARDISCOVERY_PRODUCT product, const char *name, const char *address, int port)
 {
-    ARSAL_PRINT (ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_TAG, "ARDISCOVERY_Device_InitWifi ...");
     // -- Initialize the Discovery Device with a wifi device --
-    
-    ARSAL_PRINT (ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_TAG, "product : %d ...", product);
     
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
     
-    // check parameters
+    // Check parameters
     if ((device == NULL) || 
         (name == NULL) ||
         (address == NULL) ||
@@ -349,7 +336,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitWifi (ARDISCOVERY_Device_t *device, eA
     }
     // No Else: the checking parameters sets error to ARNETWORK_ERROR_BAD_PARAMETER and stop the processing
     
-    //TODO see to check fi the device is already initialized !!!!
+    //TODO see to check if the device is already initialized !!!!
     
     if (error == ARDISCOVERY_OK)
     {
@@ -396,10 +383,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitWifi (ARDISCOVERY_Device_t *device, eA
         // Initialize wifi specific parameters 
         error = ARDISCOVERY_DEVICE_Wifi_CreateSpecificParameters (device, name, address, port);
     }
-    
-    ARSAL_PRINT (ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_TAG, "error:%d ; device->specificParameters:%p ...", error, device->specificParameters);
-    ARSAL_PRINT (ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_TAG, "device->productID : %d ...", device->productID);
-    
+        
     return error;
 }
 
@@ -416,11 +400,8 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_WifiAddConnectionCallbacks (ARDISCOVERY_De
 
 eARDISCOVERY_ERROR ARDISCOVERY_Device_InitBLE (ARDISCOVERY_Device_t *device, eARDISCOVERY_PRODUCT product, ARNETWORKAL_BLEDeviceManager_t bleDeviceManager, ARNETWORKAL_BLEDevice_t bleDevice)
 {
-    ARSAL_PRINT (ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_TAG, "ARDISCOVERY_Device_InitBLE ...");
     // -- Initialize the Discovery Device with a wifi device --
-    
-    ARSAL_PRINT (ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_TAG, "product : %d ...", product);
-    
+        
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
     
     // check parameters
@@ -472,9 +453,6 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitBLE (ARDISCOVERY_Device_t *device, eAR
         // Initialize wifi specific parameters
         error = ARDISCOVERY_DEVICE_Ble_CreateSpecificParameters (device, bleDeviceManager, bleDevice);
     }
-    
-    ARSAL_PRINT (ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_TAG, "error:%d ; device->specificParameters:%p ...", error, device->specificParameters);
-    ARSAL_PRINT (ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_TAG, "device->productID : %d ...", device->productID);
     
     return error;
 }

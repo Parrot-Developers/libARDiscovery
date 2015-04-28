@@ -220,6 +220,16 @@ Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeGetDefineJsonContr
 }
 
 /**
+ * @brief get ARDISCOVERY_CONNECTION_JSON_DEVICE_ID_KEY
+ * @return value of ARDISCOVERY_CONNECTION_JSON_DEVICE_ID_KEY
+ */
+JNIEXPORT jstring JNICALL
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeGetDefineJsonDeviceNameIdKey (JNIEnv *env, jclass class)
+{
+    return  (*env)->NewStringUTF(env, ARDISCOVERY_CONNECTION_JSON_DEVICE_ID_KEY);
+}
+
+/**
  * @brief get ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_SIZE_KEY
  * @return value of ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_SIZE_KEY
  */
