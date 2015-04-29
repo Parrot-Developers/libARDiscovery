@@ -84,8 +84,6 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Ble_CreateSpecificParameters (ARDISCOVERY_
         specificBLEParam = malloc(sizeof(ARDISCOVERY_DEVICE_BLE_t));
         if (specificBLEParam != NULL)
         {
-            ARSAL_PRINT (ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_BLE_TAG, "alloc specificBLEParam goood ...");
-            
             device->specificParameters = specificBLEParam;
             specificBLEParam->deviceManager = bleDeviceManager;
             specificBLEParam->device = bleDevice;
@@ -109,7 +107,6 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Ble_CreateSpecificParameters (ARDISCOVERY_
 
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Ble_DeleteSpecificParameters (ARDISCOVERY_Device_t *device)
 {
-    ARSAL_PRINT(ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_BLE_TAG, "- ARDISCOVERY_DEVICE_Ble_DeleteSpecificParameters ...");
     // -- Delete SpecificParameters allocated by the wifi initialization --
     
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
@@ -137,8 +134,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Ble_DeleteSpecificParameters (ARDISCOVERY_
 
 void *ARDISCOVERY_DEVICE_Ble_GetCopyOfSpecificParameters (ARDISCOVERY_Device_t *device, eARDISCOVERY_ERROR *error)
 {
-    ARSAL_PRINT(ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_BLE_TAG, "- ARDISCOVERY_DEVICE_Ble_GetCopyOfSpecificParameters ...");
-    // -- Copy the specificParameters --
+    // -- Copy BLE specificParameters --
     
     eARDISCOVERY_ERROR localError = ARDISCOVERY_OK;
     ARDISCOVERY_DEVICE_BLE_t *specificBLEParamToCopy = NULL;
@@ -189,15 +185,13 @@ void *ARDISCOVERY_DEVICE_Ble_GetCopyOfSpecificParameters (ARDISCOVERY_Device_t *
         *error = localError;
     }
     // No else: error is not returned
-    
-    ARSAL_PRINT(ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_BLE_TAG, "- localError:%d ; specificBLEParam: %p ...", localError, specificBLEParam);
-    
+        
     return specificBLEParam;
 }
 
 ARNETWORKAL_Manager_t *ARDISCOVERY_DEVICE_Ble_NewARNetworkAL (ARDISCOVERY_Device_t *device, eARDISCOVERY_ERROR *error, eARNETWORKAL_ERROR *errorAL)
 {
-    ARSAL_PRINT(ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_BLE_TAG, "- ARDISCOVERY_DEVICE_Ble_NewARNetworkAL ...");//TODO sup !!!!!!!!!!!!!!!!!!!!!!
+    //-- Create a new networlAL adapted to the device. --
     
     eARDISCOVERY_ERROR localError = ARDISCOVERY_OK;
     eARNETWORKAL_ERROR localErrorAL = ARNETWORKAL_OK;
@@ -209,9 +203,6 @@ ARNETWORKAL_Manager_t *ARDISCOVERY_DEVICE_Ble_NewARNetworkAL (ARDISCOVERY_Device
         (device->specificParameters == NULL) ||
         (ARDISCOVERY_getProductService (device->productID) != ARDISCOVERY_PRODUCT_BLESERVICE))
     {
-        ARSAL_PRINT(ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_BLE_TAG, "- device:%p ...",device);//TODO sup !!!!!!!!!!!!!!!!!!!!!!
-        ARSAL_PRINT(ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_BLE_TAG, "- device->specificParameters:%p ...",device->specificParameters);//TODO sup !!!!!!!!!!!!!!!!!!!!!!
-        ARSAL_PRINT(ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_BLE_TAG, "- ARDISCOVERY_getProductService (device->productID):%d ...",ARDISCOVERY_getProductService (device->productID));//TODO sup !!!!!!!!!!!!!!!!!!!!!!
         localError = ARDISCOVERY_ERROR_BAD_PARAMETER;
     }
     // No Else: the checking parameters sets error to ARNETWORK_ERROR_BAD_PARAMETER and stop the processing
@@ -221,7 +212,6 @@ ARNETWORKAL_Manager_t *ARDISCOVERY_DEVICE_Ble_NewARNetworkAL (ARDISCOVERY_Device
         // Cast of device->specificParameters
         specificBLEParam = (ARDISCOVERY_DEVICE_BLE_t *) device->specificParameters;
 
-        ARSAL_PRINT(ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_BLE_TAG, "ARNETWORKAL_Manager_New ...");
         // Create the ARNetworkALManager
         networkAL = ARNETWORKAL_Manager_New (&localErrorAL);
     }
@@ -239,15 +229,11 @@ ARNETWORKAL_Manager_t *ARDISCOVERY_DEVICE_Ble_NewARNetworkAL (ARDISCOVERY_Device
         
         // Initialize the ARNetworkALManager
         localErrorAL = ARNETWORKAL_Manager_InitBLENetwork(networkAL, specificBLEParam->deviceManager, specificBLEParam->device, 1, bleNotificationIDs, numberOfNotificationID);
-        
-        ARSAL_PRINT(ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_BLE_TAG, " localError:%d", localError);//TODO sup !!!!!!!!!!!!!!!!!!!!!!
-        ARSAL_PRINT(ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_BLE_TAG, " localErrorAL:%d", localErrorAL);//TODO sup !!!!!!!!!!!!!!!!!!!!!!
     }
     
     // set localError to ARDISCOVERY_ERROR is an error AL is occured
     if ((localError == ARDISCOVERY_OK) && (localErrorAL != ARNETWORKAL_OK))
     {
-        ARSAL_PRINT(ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_BLE_TAG, " ???? ");//TODO sup !!!!!!!!!!!!!!!!!!!!!!
         localError = ARDISCOVERY_ERROR;
     }
     
@@ -268,15 +254,13 @@ ARNETWORKAL_Manager_t *ARDISCOVERY_DEVICE_Ble_NewARNetworkAL (ARDISCOVERY_Device
     {
         ARDISCOVERY_DEVICE_Ble_DeleteARNetworkAL (device, &networkAL);
     }
-    
-    ARSAL_PRINT(ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_BLE_TAG, "- networkAL :%p, localError : %d ...",networkAL, localError);
-    
+        
     return networkAL;
 }
 
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Ble_DeleteARNetworkAL (ARDISCOVERY_Device_t *device, ARNETWORKAL_Manager_t **networkAL)
 {
-    ARSAL_PRINT(ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_BLE_TAG, "- ARDISCOVERY_DEVICE_Ble_DeleteARNetworkAL ..."); //TODO sup !!!!!!!!!!!!!!!!!!!!!!
+    // -- Delete a networlAL create by ARDISCOVERY_DEVICE_Wifi_NewARNetworkAL --
     
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
     
@@ -301,15 +285,13 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Ble_DeleteARNetworkAL (ARDISCOVERY_Device_
             }
         }
     }
-    
-    ARSAL_PRINT(ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_BLE_TAG, "- error : %d ...", error);
-    
+        
     return error;
 }
 
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Ble_InitRollingSpiderNetworkCongifuration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration)
 {
-    ARSAL_PRINT(ARSAL_PRINT_INFO, ARDISCOVERY_DEVICE_BLE_TAG, "- ARDISCOVERY_DEVICE_Ble_InitRollingSpiderNetworkCongifuration ...");
+    // -- Initilize network Configuration adapted to a Rolling Spider. --
     
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
     

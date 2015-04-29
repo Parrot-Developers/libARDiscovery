@@ -74,17 +74,39 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Ble_CreateSpecificParameters (ARDISCOVERY_
  */
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Ble_DeleteSpecificParameters (ARDISCOVERY_Device_t *device);
 
-//TODO add commentary !!!!!!!!!!!!!!!!!!!!
+/**
+ * @brief Copy BLE specificParameters 
+ * @param deviceToCopy The Discovery Device to copy.
+ * @param[out] error Executing error.
+ * @return new specificParameters.
+ */
 void *ARDISCOVERY_DEVICE_Ble_GetCopyOfSpecificParameters (ARDISCOVERY_Device_t *deviceToCopy, eARDISCOVERY_ERROR *error);
 
-
-//TODO add commentary !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+/**
+ * @brief Create a new networlAL adapted to the device.
+ * @param device The Discovery Device.
+ * @param[out] error Executing error.
+ * @param[out] errorAL Executing networkAL error.
+ * @return new networkAL.
+ * @see ARDISCOVERY_DEVICE_Ble_DeleteARNetworkAL
+ */
 ARNETWORKAL_Manager_t *ARDISCOVERY_DEVICE_Ble_NewARNetworkAL (ARDISCOVERY_Device_t *device, eARDISCOVERY_ERROR *error, eARNETWORKAL_ERROR *errorAL);
 
-//TODO add commentary !!!!!!!!!!!!!!!!!!!!
+/**
+ * @brief Delete a networlAL create by ARDISCOVERY_DEVICE_Ble_NewARNetworkAL
+ * @param device The Discovery Device.
+ * @param networkAL The networkAL to delete.
+ * @return executing error.
+ * @see ARDISCOVERY_DEVICE_Ble_NewARNetworkAL
+ */
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Ble_DeleteARNetworkAL (ARDISCOVERY_Device_t *device, ARNETWORKAL_Manager_t **networkAL);
 
-//TODO add commentary !!!!!!!!!!!!!!!!!!!!
+/**
+ * @brief Initilize network Configuration adapted to a Rolling Spider.
+ * @param device The Discovery Device. Must be a Jumping Sumo Device
+ * @param[out] networkConfiguration The networkConfiguration to Initilize.
+ * @return executing error.
+ */
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Ble_InitRollingSpiderNetworkCongifuration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration);
 
 #endif // _ARDISCOVERY_DEVICE_BLE_H_
