@@ -84,21 +84,49 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_CreateSpecificParameters (ARDISCOVERY
  */
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_DeleteSpecificParameters (ARDISCOVERY_Device_t *device);
 
-//TODO add commentary !!!!!!!!!!!!!!!!!!!!
+/**
+ * @brief Copy wifi specificParameters 
+ * @param deviceToCopy The Discovery Device to copy.
+ * @param[out] error Executing error.
+ * @return new specificParameters.
+ */
 void *ARDISCOVERY_DEVICE_Wifi_GetCopyOfSpecificParameters (ARDISCOVERY_Device_t *deviceToCopy, eARDISCOVERY_ERROR *error);
 
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_AddConnectionCallbacks (ARDISCOVERY_Device_t *device, ARDISCOVERY_Device_ConnectionJsonCallback_t sendJsonCallback, ARDISCOVERY_Device_ConnectionJsonCallback_t receiveJsonCallback, void *customData);
 
-
-//TODO add commentary !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+/**
+ * @brief Create a new networlAL adapted to the device.
+ * @param device The Discovery Device.
+ * @param[out] error Executing error.
+ * @param[out] errorAL Executing networkAL error.
+ * @return new networkAL.
+ * @see ARDISCOVERY_DEVICE_Wifi_DeleteARNetworkAL
+ */
 ARNETWORKAL_Manager_t *ARDISCOVERY_DEVICE_Wifi_NewARNetworkAL (ARDISCOVERY_Device_t *device, eARDISCOVERY_ERROR *error, eARNETWORKAL_ERROR *errorAL);
 
-//TODO add commentary !!!!!!!!!!!!!!!!!!!!
+/**
+ * @brief Delete a networlAL create by ARDISCOVERY_DEVICE_Wifi_NewARNetworkAL
+ * @param device The Discovery Device.
+ * @param networkAL The networkAL to delete.
+ * @return executing error.
+ * @see ARDISCOVERY_DEVICE_Wifi_NewARNetworkAL
+ */
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_DeleteARNetworkAL (ARDISCOVERY_Device_t *device, ARNETWORKAL_Manager_t **networkAL);
 
-//TODO add commentary !!!!!!!!!!!!!!!!!!!!
+/**
+ * @brief Initilize network Configuration adapted to a BebopDrone.
+ * @param device The Discovery Device. Must be a Bebop Drone Device
+ * @param[out] networkConfiguration The networkConfiguration to Initilize.
+ * @return executing error.
+ */
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkCongifuration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration);
 
+/**
+ * @brief Initilize network Configuration adapted to a Jumping Sumo.
+ * @param device The Discovery Device. Must be a Jumping Sumo Device
+ * @param[out] networkConfiguration The networkConfiguration to Initilize.
+ * @return executing error.
+ */
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitJumpingSumoNetworkCongifuration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration);
 
 #endif // _ARDISCOVERY_DEVICE_WIFI_H_
