@@ -96,7 +96,8 @@ public class ARDiscoveryService extends Service
     public enum ARDISCOVERYSERVICE_WIFI_DISCOVERY_TYPE_ENUM
     {
         ARDISCOVERYSERVICE_WIFI_DISCOVERY_TYPE_JMDNS,
-        ARDISCOVERYSERVICE_WIFI_DISCOVERY_TYPE_NSD;
+        ARDISCOVERYSERVICE_WIFI_DISCOVERY_TYPE_NSD,
+        ARDISCOVERYSERVICE_WIFI_DISCOVERY_TYPE_MDSNSDMIN;
     }
     
     /**
@@ -231,6 +232,12 @@ public class ARDiscoveryService extends Service
                 }
                 break;
                 
+            case ARDISCOVERYSERVICE_WIFI_DISCOVERY_TYPE_MDSNSDMIN:
+                wifiDiscoveryType = newWifiDiscoveryType;
+                wifiDiscovery = new ARDiscoveryMdnsSdMinDiscovery();
+                ARSALPrint.w(TAG, "no wifiPublisher !");
+                break;
+
             case ARDISCOVERYSERVICE_WIFI_DISCOVERY_TYPE_JMDNS:
             default:
                 wifiDiscoveryType = newWifiDiscoveryType;
@@ -251,7 +258,7 @@ public class ARDiscoveryService extends Service
     
     public synchronized void start()
     {
-        start(ARDISCOVERYSERVICE_WIFI_DISCOVERY_TYPE_ENUM.ARDISCOVERYSERVICE_WIFI_DISCOVERY_TYPE_JMDNS);
+        start(ARDISCOVERYSERVICE_WIFI_DISCOVERY_TYPE_ENUM.ARDISCOVERYSERVICE_WIFI_DISCOVERY_TYPE_MDSNSDMIN);
     }
     
     public synchronized void start(ARDISCOVERYSERVICE_WIFI_DISCOVERY_TYPE_ENUM newWifiDiscoveryType)
