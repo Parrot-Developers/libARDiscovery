@@ -34,6 +34,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
 import java.net.InetAddress;
+import java.util.Map;
+import java.util.Set;
 
 import com.parrot.arsdk.arsal.ARSALPrint;
 
@@ -48,21 +50,16 @@ public class ARDiscoveryNsdDiscovery implements ARDiscoveryWifiDiscovery
 {
     private static final String TAG = ARDiscoveryNsdDiscovery.class.getSimpleName();
 
-    private List<String> devicesServiceArray;
-
-    private HashMap<String, ARDiscoveryDeviceService> netDeviceServicesHmap;
+    /** Map of device services string to enum */
+    private final Map<String, ARDISCOVERY_PRODUCT_ENUM> devicesServices;
+    private final HashMap<String, ARDiscoveryDeviceService> netDeviceServicesHmap;
 
     // Listeners
-    private NsdManager.RegistrationListener mRegistrationListener;
     private HashMap<String, NsdManager.DiscoveryListener> mDiscoveryListeners;
     private NsdManager.ResolveListener mResolveListener;
 
     // NsdManager
     private NsdManager mNsdManager;
-
-    // Published service info
-    private String mServiceName;
-    private boolean published;
 
     private Boolean isNetDiscovering = false;
 
@@ -70,32 +67,29 @@ public class ARDiscoveryNsdDiscovery implements ARDiscoveryWifiDiscovery
     private ARDiscoveryService broadcaster;
     private Context context;
 
-    public ARDiscoveryNsdDiscovery()
+    public ARDiscoveryNsdDiscovery(Set<ARDISCOVERY_PRODUCT_ENUM> supportedProducts)
     {
         opened = false;
 
         /**
          * devicesServiceArray init
          */
-        devicesServiceArray = new ArrayList<String>();
-        //TODO: workaround for the skyController
-        String devicesService = String.format (ARDiscoveryService.ARDISCOVERY_SERVICE_NET_DEVICE_FORMAT, ARDiscoveryService.nativeGetProductID(ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_ARDRONE.getValue()));
-        devicesServiceArray.add(devicesService);
-        /*
+        devicesServices = new HashMap<String, ARDISCOVERY_PRODUCT_ENUM>();
         for (int i = ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_NSNETSERVICE.getValue() ; i < ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_BLESERVICE.getValue(); ++i)
         {
-            String devicesService = String.format (ARDiscoveryService.ARDISCOVERY_SERVICE_NET_DEVICE_FORMAT, ARDiscoveryService.nativeGetProductID(i));
-            
-            devicesServiceArray.add(devicesService);
-        }*/
-
+            if (supportedProducts.contains(ARDISCOVERY_PRODUCT_ENUM.getFromValue(i)))
+            {
+                String devicesService = String.format(ARDiscoveryService.ARDISCOVERY_SERVICE_NET_DEVICE_FORMAT, ARDiscoveryService.nativeGetProductID(i));
+                devicesServices.put(devicesService, ARDISCOVERY_PRODUCT_ENUM.getFromValue(i));
+            }
+        }
         netDeviceServicesHmap = new HashMap<String, ARDiscoveryDeviceService> ();
 
-        initializeRegistrationListener();
         initializeDiscoveryListeners();
         initializeResolveListener();
     }
 
+    @Override
     public synchronized void open(ARDiscoveryService broadcaster, Context c)
     {
         this.broadcaster = broadcaster;
@@ -111,6 +105,7 @@ public class ARDiscoveryNsdDiscovery implements ARDiscoveryWifiDiscovery
         opened = true;
     }
 
+    @Override
     public synchronized void close()
     {
         if (! opened)
@@ -118,7 +113,7 @@ public class ARDiscoveryNsdDiscovery implements ARDiscoveryWifiDiscovery
             return;
         }
 
-        for (String type : devicesServiceArray)
+        for (String type : devicesServices.keySet())
         {
             ARSALPrint.i(TAG, "Will stop searching for devices of type <" + type + ">");
             mNsdManager.stopServiceDiscovery(mDiscoveryListeners.get(type));
@@ -131,38 +126,33 @@ public class ARDiscoveryNsdDiscovery implements ARDiscoveryWifiDiscovery
     }
 
 
-    public void update()
-    {
-        // Nothing here, we always are discovering, regardless of the network type
-    }
-    
+    @Override
     synchronized public void start()
     {
         if (!isNetDiscovering)
         {
-            if (devicesServiceArray != null && mNsdManager != null && mDiscoveryListeners != null)
+            if (mNsdManager != null && mDiscoveryListeners != null)
             {
                 
-                for (String type : devicesServiceArray)
+                for (String type : devicesServices.keySet())
                 {
                     ARSALPrint.i(TAG, "Will start searching for devices of type <" + type + ">");
-                    
                     ARSALPrint.i(TAG, "NsdManager.PROTOCOL_DNS_SD:" + NsdManager.PROTOCOL_DNS_SD +" mDiscoveryListeners.get(type):" + mDiscoveryListeners.get(type));
-                    
                     mNsdManager.discoverServices(type, NsdManager.PROTOCOL_DNS_SD, mDiscoveryListeners.get(type));
                 }
                 isNetDiscovering = true;
             }
         }
     }
-    
+
+    @Override
     synchronized public void stop()
     {
         if (isNetDiscovering)
         {
-            if (devicesServiceArray != null && mNsdManager != null && mDiscoveryListeners != null)
+            if (mNsdManager != null && mDiscoveryListeners != null)
             {
-                for (String type : devicesServiceArray)
+                for (String type : devicesServices.keySet())
                 {
                     ARSALPrint.i(TAG, "Will stop searching for devices of type <" + type + ">");
                     mNsdManager.stopServiceDiscovery(mDiscoveryListeners.get(type));
@@ -172,98 +162,10 @@ public class ARDiscoveryNsdDiscovery implements ARDiscoveryWifiDiscovery
         }
     }
 
-    /**
-     * @brief Publishes a service of the given product
-     * This function unpublishes any previously published service
-     * @param product The product to publish
-     * @param name The name of the service
-     * @param port The port of the service
-     */
-    public boolean publishService(ARDISCOVERY_PRODUCT_ENUM product, String name, int port)
-    {
-        return publishService(ARDiscoveryService.getProductID(product), name, port);
-    }
-
-    /**
-     * @brief Publishes a service of the given product_id
-     * This function unpublishes any previously published service
-     * @param product_id The product ID to publish
-     * @param name The name of the service
-     * @param port The port of the service
-     */
-    public boolean publishService(final int product_id, final String name, final int port)
-    {
-        if (opened)
-        {
-            unpublishService();
-
-            NsdServiceInfo serviceInfo = new NsdServiceInfo();
-
-            serviceInfo.setServiceName(name);
-            serviceInfo.setPort(port);
-            String type = String.format(ARDiscoveryService.ARDISCOVERY_SERVICE_NET_DEVICE_FORMAT, product_id);
-            serviceInfo.setServiceType(type);
-
-            mNsdManager.registerService(serviceInfo, NsdManager.PROTOCOL_DNS_SD, mRegistrationListener);
-            
-            published = true;
-        }
-
-        return published;
-    }
-
-    /**
-     * @brief Unpublishes any published service
-     */
-    public void unpublishService()
-    {
-        if (published)
-        {
-            mNsdManager.unregisterService(mRegistrationListener);
-            mServiceName = null;
-            published = false;
-        }
-    }
-
-    private void initializeRegistrationListener()
-    {
-        mRegistrationListener = new NsdManager.RegistrationListener()
-            {
-
-                @Override
-                public void onServiceRegistered(NsdServiceInfo NsdServiceInfo)
-                {
-                    // Save the service name.  Android may have changed it in order to
-                    // resolve a conflict, so update the name you initially requested
-                    // with the name Android actually used.
-                    mServiceName = NsdServiceInfo.getServiceName();
-                }
-
-                @Override
-                public void onRegistrationFailed(NsdServiceInfo serviceInfo, int errorCode)
-                {
-                    // Registration failed!  Put debugging code here to determine why.
-                }
-
-                @Override
-                public void onServiceUnregistered(NsdServiceInfo arg0)
-                {
-                    // Service has been unregistered.  This only happens when you call
-                    // NsdManager.unregisterService() and pass in this listener.
-                }
-
-                @Override
-                public void onUnregistrationFailed(NsdServiceInfo serviceInfo, int errorCode)
-                {
-                    // Unregistration failed.  Put debugging code here to determine why.
-                }
-            };
-    }
-
     private void initializeDiscoveryListeners()
     {
         mDiscoveryListeners = new HashMap<String, NsdManager.DiscoveryListener> ();
-        for (String type : devicesServiceArray)
+        for (String type : devicesServices.keySet())
         {
             // Instantiate a new DiscoveryListener
             NsdManager.DiscoveryListener dl = new NsdManager.DiscoveryListener()
@@ -281,27 +183,8 @@ public class ARDiscoveryNsdDiscovery implements ARDiscoveryWifiDiscovery
                     {
                         // A service was found!  Do something with it.
                         ARSALPrint.i(TAG, "Service discovery success" + service);
-                        boolean validType = false;
-                        boolean shouldBeAdded = true;
-                        for (String type : devicesServiceArray)
-                        {
-                            if (service.getServiceType().equals(type))
-                            {
-                                validType = true;
-                                break;
-                            }
-                        }
-
+                        boolean validType = devicesServices.containsKey(service.getServiceType());
                         if (validType)
-                        {
-                            if (service.getServiceName().equals(mServiceName))
-                            {
-                                // Do not add our own service to the list
-                                shouldBeAdded = false;
-                            }
-                        }
-
-                        if (shouldBeAdded)
                         {
                             mNsdManager.resolveService(service, mResolveListener);
                         }
@@ -371,11 +254,6 @@ public class ARDiscoveryNsdDiscovery implements ARDiscoveryWifiDiscovery
             {
                 ARSALPrint.i(TAG, "Resolve Succeeded. " + serviceInfo);
 
-                if (serviceInfo.getServiceName().equals(mServiceName))
-                {
-                    ARSALPrint.w(TAG, "Same IP.");
-                    return;
-                }
                 int port = serviceInfo.getPort();
                 InetAddress host = serviceInfo.getHost();
                 String ip = host.getHostAddress();
@@ -390,24 +268,12 @@ public class ARDiscoveryNsdDiscovery implements ARDiscoveryWifiDiscovery
                     String serviceInfoType = serviceInfo.getServiceType().substring(1, serviceInfo.getServiceType().length()) + ".";
                     
                     ARDiscoveryDeviceNetService deviceNetService = new ARDiscoveryDeviceNetService(serviceInfo.getServiceName(), serviceInfoType, ip, port, null);
-                    int productID = 0;
 
-                    /* find device type */
-                    for (int i = ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_NSNETSERVICE.getValue(); i < ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_BLESERVICE.getValue(); ++i)
-                    {
-                        String type = devicesServiceArray.get(i);
-                        ARSALPrint.d(TAG, "Checking <" + deviceNetService.getType() + "> against <" + type + ">");
-                        if (deviceNetService.getType().equals(type))
-                        {
-                            productID = ARDiscoveryService.nativeGetProductID(i);
-                            ARSALPrint.d(TAG, "Match ! Productid = " + productID);
-                            break;
-                        }
-                    }
-
-                    if (productID != 0)
+                    ARDISCOVERY_PRODUCT_ENUM product = devicesServices.get(deviceNetService.getType());
+                    if (product != null)
                     {
                         /* add the service in the array */
+                        int productID = ARDiscoveryService.nativeGetProductID(product.getValue());
                         ARDiscoveryDeviceService deviceService = new ARDiscoveryDeviceService (serviceInfo.getServiceName(), deviceNetService, productID);
                         netDeviceServicesHmap.put(deviceService.getName(), deviceService);
 
@@ -423,6 +289,7 @@ public class ARDiscoveryNsdDiscovery implements ARDiscoveryWifiDiscovery
         };
     }
 
+    @Override
     public List<ARDiscoveryDeviceService> getDeviceServicesArray()
     {
         return new ArrayList<ARDiscoveryDeviceService> (netDeviceServicesHmap.values());

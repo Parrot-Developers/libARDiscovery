@@ -34,6 +34,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Set;
 
 import com.parrot.arsdk.arsal.ARSALPrint;
 
@@ -56,6 +57,8 @@ public class ARDiscoveryBLEDiscoveryImpl implements ARDiscoveryBLEDiscovery
     private static final int ARDISCOVERY_BT_VENDOR_ID = 0x0043; /* Parrot Company ID registered by Bluetooth SIG (Bluetooth Specification v4.0 Requirement) */
     private static final int ARDISCOVERY_USB_VENDOR_ID = 0x19cf; /* official Parrot USB Vendor ID */
 
+    private final Set<ARDISCOVERY_PRODUCT_ENUM> supportedProducts;
+
     private boolean bleIsAvailable;
     private BluetoothAdapter bluetoothAdapter;
     private BLEScanner bleScanner;
@@ -73,10 +76,11 @@ public class ARDiscoveryBLEDiscoveryImpl implements ARDiscoveryBLEDiscovery
     private Boolean isLeDiscovering = false;
     private Boolean askForLeDiscovering = false;
 
-    public ARDiscoveryBLEDiscoveryImpl()
+    public ARDiscoveryBLEDiscoveryImpl(Set<ARDISCOVERY_PRODUCT_ENUM> supportedProducts)
     {
         ARSALPrint.w(TAG,"ARDiscoveryBLEDiscoveryImpl new !!!!");
-        
+
+        this.supportedProducts = supportedProducts;
         opened = false;
         
         bleDeviceServicesHmap = new HashMap<String, ARDiscoveryDeviceService> ();
@@ -143,6 +147,7 @@ public class ARDiscoveryBLEDiscoveryImpl implements ARDiscoveryBLEDiscovery
         };
     }
 
+    @Override
     public synchronized void open(ARDiscoveryService broadcaster, Context c)
     {
         ARSALPrint.d(TAG, "Open BLE");
@@ -170,6 +175,7 @@ public class ARDiscoveryBLEDiscoveryImpl implements ARDiscoveryBLEDiscovery
         opened = true;
     }
 
+    @Override
     public synchronized void close()
     {
         ARSALPrint.d(TAG, "Close BLE");
@@ -193,7 +199,7 @@ public class ARDiscoveryBLEDiscoveryImpl implements ARDiscoveryBLEDiscovery
         opened = false;
     }
 
-    public void update()
+    private void update()
     {
         if ((bleIsAvailable == true) && bluetoothAdapter.isEnabled())
         {
@@ -204,7 +210,8 @@ public class ARDiscoveryBLEDiscoveryImpl implements ARDiscoveryBLEDiscovery
             bleDisconnect();
         }
     }
-    
+
+    @Override
     public void start()
     {
         if (!isLeDiscovering)
@@ -220,7 +227,8 @@ public class ARDiscoveryBLEDiscoveryImpl implements ARDiscoveryBLEDiscovery
             }
         }
     }
-    
+
+    @Override
     public void stop()
     {
         if (isLeDiscovering)
@@ -430,7 +438,10 @@ public class ARDiscoveryBLEDiscoveryImpl implements ARDiscoveryBLEDiscovery
                         (usbVendorID == ARDISCOVERY_USB_VENDOR_ID) &&
                         (usbProductID == ARDiscoveryService.getProductID(ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_MINIDRONE)) )
                     {
-                        parrotProductID = usbProductID;
+                        if (supportedProducts.contains(ARDiscoveryService.getProductFromProductID(usbProductID)))
+                        {
+                            parrotProductID = usbProductID;
+                        }
                     }
                 }
             }
@@ -541,6 +552,7 @@ public class ARDiscoveryBLEDiscoveryImpl implements ARDiscoveryBLEDiscovery
         return res;
     }
 
+    @Override
     public List<ARDiscoveryDeviceService> getDeviceServicesArray()
     {
         return new ArrayList<ARDiscoveryDeviceService> (bleDeviceServicesHmap.values());

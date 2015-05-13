@@ -40,6 +40,7 @@ import com.parrot.arsdk.arsal.ARSALPrint;
 import android.net.nsd.NsdServiceInfo;
 import android.net.nsd.NsdManager;
 import android.content.Context;
+import android.util.Log;
 
 /**
  * Android Nsd implementation of the wifi part of ARDiscoveryService

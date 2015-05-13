@@ -41,7 +41,6 @@ public interface ARDiscoveryBLEDiscovery
 {
     public void open(ARDiscoveryService broadcaster, Context c);
     public void close();
-    public void update();
     public void start();
     public void stop();
 
