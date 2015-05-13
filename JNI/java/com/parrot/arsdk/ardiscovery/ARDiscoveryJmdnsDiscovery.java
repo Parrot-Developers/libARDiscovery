@@ -34,6 +34,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.RejectedExecutionException;
 
 import javax.jmdns.JmDNS;
@@ -67,9 +69,8 @@ public class ARDiscoveryJmdnsDiscovery implements ARDiscoveryWifiDiscovery
 
     private JmDNS mDNSManager;
     private ServiceListener mDNSListener;
-    private List<String> devicesServiceArray;
-
-    private ServiceInfo publishedService;
+    /** Map of device services string to enum */
+    private final Map<String, ARDISCOVERY_PRODUCT_ENUM> devicesServices;
 
     private AsyncTask<Object, Object, Object> jmdnsCreatorAsyncTask;
     
@@ -92,7 +93,7 @@ public class ARDiscoveryJmdnsDiscovery implements ARDiscoveryWifiDiscovery
 
     private final Object mJmDNSLock = new Object();
 
-    public ARDiscoveryJmdnsDiscovery()
+    public ARDiscoveryJmdnsDiscovery(Set<ARDISCOVERY_PRODUCT_ENUM> supportedProducts)
     {
         opened = false;
 
@@ -110,14 +111,15 @@ public class ARDiscoveryJmdnsDiscovery implements ARDiscoveryWifiDiscovery
         /**
          * devicesServiceArray init
          */
-        devicesServiceArray = new ArrayList<String>();
+        devicesServices = new HashMap<String, ARDISCOVERY_PRODUCT_ENUM>();
         for (int i = ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_NSNETSERVICE.getValue() ; i < ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_BLESERVICE.getValue(); ++i)
         {
-            String devicesService = String.format (ARDiscoveryService.ARDISCOVERY_SERVICE_NET_DEVICE_FORMAT, ARDiscoveryService.nativeGetProductID(i));
-
-            devicesService += ARDiscoveryService.ARDISCOVERY_SERVICE_NET_DEVICE_DOMAIN;
-
-            devicesServiceArray.add(devicesService);
+            if (supportedProducts.contains(ARDISCOVERY_PRODUCT_ENUM.getFromValue(i)))
+            {
+                String devicesService = String.format(ARDiscoveryService.ARDISCOVERY_SERVICE_NET_DEVICE_FORMAT, ARDiscoveryService.nativeGetProductID(i));
+                devicesService += ARDiscoveryService.ARDISCOVERY_SERVICE_NET_DEVICE_DOMAIN;
+                devicesServices.put(devicesService, ARDISCOVERY_PRODUCT_ENUM.getFromValue(i));
+            }
         }
 
         netDeviceServicesHmap = new HashMap<String, ARDiscoveryDeviceService> ();
@@ -137,6 +139,7 @@ public class ARDiscoveryJmdnsDiscovery implements ARDiscoveryWifiDiscovery
         };
     }
 
+    @Override
     public synchronized void open(ARDiscoveryService broadcaster, Context c)
     {
         this.broadcaster = broadcaster;
@@ -153,6 +156,7 @@ public class ARDiscoveryJmdnsDiscovery implements ARDiscoveryWifiDiscovery
         opened = true;
     }
 
+    @Override
     public synchronized void close()
     {
         if (! opened)
@@ -182,8 +186,8 @@ public class ARDiscoveryJmdnsDiscovery implements ARDiscoveryWifiDiscovery
             {
                 if (mDNSListener != null)
                 {
-                /* remove the net service listeners */
-                    for (String devicesService : devicesServiceArray)
+                    /* remove the net service listeners */
+                    for (String devicesService : devicesServices.keySet())
                     {
                         ARSALPrint.d(TAG,"removeServiceListener:" + devicesService);
                         mDNSManager.removeServiceListener(devicesService, mDNSListener);
@@ -206,7 +210,7 @@ public class ARDiscoveryJmdnsDiscovery implements ARDiscoveryWifiDiscovery
     }
 
 
-    public void update()
+    private void update()
     {
         /* If we have wifi or ethernet connected, connect discovery */
         ConnectivityManager connManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -240,7 +244,8 @@ public class ARDiscoveryJmdnsDiscovery implements ARDiscoveryWifiDiscovery
             }
         }
     }
-    
+
+    @Override
     public void start()
     {
         if (!isNetDiscovering)
@@ -258,7 +263,8 @@ public class ARDiscoveryJmdnsDiscovery implements ARDiscoveryWifiDiscovery
             }
         }
     }
-    
+
+    @Override
     public void stop()
     {
         if (isNetDiscovering)
@@ -307,7 +313,6 @@ public class ARDiscoveryJmdnsDiscovery implements ARDiscoveryWifiDiscovery
     {
         /* reset */
         hostAddress = nullAddress;
-        unpublishService();
         mdnsDestroy();
         jmdnsCreatorAsyncTask = null;
         isNetDiscovering = false;
@@ -317,7 +322,6 @@ public class ARDiscoveryJmdnsDiscovery implements ARDiscoveryWifiDiscovery
     {
         String ip = null;
         int port = 0;
-        int productID = 0;
         String txtRecord = null;
 
         synchronized (mJmDNSLock)
@@ -336,19 +340,11 @@ public class ARDiscoveryJmdnsDiscovery implements ARDiscoveryWifiDiscovery
             /* new ARDiscoveryDeviceNetService */
             ARDiscoveryDeviceNetService deviceNetService = new ARDiscoveryDeviceNetService(serviceEvent.getName(), serviceEvent.getType(), ip, port, txtRecord);
 
-            /* find device type */
-            for (int i = ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_NSNETSERVICE.getValue(); i < ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_BLESERVICE.getValue(); ++i)
-            {
-                if (deviceNetService.getType().equals(devicesServiceArray.get(i)))
-                {
-                    productID = ARDiscoveryService.nativeGetProductID(i);
-                    break;
-                }
-            }
-
-            if (productID != 0)
+            ARDISCOVERY_PRODUCT_ENUM product = devicesServices.get(deviceNetService.getType());
+            if (product != null)
             {
                 /* add the service in the array */
+                int productID = ARDiscoveryService.nativeGetProductID(product.getValue());
                 ARDiscoveryDeviceService deviceService = new ARDiscoveryDeviceService (serviceEvent.getName(), deviceNetService, productID);
                 netDeviceServicesHmap.put(deviceService.getName(), deviceService);
 
@@ -595,7 +591,7 @@ public class ARDiscoveryJmdnsDiscovery implements ARDiscoveryWifiDiscovery
         protected void onPostExecute(Object result)
         {
             /* add the net service listeners */
-            for (String devicesService : devicesServiceArray)
+            for (String devicesService : devicesServices.keySet())
             {
                 ARSALPrint.d(TAG,"addServiceListener:" + devicesService);
                 
@@ -612,72 +608,7 @@ public class ARDiscoveryJmdnsDiscovery implements ARDiscoveryWifiDiscovery
 
     }
 
-    /**
-     * @brief Publishes a service of the given product
-     * This function unpublishes any previously published service
-     * @param product The product to publish
-     * @param name The name of the service
-     * @param port The port of the service
-     */
-    public boolean publishService(ARDISCOVERY_PRODUCT_ENUM product, String name, int port)
-    {
-        return publishService(ARDiscoveryService.getProductID(product), name, port);
-    }
-
-    /**
-     * @brief Publishes a service of the given product_id
-     * This function unpublishes any previously published service
-     * @param product_id The product ID to publish
-     * @param name The name of the service
-     * @param port The port of the service
-     */
-    public boolean publishService(final int product_id, final String name, final int port)
-    {
-        unpublishService();
-
-        Thread t = new Thread(new Runnable()
-        {
-            public void run()
-            {
-                String type = String.format("_arsdk-%04x._udp.local.", product_id);
-                ARSALPrint.d(TAG, "Publish service <" + type + " | " + name + " | " + port + " >");
-                publishedService = ServiceInfo.create(type, name, port, 1, 1, ServiceInfo.NO_VALUE);
-                boolean success = false;
-                try
-                {
-                    mDNSManager.registerService(publishedService);
-                    success = true;
-                }
-                catch (IOException ioe)
-                {
-                    ARSALPrint.e(TAG, "Error publishing service");
-                    ioe.printStackTrace();
-                }
-                catch (Throwable t)
-                {
-                    ARSALPrint.e(TAG, "Oops ...");
-                    t.printStackTrace();
-                }
-            }
-        });
-        t.start();
-        // return success;
-        return true;
-    }
-
-    /**
-     * @brief Unpublishes any published service
-     */
-    public void unpublishService()
-    {
-        if (mDNSManager != null)
-        {
-            mDNSManager.unregisterAllServices();
-        }
-        publishedService = null;
-    }
-
-
+    @Override
     public List<ARDiscoveryDeviceService> getDeviceServicesArray()
     {
         return new ArrayList<ARDiscoveryDeviceService> (netDeviceServicesHmap.values());
