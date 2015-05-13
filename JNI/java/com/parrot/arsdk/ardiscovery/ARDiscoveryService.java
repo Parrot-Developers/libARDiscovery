@@ -37,47 +37,25 @@
 
 package com.parrot.arsdk.ardiscovery;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
-
-import javax.jmdns.JmDNS;
-import javax.jmdns.ServiceEvent;
-import javax.jmdns.ServiceInfo;
-import javax.jmdns.ServiceListener;
+import java.util.Set;
 
 import com.parrot.arsdk.arsal.ARSALPrint;
 
-import android.annotation.TargetApi;
 import android.app.Service;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothManager;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.pm.PackageManager;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.net.wifi.WifiManager;
-import android.os.AsyncTask;
 import android.os.Binder;
-import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
-import android.text.format.Formatter;
-import android.util.Pair;
 import android.os.Build;
 
 public class ARDiscoveryService extends Service
 {
     private static final String TAG = ARDiscoveryService.class.getSimpleName();
-    
+
     /* Native Functions */
     public static native int nativeGetProductID (int product);
     private static native String nativeGetProductName(int product);
@@ -95,18 +73,20 @@ public class ARDiscoveryService extends Service
     
     public enum ARDISCOVERYSERVICE_WIFI_DISCOVERY_TYPE_ENUM
     {
+        /** jmdns based implementation */
         ARDISCOVERYSERVICE_WIFI_DISCOVERY_TYPE_JMDNS,
+        /** Android Network Service Discovery Manager implementation, only available on API 16 */
         ARDISCOVERYSERVICE_WIFI_DISCOVERY_TYPE_NSD,
+        /** Custom MDNS-SD implementation */
         ARDISCOVERYSERVICE_WIFI_DISCOVERY_TYPE_MDSNSDMIN;
     }
-    
+
+
     /**
      * Constant for devices services list updates notification
      */
     public static final String kARDiscoveryServiceNotificationServicesDevicesListUpdated = "kARDiscoveryServiceNotificationServicesDevicesListUpdated";
-    
-    public static final String kARDiscoveryServiceWifiDiscoveryType = "kARDiscoveryServiceWifiDiscoveryType";
-    
+
     public static String ARDISCOVERY_SERVICE_NET_DEVICE_FORMAT;
     public static String ARDISCOVERY_SERVICE_NET_DEVICE_DOMAIN;
     
@@ -118,18 +98,51 @@ public class ARDiscoveryService extends Service
     private ARDiscoveryBLEDiscovery bleDiscovery;
     private ARDiscoveryWifiDiscovery wifiDiscovery;
     private ARDiscoveryNsdPublisher wifiPublisher;
-    
-    private ARDISCOVERYSERVICE_WIFI_DISCOVERY_TYPE_ENUM wifiDiscoveryType = null;
-    
+
     private final IBinder binder = new LocalBinder();
-    private Handler mHandler;
-    
+
+    /**
+     * Selected wifi discovery implementation. Can be set using
+     * {@link #setWifiPreferredWifiDiscoveryType(ARDISCOVERYSERVICE_WIFI_DISCOVERY_TYPE_ENUM)}
+     */
+    private static ARDISCOVERYSERVICE_WIFI_DISCOVERY_TYPE_ENUM wifiDiscoveryType;
+    private static Set<ARDISCOVERY_PRODUCT_ENUM> supportedProducts;
+
     static
     {
         ARDISCOVERY_SERVICE_NET_DEVICE_FORMAT = nativeGetDefineNetDeviceFormat () + ".";
         ARDISCOVERY_SERVICE_NET_DEVICE_DOMAIN = nativeGetDefineNetDeviceDomain () + ".";
     }
-    
+
+    /**
+     * Configuration: set the preferred wifi discovery type.
+     * This method must be called before starting ARDiscoveryService.
+     * @param discoveryType preferred wifi discovery type
+     */
+    public static void setWifiPreferredWifiDiscoveryType(ARDISCOVERYSERVICE_WIFI_DISCOVERY_TYPE_ENUM discoveryType)
+    {
+        synchronized (ARDiscoveryService.class)
+        {
+            if (wifiDiscoveryType != null)
+            {
+                throw new RuntimeException("setWifiPreferredWifiDiscoveryType must be called before stating ARDiscoveryService");
+            }
+            wifiDiscoveryType = discoveryType;
+        }
+    }
+
+    public static void setSupportedProducts(Set<ARDISCOVERY_PRODUCT_ENUM> products)
+    {
+        synchronized (ARDiscoveryService.class)
+        {
+            if (supportedProducts != null)
+            {
+                throw new RuntimeException("setWifiPreferredWifiDiscoveryType must be called before stating ARDiscoveryService");
+            }
+            supportedProducts = products;
+        }
+    }
+
     @Override
     public IBinder onBind(Intent intent)
     {
@@ -142,9 +155,23 @@ public class ARDiscoveryService extends Service
     public void onCreate() 
     {
         initIntents();
-        
-        bleDiscovery = new ARDiscoveryBLEDiscoveryImpl();
-        bleDiscovery.open(this, this);     
+
+        synchronized (this.getClass())
+        {
+            if (wifiDiscoveryType == null)
+            {
+                wifiDiscoveryType = ARDISCOVERYSERVICE_WIFI_DISCOVERY_TYPE_ENUM.ARDISCOVERYSERVICE_WIFI_DISCOVERY_TYPE_MDSNSDMIN;
+            }
+            if (supportedProducts == null)
+            {
+                supportedProducts = EnumSet.allOf(ARDISCOVERY_PRODUCT_ENUM.class);
+            }
+        }
+        // create  and open BLE discovery
+        bleDiscovery = new ARDiscoveryBLEDiscoveryImpl(supportedProducts);
+        bleDiscovery.open(this, this);
+        // create and open wifi discovery and publisher
+        initWifiDiscovery();
     }
 
     @Override
@@ -166,18 +193,21 @@ public class ARDiscoveryService extends Service
         if(bleDiscovery != null)
         {
             bleDiscovery.close();
+            bleDiscovery = null;
         }
         
         if(wifiDiscovery != null)
         {
             wifiDiscovery.close();
+            wifiDiscovery = null;
         }
         
         if(wifiPublisher != null)
         {
             wifiPublisher.close();
+            wifiPublisher = null;
         }
-        
+
     }
     
     public class LocalBinder extends Binder
@@ -201,7 +231,6 @@ public class ARDiscoveryService extends Service
     public boolean onUnbind(Intent intent)
     {
         ARSALPrint.d(TAG,"onUnbind");
-        
         return true; /* ensures onRebind is called */
     }
     
@@ -209,108 +238,73 @@ public class ARDiscoveryService extends Service
     public void onRebind(Intent intent)
     {
         ARSALPrint.d(TAG,"onRebind");
-        
     }
     
-    private synchronized void initWifiDiscovery(ARDISCOVERYSERVICE_WIFI_DISCOVERY_TYPE_ENUM newWifiDiscoveryType) 
+    private synchronized void initWifiDiscovery()
     {
-        switch (newWifiDiscoveryType)
+        switch (wifiDiscoveryType)
         {
             case ARDISCOVERYSERVICE_WIFI_DISCOVERY_TYPE_NSD:
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)
                 {
-                    wifiDiscoveryType = newWifiDiscoveryType;
-                    wifiDiscovery = new ARDiscoveryNsdDiscovery();
-
+                    wifiDiscovery = new ARDiscoveryNsdDiscovery(supportedProducts);
                     wifiPublisher = new ARDiscoveryNsdPublisher();
-                    wifiPublisher.open(this, this);
                 }
                 else
                 {
-                    ARSALPrint.w(TAG, "NSD can't run on " + Build.VERSION.SDK_INT + " jmdns will be used");
-                    initWifiDiscovery(ARDISCOVERYSERVICE_WIFI_DISCOVERY_TYPE_ENUM.ARDISCOVERYSERVICE_WIFI_DISCOVERY_TYPE_JMDNS);
+                    ARSALPrint.w(TAG, "NSD can't run on " + Build.VERSION.SDK_INT + " MdnsSdMin will be used");
+                    wifiDiscovery = new ARDiscoveryMdnsSdMinDiscovery(supportedProducts);
+                    wifiPublisher = null;
                 }
                 break;
-                
             case ARDISCOVERYSERVICE_WIFI_DISCOVERY_TYPE_MDSNSDMIN:
-                wifiDiscoveryType = newWifiDiscoveryType;
-                wifiDiscovery = new ARDiscoveryMdnsSdMinDiscovery();
-                ARSALPrint.w(TAG, "no wifiPublisher !");
+                wifiDiscovery = new ARDiscoveryMdnsSdMinDiscovery(supportedProducts);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)
+                {   // uses NSD to publish as MdnsSdMin doesn't supports publishing yet
+                    wifiPublisher = new ARDiscoveryNsdPublisher();
+                }
+                else
+                {
+                    wifiPublisher = null;
+                }
                 break;
 
             case ARDISCOVERYSERVICE_WIFI_DISCOVERY_TYPE_JMDNS:
             default:
-                wifiDiscoveryType = newWifiDiscoveryType;
-                wifiDiscovery = new ARDiscoveryJmdnsDiscovery();
-
-                ARSALPrint.w(TAG, "no wifiPublisher !");
+                wifiDiscovery = new ARDiscoveryJmdnsDiscovery(supportedProducts);
+                wifiPublisher = null;
                 break;
             
         }
-        
-        if (wifiDiscovery != null)
+
+        ARSALPrint.v(TAG, "Opening wifi discovery");
+        wifiDiscovery.open(this, this);
+
+        if (wifiPublisher != null)
         {
-            ARSALPrint.w(TAG, "Creation complete, open in progress");
-            wifiDiscovery.open(this, this);
-            ARSALPrint.w(TAG, "Open complete");
+            ARSALPrint.v(TAG, "Opening wifi publisher");
+            wifiPublisher.open(this, this);
+        }
+        else
+        {
+            ARSALPrint.i(TAG, "No wifi publisher available");
         }
     }
-    
+
+    /**
+     * Starts discovering all wifi and bluetooth devices
+     */
     public synchronized void start()
     {
-        start(ARDISCOVERYSERVICE_WIFI_DISCOVERY_TYPE_ENUM.ARDISCOVERYSERVICE_WIFI_DISCOVERY_TYPE_MDSNSDMIN);
-    }
-    
-    public synchronized void start(ARDISCOVERYSERVICE_WIFI_DISCOVERY_TYPE_ENUM newWifiDiscoveryType)
-    {
-        //manage ble
-        if (bleDiscovery != null)
-        {
-            bleDiscovery.start();
-        }
+        bleDiscovery.start();
+        wifiDiscovery.start();
 
-        //manage wifi
-        if (wifiDiscoveryType != newWifiDiscoveryType)
-        {
-            //the wifiDiscoveryType is not the same of the previous
-            if (wifiDiscovery != null)
-            {
-                wifiDiscovery.close();
-                wifiDiscovery = null;
-            }
-
-            if (wifiPublisher != null)
-            {
-                wifiPublisher.close();
-                wifiPublisher = null;
-            }
-        }
-        //no else ; no wifiDiscovery or wifiDiscoveryType is the same of the previous
-
-        if (wifiDiscovery == null)
-        {
-            //create a new wifiDiscovery
-            initWifiDiscovery (newWifiDiscoveryType);
-        }
-        //no else ; wifiDiscovery already exits
-
-        if (wifiDiscovery != null)
-        {
-            wifiDiscovery.start();
-        }
     }
 
     public synchronized void stop()
     {
-        if (bleDiscovery != null)
-        {
-            bleDiscovery.stop();
-        }
-        
-        if (wifiDiscovery != null)
-        {
-            wifiDiscovery.stop();
-        }
+        bleDiscovery.stop();
+        wifiDiscovery.stop();
     }
     
     public synchronized void startWifiDiscovering()
@@ -356,14 +350,16 @@ public class ARDiscoveryService extends Service
     
     public List<ARDiscoveryDeviceService> getDeviceServicesArray()
     {
-        List<ARDiscoveryDeviceService> deviceServicesArray =  null;
+        List<ARDiscoveryDeviceService> deviceServicesArray = new ArrayList<ARDiscoveryDeviceService>();
         if (wifiDiscovery != null)
         {
-            deviceServicesArray =  wifiDiscovery.getDeviceServicesArray();
-            deviceServicesArray.addAll(bleDiscovery.getDeviceServicesArray());
-
-            ARSALPrint.d(TAG,"getDeviceServicesArray: " + deviceServicesArray);
+            deviceServicesArray.addAll(wifiDiscovery.getDeviceServicesArray());
         }
+        if (bleDiscovery != null)
+        {
+            deviceServicesArray.addAll(bleDiscovery.getDeviceServicesArray());
+        }
+        ARSALPrint.d(TAG,"getDeviceServicesArray: " + deviceServicesArray);
 
         return deviceServicesArray;
     }

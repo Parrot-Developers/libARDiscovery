@@ -46,6 +46,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import android.util.Log;
 
@@ -59,26 +60,30 @@ public class ARDiscoveryMdnsSdMinDiscovery implements ARDiscoveryWifiDiscovery
     private final MdnsSdMin mdnsSd;
     private final IntentFilter networkStateChangedFilter;
     private final Map<String, ARDiscoveryDeviceService> netDeviceServicesHmap;
-    private final List<String> devicesServiceArray;
+    /** Map of device services string to enum */
+    private final Map<String, ARDISCOVERY_PRODUCT_ENUM> devicesServices;
     private ARDiscoveryService broadcaster;
     private Context context;
     private WifiManager.MulticastLock multicastLock;
     private boolean started;
 
-    public ARDiscoveryMdnsSdMinDiscovery()
+    public ARDiscoveryMdnsSdMinDiscovery(Set<ARDISCOVERY_PRODUCT_ENUM> supportedProducts)
     {
         ARSALPrint.v(TAG, "Creating MdsnSd based ARDiscovery");
         // build the list of services to look for
-        devicesServiceArray = new ArrayList<String>();
+        devicesServices = new HashMap<String, ARDISCOVERY_PRODUCT_ENUM>();
         for (int i = ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_NSNETSERVICE.getValue(); i < ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_BLESERVICE.getValue(); ++i)
         {
-            String devicesService = String.format(ARDiscoveryService.ARDISCOVERY_SERVICE_NET_DEVICE_FORMAT, ARDiscoveryService.nativeGetProductID(i));
-            devicesService += ARDiscoveryService.ARDISCOVERY_SERVICE_NET_DEVICE_DOMAIN;
-            devicesServiceArray.add(devicesService);
+            if (supportedProducts.contains(ARDISCOVERY_PRODUCT_ENUM.getFromValue(i)))
+            {
+                String devicesService = String.format(ARDiscoveryService.ARDISCOVERY_SERVICE_NET_DEVICE_FORMAT, ARDiscoveryService.nativeGetProductID(i));
+                devicesService += ARDiscoveryService.ARDISCOVERY_SERVICE_NET_DEVICE_DOMAIN;
+                devicesServices.put(devicesService, ARDISCOVERY_PRODUCT_ENUM.getFromValue(i));
+            }
         }
 
         netDeviceServicesHmap = new HashMap<String, ARDiscoveryDeviceService>();
-        mdnsSd = new MdnsSdMin(devicesServiceArray.toArray(new String[devicesServiceArray.size()]), mdsnSdListener);
+        mdnsSd = new MdnsSdMin(devicesServices.keySet().toArray(new String[devicesServices.keySet().size()]), mdsnSdListener);
 
         // create the connectivity change receiver
         networkStateChangedFilter = new IntentFilter();
@@ -109,60 +114,40 @@ public class ARDiscoveryMdnsSdMinDiscovery implements ARDiscoveryWifiDiscovery
 
     public synchronized void start()
     {
-        ARSALPrint.v(TAG, "Starting MdsnSd based ARDiscovery");
-        if (!multicastLock.isHeld())
+        if (!started)
         {
-            multicastLock.acquire();
+            ARSALPrint.v(TAG, "Starting MdsnSd based ARDiscovery");
+            if (!multicastLock.isHeld())
+            {
+                multicastLock.acquire();
+            }
+            // this is sticky intent, receiver will be called asap
+            context.registerReceiver(networkStateIntentReceiver, networkStateChangedFilter);
+            started = true;
         }
-        // this is sticky intent, receiver will be called asap
-        context.registerReceiver(networkStateIntentReceiver, networkStateChangedFilter);
-        started = true;
     }
 
     public synchronized void stop()
     {
-        ARSALPrint.v(TAG, "Stopping MdsnSd based ARDiscovery");
-        started = false;
-        if (multicastLock.isHeld())
+        if (started)
         {
-            multicastLock.release();
+            ARSALPrint.v(TAG, "Stopping MdsnSd based ARDiscovery");
+            started = false;
+            if (multicastLock.isHeld())
+            {
+                multicastLock.release();
+            }
+            context.unregisterReceiver(networkStateIntentReceiver);
+            mdnsSd.stop();
+            netDeviceServicesHmap.clear();
+            broadcaster.broadcastDeviceServiceArrayUpdated();
         }
-        context.unregisterReceiver(networkStateIntentReceiver);
-        mdnsSd.stop();
-        netDeviceServicesHmap.clear();
-        broadcaster.broadcastDeviceServiceArrayUpdated();
-    }
-
-    @Override
-    public void update()
-    {
-        // noting to do here
     }
 
     @Override
     public List<ARDiscoveryDeviceService> getDeviceServicesArray()
     {
         return new ArrayList<ARDiscoveryDeviceService>(netDeviceServicesHmap.values());
-    }
-
-    @Override
-    public boolean publishService(ARDISCOVERY_PRODUCT_ENUM product, String name, int port)
-    {
-        // not supported yet
-        return false;
-    }
-
-    @Override
-    public boolean publishService(int product_id, String name, int port)
-    {
-        // not supported yet
-        return false;
-    }
-
-    @Override
-    public void unpublishService()
-    {
-        // not supported yet
     }
 
     private final BroadcastReceiver networkStateIntentReceiver = new BroadcastReceiver()
@@ -205,19 +190,11 @@ public class ARDiscoveryMdnsSdMinDiscovery implements ARDiscoveryWifiDiscovery
             ARDiscoveryDeviceNetService deviceNetService = new ARDiscoveryDeviceNetService(name, serviceType, ipAddress,
                     port, serialNumber);
 
-            /* find device type */
-            int productID = 0;
-            for (int i = ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_NSNETSERVICE.getValue(); i < ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_BLESERVICE.getValue(); ++i)
+            ARDISCOVERY_PRODUCT_ENUM product = devicesServices.get(deviceNetService.getType());
+            if (product != null)
             {
-                if (deviceNetService.getType().equals(devicesServiceArray.get(i)))
-                {
-                    productID = ARDiscoveryService.nativeGetProductID(i);
-                    break;
-                }
-            }
-            if (productID != 0)
-            {
-                ARDiscoveryDeviceService deviceService = new ARDiscoveryDeviceService(name, deviceNetService, productID);
+                int productID = ARDiscoveryService.nativeGetProductID(product.getValue());
+                ARDiscoveryDeviceService deviceService = new ARDiscoveryDeviceService(name, deviceNetService,productID);
                 netDeviceServicesHmap.put(deviceService.getName(), deviceService);
                 if (broadcaster != null)
                 {
