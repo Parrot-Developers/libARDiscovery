@@ -435,8 +435,7 @@ public class ARDiscoveryBLEDiscoveryImpl implements ARDiscoveryBLEDiscovery
 
                     /* check the vendorID, the usbVendorID end the productID */
                     if ((btVendorID == ARDISCOVERY_BT_VENDOR_ID) &&
-                        (usbVendorID == ARDISCOVERY_USB_VENDOR_ID) &&
-                        (usbProductID == ARDiscoveryService.getProductID(ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_MINIDRONE)) )
+                        (usbVendorID == ARDISCOVERY_USB_VENDOR_ID))
                     {
                         if (supportedProducts.contains(ARDiscoveryService.getProductFromProductID(usbProductID)))
                         {
