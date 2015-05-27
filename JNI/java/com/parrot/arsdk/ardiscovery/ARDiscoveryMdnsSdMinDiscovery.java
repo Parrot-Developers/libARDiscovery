@@ -36,19 +36,20 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 
 import com.parrot.arsdk.ardiscovery.mdnssdmin.MdnsSdMin;
 import com.parrot.arsdk.arsal.ARSALPrint;
 
-import java.io.IOException;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import android.util.Log;
 
 /**
  * Custom mdns-sd implementation of the wifi part of ARDiscoveryService
@@ -163,10 +164,48 @@ public class ARDiscoveryMdnsSdMinDiscovery implements ARDiscoveryWifiDiscovery
                 NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
                 NetworkInfo mEth = connManager.getNetworkInfo(ConnectivityManager.TYPE_ETHERNET);
 
+                NetworkInterface netInterface = null;
+                // search the network interface with the ip address returned by the wifi manager
+                if ((mWifi != null) && (mWifi.isConnected()))
+                {
+                    WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+                    if (wifiManager != null) {
+                        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+                        int ipAddressInt = wifiInfo.getIpAddress();
+                        String  ipAddress = String.format("%d.%d.%d.%d",
+                                (ipAddressInt & 0xff), (ipAddressInt >> 8 & 0xff),
+                                (ipAddressInt >> 16 & 0xff), (ipAddressInt >> 24 & 0xff));
+                        try
+                        {
+                            InetAddress addr = InetAddress.getByName(ipAddress);
+                            Enumeration<NetworkInterface> intfs = NetworkInterface.getNetworkInterfaces();
+                            while (netInterface == null && intfs.hasMoreElements())
+                            {
+                                NetworkInterface intf = intfs.nextElement();
+                                Enumeration<InetAddress> interfaceAddresses = intf.getInetAddresses();
+                                while (netInterface == null && interfaceAddresses.hasMoreElements())
+                                {
+                                    InetAddress interfaceAddr =  interfaceAddresses.nextElement();
+                                    if (interfaceAddr.equals(addr))
+                                    {
+                                        netInterface = intf;
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            ARSALPrint.e(TAG, "Unable to get the wifi network interface", e);
+                        }
+                    }
+                }
+
+                // for ethernet, it's not possible to find the correct netInterface. Assume there is
+                // a default route don't specify the netinterface
                 if (((mWifi != null) && (mWifi.isConnected())) || ((mEth != null) && (mEth.isConnected())))
                 {
                     ARSALPrint.v(TAG, "Restaring MdsnSd");
-                    mdnsSd.start();
+                    mdnsSd.start(netInterface);
                 }
                 else
                 {
