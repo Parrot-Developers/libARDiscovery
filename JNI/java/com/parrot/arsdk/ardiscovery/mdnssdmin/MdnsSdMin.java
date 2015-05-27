@@ -43,7 +43,9 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
+import java.net.NetworkInterface;
 
 /**
  * A minimal implementation of MDSN service discovery
@@ -147,8 +149,9 @@ public class MdnsSdMin
 
     /**
      * Starts service discovery
+     * @param netInterface interface to bind to, null to use the interface defined by the routing table
      */
-    public void start()
+    public void start(NetworkInterface netInterface)
     {
         ARSALPrint.v(TAG, "Starting MdsnSd");
         if (socket == null)
@@ -157,7 +160,16 @@ public class MdnsSdMin
             try
             {
                 socket = new MulticastSocket(MDNS_MULTICAST_PORT);
-                socket.joinGroup(InetAddress.getByName(MDNS_MULTICAST_ADDR));
+                if (netInterface != null)
+                {
+                    // if a interface has been specified, bind the multicast socket to this interface
+                    socket.setNetworkInterface(netInterface);
+                    socket.joinGroup(new InetSocketAddress(InetAddress.getByName(MDNS_MULTICAST_ADDR), MDNS_MULTICAST_PORT), netInterface);
+                }
+                else
+                {
+                    socket.joinGroup(InetAddress.getByName(MDNS_MULTICAST_ADDR));
+                }
                 socket.setTimeToLive(255);
                 // start the receiver thread
                 receiveThread = new ReceiverThread(socket);
@@ -165,7 +177,8 @@ public class MdnsSdMin
                 // start the query thread
                 queryThread = new QueryThread(socket);
                 queryThread.start();
-            } catch (IOException e)
+            }
+            catch (IOException e)
             {
                 ARSALPrint.e(TAG, "unable to start MdsnSd", e);
             }
