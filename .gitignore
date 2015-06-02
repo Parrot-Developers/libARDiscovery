@@ -9,3 +9,4 @@ Build/config.h.in
 Build/config/
 Build/configure
 Build/m4/
+JNI/java/com/parrot/arsdk/ardiscovery/ARDISCOVERY_PRODUCT_FAMILY_ENUM.java
