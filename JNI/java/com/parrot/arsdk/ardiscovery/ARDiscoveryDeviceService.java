@@ -217,6 +217,12 @@ public class ARDiscoveryDeviceService implements Parcelable
     }
 
     @Override
+    public String toString()
+    {
+        return "name="+name+", productID="+productID;
+    }
+
+    @Override
     public void writeToParcel(Parcel dest, int flags)
     {    
         dest.writeString(this.name);
