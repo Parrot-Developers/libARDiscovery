@@ -690,14 +690,13 @@ eARDISCOVERY_ERROR ARDISCOVERY_JNIConnection_ReceiveJsonCallback (uint8_t *dataR
         /* java receive json callback */
         error = (*env)->CallIntMethod(env, jniConnectionData->javaConnectionData, ARDISCOVERY_JNICONNECTION_METHOD_CONNECTION_RECEIVE_JSON_CALLBACK, jDataRx, jIP);
 
+	/* cleanup */
+	/* delete local references */
+	(*env)->DeleteLocalRef (env, jDataRx);
+	jDataRx = NULL;
+	(*env)->DeleteLocalRef (env, jIP);
+	jIP = NULL;
     }
-
-    /* cleanup */
-    /* delete local references */
-    (*env)->DeleteLocalRef (env, jDataRx);
-    jDataRx = NULL;
-    (*env)->DeleteLocalRef (env, jIP);
-    jIP = NULL;
 
     /* if the thread has been attached then detach the thread from the virtual machine */
     if ((getEnvResult == JNI_EDETACHED) && (env != NULL))
