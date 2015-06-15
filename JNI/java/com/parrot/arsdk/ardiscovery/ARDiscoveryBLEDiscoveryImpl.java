@@ -365,7 +365,7 @@ public class ARDiscoveryBLEDiscoveryImpl implements ARDiscoveryBLEDiscovery
 
         public void bleCallback (BluetoothDevice bleService, int rssi, byte[] scanRecord)
         {
-            ARSALPrint.d(TAG,"bleCallback");
+            ARSALPrint.v(TAG,"bleCallback : found BluetoothDevice : " + bleService + " (" + bleService.getName() + ")");
 
             int productID = getParrotProductID (scanRecord);
 
@@ -492,7 +492,7 @@ public class ARDiscoveryBLEDiscoveryImpl implements ARDiscoveryBLEDiscovery
     @TargetApi(18)
     private void notificationBLEServiceDeviceUpDate( HashMap<String, ARDiscoveryDeviceService> newBLEDeviceServicesHmap )
     {
-        ARSALPrint.d(TAG,"notificationBLEServiceDeviceAdd");
+        ARSALPrint.d(TAG,"notificationBLEServiceDeviceUpDate : " + newBLEDeviceServicesHmap);
         mHandler.removeCallbacksAndMessages(null);
 
         /* if the BLEDeviceServices List has changed */
