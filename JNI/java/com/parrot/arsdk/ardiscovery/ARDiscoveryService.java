@@ -249,16 +249,19 @@ public class ARDiscoveryService extends Service
                 {
                     wifiDiscovery = new ARDiscoveryNsdDiscovery(supportedProducts);
                     wifiPublisher = new ARDiscoveryNsdPublisher();
+                    ARSALPrint.d(TAG, "Wifi discovery asked is nsd and it will be ARDiscoveryNsdDiscovery");
                 }
                 else
                 {
                     ARSALPrint.w(TAG, "NSD can't run on " + Build.VERSION.SDK_INT + " MdnsSdMin will be used");
                     wifiDiscovery = new ARDiscoveryMdnsSdMinDiscovery(supportedProducts);
                     wifiPublisher = null;
+                    ARSALPrint.d(TAG, "Wifi discovery asked is nsd and it will be ARDiscoveryMdnsSdMinDiscovery");
                 }
                 break;
             case ARDISCOVERYSERVICE_WIFI_DISCOVERY_TYPE_MDSNSDMIN:
                 wifiDiscovery = new ARDiscoveryMdnsSdMinDiscovery(supportedProducts);
+                ARSALPrint.d(TAG, "Wifi discovery asked is MDSNSDMIN and it will be ARDiscoveryMdnsSdMinDiscovery");
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)
                 {   // uses NSD to publish as MdnsSdMin doesn't supports publishing yet
                     wifiPublisher = new ARDiscoveryNsdPublisher();
@@ -272,6 +275,7 @@ public class ARDiscoveryService extends Service
             case ARDISCOVERYSERVICE_WIFI_DISCOVERY_TYPE_JMDNS:
             default:
                 wifiDiscovery = new ARDiscoveryJmdnsDiscovery(supportedProducts);
+                ARSALPrint.d(TAG, "Wifi discovery asked is " + wifiDiscoveryType + " and it will be ARDiscoveryJmdnsDiscovery");
                 wifiPublisher = null;
                 break;
             
@@ -296,6 +300,7 @@ public class ARDiscoveryService extends Service
      */
     public synchronized void start()
     {
+        ARSALPrint.d(TAG, "Start discoveries");
         bleDiscovery.start();
         wifiDiscovery.start();
 
@@ -303,6 +308,7 @@ public class ARDiscoveryService extends Service
 
     public synchronized void stop()
     {
+        ARSALPrint.d(TAG, "Stop discoveries");
         bleDiscovery.stop();
         wifiDiscovery.stop();
     }
@@ -311,6 +317,7 @@ public class ARDiscoveryService extends Service
     {
         if (wifiDiscovery != null)
         {
+            ARSALPrint.d(TAG, "Start wifi discovery");
             wifiDiscovery.start();
         }
     }
@@ -319,6 +326,7 @@ public class ARDiscoveryService extends Service
     {
         if (wifiDiscovery != null)
         {
+            ARSALPrint.d(TAG, "Stop wifi discovery");
             wifiDiscovery.stop();
         }
     }
@@ -327,6 +335,7 @@ public class ARDiscoveryService extends Service
     {
         if (bleDiscovery != null)
         {
+            ARSALPrint.d(TAG, "Start BLE discovery");
             bleDiscovery.start();
         }
     }
@@ -335,6 +344,7 @@ public class ARDiscoveryService extends Service
     {
         if (bleDiscovery != null)
         {
+            ARSALPrint.d(TAG, "Stop BLE discovery");
             bleDiscovery.stop();
         }
     }

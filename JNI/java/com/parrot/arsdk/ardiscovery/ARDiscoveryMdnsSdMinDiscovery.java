@@ -221,6 +221,7 @@ public class ARDiscoveryMdnsSdMinDiscovery implements ARDiscoveryWifiDiscovery
         @Override
         public void onServiceAdded(String name, String serviceType, String ipAddress, int port, String[] txts)
         {
+            ARSALPrint.d(TAG, "onServiceAdded : " + name + " |type : " + serviceType + " |ip : " + ipAddress + " |port : " + port + " |txts = " + txts);
             String serialNumber = null;
             if (txts != null && txts.length >=1)
             {
@@ -248,6 +249,7 @@ public class ARDiscoveryMdnsSdMinDiscovery implements ARDiscoveryWifiDiscovery
         @Override
         public void onServiceRemoved(String name, String serviceType)
         {
+            ARSALPrint.d(TAG, "onServiceRemoved : " + name + " |type : " + serviceType);
             ARDiscoveryDeviceService deviceServiceRemoved = netDeviceServicesHmap.remove(name);
             if (deviceServiceRemoved != null)
             {
