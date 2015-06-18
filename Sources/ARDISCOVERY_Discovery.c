@@ -51,16 +51,16 @@ static const char* ARDISCOVERY_Discovery_ProductNameTable[ARDISCOVERY_PRODUCT_MA
 {
     // BLE Service
     [ARDISCOVERY_PRODUCT_MINIDRONE]     = "Rolling Spider",
-    [ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT] = "Rolling Spider Evo Light",
-    [ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK] = "Rolling Spider Evo Brick",
-    [ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL] = "Rolling Spider Evo Hydrofoil",
+    [ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT] = "Airborne Night",
+    [ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK] = "Airborne Cargo",
+    [ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL] = "Hydrofoil",
 
     // NSNet Service
     [ARDISCOVERY_PRODUCT_ARDRONE]       = "Bebop Drone",
     [ARDISCOVERY_PRODUCT_JS]            = "Jumping Sumo",
     [ARDISCOVERY_PRODUCT_SKYCONTROLLER] = "Sky Controller",
-    [ARDISCOVERY_PRODUCT_JS_EVO_LIGHT]  = "Jumping Sumo Evo Light",
-    [ARDISCOVERY_PRODUCT_JS_EVO_RACE]  = "Jumping Sumo Evo Race",
+    [ARDISCOVERY_PRODUCT_JS_EVO_LIGHT]  = "Jumping Night",
+    [ARDISCOVERY_PRODUCT_JS_EVO_RACE]   = "Jumping Race",
 };
 
 eARDISCOVERY_PRODUCT ARDISCOVERY_getProductService(eARDISCOVERY_PRODUCT product)
