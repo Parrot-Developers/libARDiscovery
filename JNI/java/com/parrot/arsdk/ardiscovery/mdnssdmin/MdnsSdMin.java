@@ -252,11 +252,12 @@ public class MdnsSdMin
         @Override
         public void run()
         {
-            DatagramPacket packet = new DatagramPacket(new byte[1500], 1500);
+            byte[] buffer =  new byte[1500];
             while (!socket.isClosed())
             {
                 try
                 {
+                    DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
                     socket.receive(packet);
                     MdnsSdIncomingResponse r = new MdnsSdIncomingResponse(packet.getData());
                     handleResponse(r);
