@@ -16,10 +16,9 @@ LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/../Includes
 #Autotools variables
 LOCAL_AUTOTOOLS_CONFIGURE_ARGS := --with-libARSALInstallDir="" --with-jsonInstallDir="" --with-libARNetworkInstallDir="" --with-libARNetworkALInstallDir=""
 
-LOCAL_AUTOTOOLS_CONFIGURE_ENV := ac_cv_header_avahi_client_client_h=no
-
 ifneq ($(TARGET_PRODUCT),pclinux)
 LOCAL_AUTOTOOLS_CONFIGURE_ARGS += --enable-avahi-nodbus
+LOCAL_AUTOTOOLS_CONFIGURE_ENV := ac_cv_header_avahi_client_client_h=no
 endif
 
 ifeq ("$(TARGET_PBUILD_FORCE_STATIC)","1")
