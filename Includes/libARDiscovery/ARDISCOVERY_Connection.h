@@ -50,6 +50,12 @@
 #define ARDISCOVERY_CONNECTION_JSON_SKYCONTROLLER_VERSION                   "skycontroller_version"
 
 /**
+ * if set, device/controller supports ARStream2
+ */
+#define ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_KEY                           "arstream2"
+
+
+/**
  * @brief Read/Write buffers max size
  */
 #define ARDISCOVERY_CONNECTION_TX_BUFFER_SIZE 256

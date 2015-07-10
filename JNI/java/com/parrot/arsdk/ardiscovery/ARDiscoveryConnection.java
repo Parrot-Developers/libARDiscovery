@@ -52,20 +52,21 @@ public abstract class ARDiscoveryConnection
 
     private static String TAG = "ARDiscoveryConnection";
 
-    public static String ARDISCOVERY_CONNECTION_JSON_STATUS_KEY = "";
-    public static String ARDISCOVERY_CONNECTION_JSON_C2DPORT_KEY = "";
-    public static String ARDISCOVERY_CONNECTION_JSON_D2CPORT_KEY = "";
-    public static String ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_SIZE_KEY = "";
-    public static String ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_MAXIMUM_NUMBER_KEY = "";
-    public static String ARDISCOVERY_CONNECTION_JSON_ARSTREAM_MAX_ACK_INTERVAL_KEY = "";
-    public static String ARDISCOVERY_CONNECTION_JSON_CONTROLLER_TYPE_KEY = "";
-    public static String ARDISCOVERY_CONNECTION_JSON_CONTROLLER_NAME_KEY = "";
-    public static String ARDISCOVERY_CONNECTION_JSON_DEVICE_ID_KEY = "";
-    public static String ARDISCOVERY_CONNECTION_JSON_C2D_UPDATE_PORT_KEY = "";
-    public static String ARDISCOVERY_CONNECTION_JSON_C2D_USER_PORT_KEY = "";
-    public static String ARDISCOVERY_CONNECTION_JSON_SKYCONTROLLER_VERSION = "";
+    public static final String ARDISCOVERY_CONNECTION_JSON_STATUS_KEY;
+    public static final String ARDISCOVERY_CONNECTION_JSON_C2DPORT_KEY;
+    public static final String ARDISCOVERY_CONNECTION_JSON_D2CPORT_KEY;
+    public static final String ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_SIZE_KEY;
+    public static final String ARDISCOVERY_CONNECTION_JSON_ARSTREAM_FRAGMENT_MAXIMUM_NUMBER_KEY;
+    public static final String ARDISCOVERY_CONNECTION_JSON_ARSTREAM_MAX_ACK_INTERVAL_KEY;
+    public static final String ARDISCOVERY_CONNECTION_JSON_CONTROLLER_TYPE_KEY;
+    public static final String ARDISCOVERY_CONNECTION_JSON_CONTROLLER_NAME_KEY;
+    public static final String ARDISCOVERY_CONNECTION_JSON_DEVICE_ID_KEY;
+    public static final String ARDISCOVERY_CONNECTION_JSON_C2D_UPDATE_PORT_KEY;
+    public static final String ARDISCOVERY_CONNECTION_JSON_C2D_USER_PORT_KEY;
+    public static final String ARDISCOVERY_CONNECTION_JSON_SKYCONTROLLER_VERSION;
+    public static final String ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_KEY;
 
-    public static int ARDISCOVERY_CONNECTION_SEND_JSON_SIZE = 0;
+    public static final int ARDISCOVERY_CONNECTION_SEND_JSON_SIZE;
 
     private static native void nativeStaticInit ();
     private static native String nativeGetDefineJsonStatusKey();
@@ -80,6 +81,7 @@ public abstract class ARDiscoveryConnection
     private static native String nativeGetDefineJsonC2DUpdatePortKey ();
     private static native String nativeGetDefineJsonC2DUserPortKey ();
     private static native String nativeGetDefineJsonSkyControllerVersionKey ();
+    private static native String nativeGetDefineJsonARStream2Key();
 
     private static native int nativeGetDefineTxBufferSize ();
 
@@ -111,7 +113,7 @@ public abstract class ARDiscoveryConnection
         ARDISCOVERY_CONNECTION_JSON_C2D_UPDATE_PORT_KEY = nativeGetDefineJsonC2DUpdatePortKey();
         ARDISCOVERY_CONNECTION_JSON_C2D_USER_PORT_KEY = nativeGetDefineJsonC2DUserPortKey();
         ARDISCOVERY_CONNECTION_JSON_SKYCONTROLLER_VERSION = nativeGetDefineJsonSkyControllerVersionKey();
-
+        ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_KEY = nativeGetDefineJsonARStream2Key();
         ARDISCOVERY_CONNECTION_SEND_JSON_SIZE = nativeGetDefineTxBufferSize() -1; /* -1 for the null character of the native json */
     }
 
