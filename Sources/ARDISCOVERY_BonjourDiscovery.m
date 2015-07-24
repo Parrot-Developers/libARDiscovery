@@ -495,6 +495,12 @@
 - (void)netServiceBrowser:(NSNetServiceBrowser *)aNetServiceBrowser didFindService:(NSNetService *)aNetService moreComing:(BOOL)moreComing
 {
     NSLog(@"Service found : %@, %@", aNetService.name, aNetService.type);
+    if(aNetService.TXTRecordData == nil)
+    {
+        NSLog (@"Service's TXTRecordData is nil. Updated controllers list notification is not sent");
+        return;
+    }
+    
     @synchronized (self)
     {
         if ([aNetService.type isEqualToString:kServiceNetControllerType])
