@@ -350,11 +350,8 @@ eARDISCOVERY_ERROR ARDISCOVERY_Connection_DeviceListeningLoop (ARDISCOVERY_Conne
         }
         
         /* close deviceSocket */
-        if(deviceSocket != -1)
-        {
-            ARSAL_Socket_Close (deviceSocket);
-            deviceSocket = -1;
-        }
+        ARSAL_Socket_Close (deviceSocket);
+        deviceSocket = -1;
         
         /* reset the runningSem */
         ARSAL_Sem_Post(&(connectionData->runningSem));
@@ -450,6 +447,11 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_CreateSocket (int *socket)
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
     int optval = 1;
     
+    if (socket == NULL)
+    {
+        return ARDISCOVERY_ERROR_BAD_PARAMETER;
+    }
+    
     *socket = ARSAL_Socket_Create(AF_INET, SOCK_STREAM, 0);
     if (*socket < 0)
     {
@@ -460,6 +462,9 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_CreateSocket (int *socket)
         if (setsockopt (*socket, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof optval) != 0)
         {
             error = ARDISCOVERY_ERROR_SOCKET_PERMISSION_DENIED;
+            
+            ARSAL_Socket_Close (*socket);
+            *socket = -1;
         }
     }
     
@@ -476,11 +481,13 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_DeviceInitSocket (int *deviceSo
     struct sockaddr_in recvSin;
     int errorBind, errorListen = 0;
 
-    /* Create TCP socket */
-    if (error == ARDISCOVERY_OK)
+    if (deviceSocket == NULL)
     {
-        error = ARDISCOVERY_Connection_CreateSocket (deviceSocket);
+        return ARDISCOVERY_ERROR_BAD_PARAMETER;
     }
+    
+    /* Create TCP socket */
+    error = ARDISCOVERY_Connection_CreateSocket (deviceSocket);
 
     /* Init socket */
     if (error == ARDISCOVERY_OK)
@@ -527,6 +534,12 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_DeviceInitSocket (int *deviceSo
             }
         }
     }
+    
+    if ((error != ARDISCOVERY_OK) && (*deviceSocket >= 0))
+    {
+        ARSAL_Socket_Close (*deviceSocket);
+        *deviceSocket = -1;
+    }
 
     return error;
 }
@@ -548,11 +561,13 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_ControllerInitSocket (ARDISCOVE
     char dump[10];
     int nbTryToConnect = 0;
 
-    /* Create TCP socket */
-    if (error == ARDISCOVERY_OK)
+    if (connectionData == NULL)
     {
-        error = ARDISCOVERY_Connection_CreateSocket (&(connectionData->socket));
+        return ARDISCOVERY_ERROR_BAD_PARAMETER;
     }
+    
+    /* Create TCP socket */
+    error = ARDISCOVERY_Connection_CreateSocket (&(connectionData->socket));
 
     /* Initialize socket */
     if (error == ARDISCOVERY_OK)
@@ -696,6 +711,12 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_ControllerInitSocket (ARDISCOVE
             }
             /* No else: no timeout */
         }
+    }
+    
+    if ((error != ARDISCOVERY_OK) && (connectionData->socket >= 0))
+    {
+        ARSAL_Socket_Close (connectionData->socket);
+        connectionData->socket = -1;
     }
     
     return error;
