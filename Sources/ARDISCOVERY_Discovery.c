@@ -35,22 +35,32 @@ static const uint16_t ARDISCOVERY_Discovery_ProductTable[ARDISCOVERY_PRODUCT_MAX
 {
     // BLE Service
     [ARDISCOVERY_PRODUCT_MINIDRONE]     = 0x0900,
+    [ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT] = 0x0907,
+    [ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK] = 0x0909,
+    [ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL] = 0x090a,
 
     // NSNet Service
     [ARDISCOVERY_PRODUCT_ARDRONE]       = 0x0901,
     [ARDISCOVERY_PRODUCT_JS]            = 0x0902,
     [ARDISCOVERY_PRODUCT_SKYCONTROLLER] = 0x0903,
+    [ARDISCOVERY_PRODUCT_JS_EVO_LIGHT]  = 0x0905,
+    [ARDISCOVERY_PRODUCT_JS_EVO_RACE]   = 0x0906,
 };
 
 static const char* ARDISCOVERY_Discovery_ProductNameTable[ARDISCOVERY_PRODUCT_MAX] =
 {
     // BLE Service
     [ARDISCOVERY_PRODUCT_MINIDRONE]     = "Rolling Spider",
+    [ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT] = "Airborne Night",
+    [ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK] = "Airborne Cargo",
+    [ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL] = "Hydrofoil",
 
     // NSNet Service
     [ARDISCOVERY_PRODUCT_ARDRONE]       = "Bebop Drone",
     [ARDISCOVERY_PRODUCT_JS]            = "Jumping Sumo",
     [ARDISCOVERY_PRODUCT_SKYCONTROLLER] = "Sky Controller",
+    [ARDISCOVERY_PRODUCT_JS_EVO_LIGHT]  = "Jumping Night",
+    [ARDISCOVERY_PRODUCT_JS_EVO_RACE]   = "Jumping Race",
 };
 
 eARDISCOVERY_PRODUCT ARDISCOVERY_getProductService(eARDISCOVERY_PRODUCT product)
@@ -140,4 +150,34 @@ eARDISCOVERY_PRODUCT ARDISCOVERY_getProductFromProductID(uint16_t productID)
     }
     
     return product;
+}
+
+eARDISCOVERY_PRODUCT_FAMILY ARDISCOVERY_getProductFamily(eARDISCOVERY_PRODUCT product)
+{
+    eARDISCOVERY_PRODUCT_FAMILY family = ARDISCOVERY_PRODUCT_FAMILY_MAX;
+    
+    switch (product)
+    {
+        case ARDISCOVERY_PRODUCT_ARDRONE:
+            family = ARDISCOVERY_PRODUCT_FAMILY_ARDRONE;
+            break;
+        case ARDISCOVERY_PRODUCT_JS:
+        case ARDISCOVERY_PRODUCT_JS_EVO_LIGHT:
+        case ARDISCOVERY_PRODUCT_JS_EVO_RACE:
+            family = ARDISCOVERY_PRODUCT_FAMILY_JS;
+            break; 
+        case ARDISCOVERY_PRODUCT_SKYCONTROLLER:
+            family = ARDISCOVERY_PRODUCT_FAMILY_SKYCONTROLLER;
+            break;
+        case ARDISCOVERY_PRODUCT_MINIDRONE:
+        case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT:
+        case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK:
+        case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL:
+            family = ARDISCOVERY_PRODUCT_FAMILY_MINIDRONE;
+            break;
+        default:
+            break;
+    }
+    
+    return family;
 }

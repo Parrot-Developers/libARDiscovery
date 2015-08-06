@@ -365,7 +365,7 @@ public class ARDiscoveryBLEDiscoveryImpl implements ARDiscoveryBLEDiscovery
 
         public void bleCallback (BluetoothDevice bleService, int rssi, byte[] scanRecord)
         {
-            ARSALPrint.d(TAG,"bleCallback");
+            ARSALPrint.v(TAG,"bleCallback : found BluetoothDevice : " + bleService + " (" + bleService.getName() + ")");
 
             int productID = getParrotProductID (scanRecord);
 
@@ -435,8 +435,7 @@ public class ARDiscoveryBLEDiscoveryImpl implements ARDiscoveryBLEDiscovery
 
                     /* check the vendorID, the usbVendorID end the productID */
                     if ((btVendorID == ARDISCOVERY_BT_VENDOR_ID) &&
-                        (usbVendorID == ARDISCOVERY_USB_VENDOR_ID) &&
-                        (usbProductID == ARDiscoveryService.getProductID(ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_MINIDRONE)) )
+                        (usbVendorID == ARDISCOVERY_USB_VENDOR_ID))
                     {
                         if (supportedProducts.contains(ARDiscoveryService.getProductFromProductID(usbProductID)))
                         {
@@ -493,7 +492,7 @@ public class ARDiscoveryBLEDiscoveryImpl implements ARDiscoveryBLEDiscovery
     @TargetApi(18)
     private void notificationBLEServiceDeviceUpDate( HashMap<String, ARDiscoveryDeviceService> newBLEDeviceServicesHmap )
     {
-        ARSALPrint.d(TAG,"notificationBLEServiceDeviceAdd");
+        ARSALPrint.d(TAG,"notificationBLEServiceDeviceUpDate : " + newBLEDeviceServicesHmap);
         mHandler.removeCallbacksAndMessages(null);
 
         /* if the BLEDeviceServices List has changed */

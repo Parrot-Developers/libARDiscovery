@@ -275,7 +275,7 @@
 
 - (void)start
 {
-    NSLog(@"%s:%d", __FUNCTION__, __LINE__);
+    ARSAL_PRINT(ARSAL_PRINT_DEBUG, ARDISCOVERY_BONJOURDISCOVERY_TAG, "%s:%d", __FUNCTION__, __LINE__);
     
     if (!isNSNetDiscovering)
     {
@@ -311,7 +311,7 @@
 
 - (void)pauseBLE
 {
-    NSLog(@"%s:%d", __FUNCTION__, __LINE__);
+    ARSAL_PRINT(ARSAL_PRINT_DEBUG, ARDISCOVERY_BONJOURDISCOVERY_TAG, "%s:%d", __FUNCTION__, __LINE__);
     
     if (centralManagerInitialized && isCBDiscovering)
     {
@@ -325,7 +325,7 @@
 
 - (void)stop
 {
-    NSLog(@"%s:%d", __FUNCTION__, __LINE__);
+    ARSAL_PRINT(ARSAL_PRINT_DEBUG, ARDISCOVERY_BONJOURDISCOVERY_TAG, "%s:%d", __FUNCTION__, __LINE__);
     
     [self removeAllServices];
     
@@ -579,6 +579,7 @@
 {
     @synchronized (self)
     {
+        NSLog(@"netServiceBrowser %@ didRemoveService %@ moreComing: %i", aNetServiceBrowser, aNetService, moreComing);
         if ([self isNetServiceValid:aNetService])
         {
             ARService *aService = (ARService *)[self.devicesServicesList objectForKey:aNetService.name];
@@ -792,6 +793,7 @@
 
 - (void)centralManager:(CBCentralManager *)central didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
 {
+    NSLog(@"centralManager %@ didDisconnectPeripheral %@ error: %@", central, peripheral, error);
     NSTimer *timer = (NSTimer *)[self.devicesBLEServicesTimerList objectForKey:[peripheral.identifier UUIDString]];
     
     if(timer != nil)
@@ -800,7 +802,7 @@
         
         [timer invalidate];
         timer = nil;
-        
+        NSLog(@"Will remove BLE service: %@", aService);
         [self deviceBLERemoveServices:aService];
         
     }
@@ -822,10 +824,14 @@
 #endif
         
         if ((ids[0] == ARBLESERVICE_PARROT_BT_VENDOR_ID) &&
-            (ids[1] == ARBLESERVICE_PARROT_USB_VENDOR_ID) &&
-            (ids[2] == ARDISCOVERY_getProductID(ARDISCOVERY_PRODUCT_MINIDRONE)))
+            (ids[1] == ARBLESERVICE_PARROT_USB_VENDOR_ID))
         {
-            res = YES;
+            /* Compare with all known BLE product IDs */
+            uint16_t prod_id = ids[2];
+            eARDISCOVERY_PRODUCT product = ARDISCOVERY_getProductFromProductID(prod_id);
+            if (ARDISCOVERY_getProductFamily(product) == ARDISCOVERY_PRODUCT_FAMILY_MINIDRONE) {
+                res = YES;
+            }
         }
     }
 

@@ -45,12 +45,29 @@ typedef enum
     ARDISCOVERY_PRODUCT_ARDRONE = ARDISCOVERY_PRODUCT_NSNETSERVICE,     ///< AR DRONE product
     ARDISCOVERY_PRODUCT_JS,                                             ///< JUMPING SUMO product
     ARDISCOVERY_PRODUCT_SKYCONTROLLER,                                  ///< Sky controller product
+    ARDISCOVERY_PRODUCT_JS_EVO_LIGHT,                                   ///< Jumping Sumo EVO Light product
+    ARDISCOVERY_PRODUCT_JS_EVO_RACE,                                    ///< Jumping Sumo EVO Race product
     
     ARDISCOVERY_PRODUCT_BLESERVICE,                                     ///< BlueTooth products category
-    ARDISCOVERY_PRODUCT_MINIDRONE = ARDISCOVERY_PRODUCT_BLESERVICE,         ///< DELOS product
+    ARDISCOVERY_PRODUCT_MINIDRONE = ARDISCOVERY_PRODUCT_BLESERVICE,     ///< DELOS product
+    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT,                            ///< Delos EVO Light product
+    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK,                            ///< Delos EVO Brick product
+    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL,                        ///< Delos EVO Hydrofoil product
     
     ARDISCOVERY_PRODUCT_MAX                                             ///< Max of products
 } eARDISCOVERY_PRODUCT;
+
+/**
+ * Enum characterizing every Parrot's product family
+ */
+typedef enum
+{
+    ARDISCOVERY_PRODUCT_FAMILY_ARDRONE,       ///< AR DRONE product family
+    ARDISCOVERY_PRODUCT_FAMILY_JS,            ///< JUMPING SUMO product family
+    ARDISCOVERY_PRODUCT_FAMILY_SKYCONTROLLER, ///< SKY CONTROLLER product family
+    ARDISCOVERY_PRODUCT_FAMILY_MINIDRONE,     ///< DELOS product
+    ARDISCOVERY_PRODUCT_FAMILY_MAX            ///< Max of product familys
+} eARDISCOVERY_PRODUCT_FAMILY;
 
 /**
  * @brief Get service of product
@@ -107,5 +124,14 @@ eARDISCOVERY_PRODUCT ARDISCOVERY_getProductFromName(const char *name);
  * @return The corresponding product enumerator
  */
 eARDISCOVERY_PRODUCT ARDISCOVERY_getProductFromProductID(uint16_t productID);
+
+/**
+ * @brief Get family of product
+ * This function is the only one knowing the correspondance between product 
+ * and family.
+ * @param product The product's enumerator
+ * @return The corresponding product family enumerator value
+ */
+eARDISCOVERY_PRODUCT_FAMILY ARDISCOVERY_getProductFamily(eARDISCOVERY_PRODUCT product);
 
 #endif // _ARDISCOVERY_DISCOVERY_H_
