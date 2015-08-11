@@ -68,7 +68,7 @@ typedef eARDISCOVERY_ERROR (*ARDISCOVERY_DEVICE_DeleteARNetworkAL_t) (ARDISCOVER
 /**
  * @brief Callback to Initialize the NetworkConfiguration to use with the device
  */
-typedef eARDISCOVERY_ERROR (*ARDISCOVERY_DEVICE_InitNetworkCongifuration_t) (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration);
+typedef eARDISCOVERY_ERROR (*ARDISCOVERY_DEVICE_InitNetworkConfiguration_t) (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration);
 
 /**
  * @brief Callback to copy the specificParameters 
@@ -90,7 +90,7 @@ struct ARDISCOVERY_Device_t
     eARDISCOVERY_PRODUCT productID;
     ARDISCOVERY_DEVICE_NewARNetworkAL_t newNetworkAL;
     ARDISCOVERY_DEVICE_DeleteARNetworkAL_t deleteNetworkAL;
-    ARDISCOVERY_DEVICE_InitNetworkCongifuration_t initNetworkCongifuration;
+    ARDISCOVERY_DEVICE_InitNetworkConfiguration_t initNetworkConfiguration;
     void *specificParameters; /**< Parameters specific, allocated by initializing functions and dealloc by the canceling functions. */
     ARDISCOVERY_DEVICE_GetCopyOfSpecificParameters_t getCopyOfSpecificParameters;
     ARDISCOVERY_DEVICE_DelecteSpecificParameters_t deleteSpecificParameters;
@@ -139,7 +139,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_DeleteARNetworkAL (ARDISCOVERY_Device_t *d
 /**
  * @brief Initialize the NetworkConfiguration to use with the device  //TODO add commentary !!!!!!!!!!!!
  */
-eARDISCOVERY_ERROR ARDISCOVERY_Device_InitNetworkCongifuration (ARDISCOVERY_Device_t *discoveryDevice, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration);
+eARDISCOVERY_ERROR ARDISCOVERY_Device_InitNetworkConfiguration (ARDISCOVERY_Device_t *discoveryDevice, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration);
 
 
 /***********************
