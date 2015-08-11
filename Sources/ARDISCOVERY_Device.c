@@ -83,7 +83,7 @@ ARDISCOVERY_Device_t *ARDISCOVERY_Device_New (eARDISCOVERY_ERROR *error)
         device->productID = ARDISCOVERY_PRODUCT_MAX;
         device->newNetworkAL = NULL;
         device->deleteNetworkAL = NULL;
-        device->initNetworkCongifuration = NULL;
+        device->initNetworkConfiguration = NULL;
         device->specificParameters = NULL;
         device->getCopyOfSpecificParameters = NULL;
         device->deleteSpecificParameters = NULL;
@@ -135,7 +135,7 @@ ARDISCOVERY_Device_t *ARDISCOVERY_Device_NewByCopy (ARDISCOVERY_Device_t *device
         device->productID = deviceToCopy->productID;
         device->newNetworkAL = deviceToCopy->newNetworkAL;
         device->deleteNetworkAL = deviceToCopy->deleteNetworkAL;
-        device->initNetworkCongifuration = deviceToCopy->initNetworkCongifuration;
+        device->initNetworkConfiguration = deviceToCopy->initNetworkConfiguration;
         device->getCopyOfSpecificParameters = deviceToCopy->getCopyOfSpecificParameters;
         device->deleteSpecificParameters = deviceToCopy->deleteSpecificParameters;
         
@@ -287,7 +287,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_DeleteARNetworkAL (ARDISCOVERY_Device_t *d
     return error;
 }
 
-eARDISCOVERY_ERROR ARDISCOVERY_Device_InitNetworkCongifuration (ARDISCOVERY_Device_t *discoveryDevice, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration)
+eARDISCOVERY_ERROR ARDISCOVERY_Device_InitNetworkConfiguration (ARDISCOVERY_Device_t *discoveryDevice, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration)
 {
     // -- Initialize the NetworkConfiguration to use with the device  --
     
@@ -305,7 +305,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitNetworkCongifuration (ARDISCOVERY_Devi
     {
         if (discoveryDevice->newNetworkAL != NULL)
         {
-            discoveryDevice->initNetworkCongifuration (discoveryDevice, networkConfiguration);
+            discoveryDevice->initNetworkConfiguration (discoveryDevice, networkConfiguration);
         }
         else
         {
@@ -343,11 +343,11 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitWifi (ARDISCOVERY_Device_t *device, eA
         switch (product)
         {
             case ARDISCOVERY_PRODUCT_ARDRONE: 
-                device->initNetworkCongifuration = ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkCongifuration;
+                device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration;
                 break;
                 
             case ARDISCOVERY_PRODUCT_JS:
-                device->initNetworkCongifuration = ARDISCOVERY_DEVICE_Wifi_InitJumpingSumoNetworkCongifuration;
+                device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Wifi_InitJumpingSumoNetworkConfiguration;
                 break;
             case ARDISCOVERY_PRODUCT_SKYCONTROLLER:
             case ARDISCOVERY_PRODUCT_MINIDRONE:
@@ -421,7 +421,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitBLE (ARDISCOVERY_Device_t *device, eAR
         switch (product)
         {
             case ARDISCOVERY_PRODUCT_MINIDRONE:
-                device->initNetworkCongifuration = ARDISCOVERY_DEVICE_Ble_InitRollingSpiderNetworkCongifuration;
+                device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Ble_InitRollingSpiderNetworkConfiguration;
             break;
 
             case ARDISCOVERY_PRODUCT_SKYCONTROLLER:
