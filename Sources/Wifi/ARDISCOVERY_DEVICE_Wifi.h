@@ -119,7 +119,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_DeleteARNetworkAL (ARDISCOVERY_Device
  * @param[out] networkConfiguration The networkConfiguration to Initilize.
  * @return executing error.
  */
-eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkCongifuration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration);
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration);
 
 /**
  * @brief Initilize network Configuration adapted to a Jumping Sumo.
@@ -127,6 +127,6 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkCongifuration (ARDISC
  * @param[out] networkConfiguration The networkConfiguration to Initilize.
  * @return executing error.
  */
-eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitJumpingSumoNetworkCongifuration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration);
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitJumpingSumoNetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration);
 
 #endif // _ARDISCOVERY_DEVICE_WIFI_H_
