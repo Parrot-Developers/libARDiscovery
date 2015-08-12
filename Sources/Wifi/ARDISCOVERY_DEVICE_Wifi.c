@@ -386,14 +386,15 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_DeleteARNetworkAL (ARDISCOVERY_Device
 
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration)
 {
-    // -- Initilize network Configuration adapted to a BebopDrone. --
+    // -- Initilize network Configuration adapted to a BebopDrone or linked product (as the SkyController). --
     
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
     
     // check parameters
-    if ((device == NULL) || 
-        (device->productID != ARDISCOVERY_PRODUCT_ARDRONE) ||
-        (networkConfiguration == NULL))
+    if ((device == NULL) ||
+        (networkConfiguration == NULL) ||
+        ((device->productID != ARDISCOVERY_PRODUCT_ARDRONE) && (device->productID != ARDISCOVERY_PRODUCT_SKYCONTROLLER))
+        )
     {
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;
     }
@@ -515,6 +516,13 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration (ARDISC
     }
     
     return error;
+}
+
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitSkyControllerNetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration)
+{
+    // -- Initilize network Configuration adapted to a SkyController. --
+    // This should be the same as the Bebop to be able to route the packets
+    return ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration(device, networkConfiguration);
 }
 
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitJumpingSumoNetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration)
