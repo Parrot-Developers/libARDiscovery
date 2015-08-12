@@ -122,6 +122,14 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_DeleteARNetworkAL (ARDISCOVERY_Device
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration);
 
 /**
+ * @brief Initilize network Configuration adapted to a SkyController.
+ * @param device The Discovery Device. Must be a SkyController Device
+ * @param[out] networkConfiguration The networkConfiguration to Initilize.
+ * @return executing error.
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitSkyControllerNetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration);
+
+/**
  * @brief Initilize network Configuration adapted to a Jumping Sumo.
  * @param device The Discovery Device. Must be a Jumping Sumo Device
  * @param[out] networkConfiguration The networkConfiguration to Initilize.

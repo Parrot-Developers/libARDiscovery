@@ -303,7 +303,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitNetworkConfiguration (ARDISCOVERY_Devi
     
     if (error == ARDISCOVERY_OK)
     {
-        if (discoveryDevice->newNetworkAL != NULL)
+        if (discoveryDevice->initNetworkConfiguration != NULL)
         {
             discoveryDevice->initNetworkConfiguration (discoveryDevice, networkConfiguration);
         }
@@ -342,7 +342,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitWifi (ARDISCOVERY_Device_t *device, eA
     {
         switch (product)
         {
-            case ARDISCOVERY_PRODUCT_ARDRONE: 
+            case ARDISCOVERY_PRODUCT_ARDRONE:
                 device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration;
                 break;
                 
@@ -353,6 +353,9 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitWifi (ARDISCOVERY_Device_t *device, eA
                 device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Wifi_InitUnknown_Product_1NetworkConfiguration;
                 break;
             case ARDISCOVERY_PRODUCT_SKYCONTROLLER:
+                device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Wifi_InitSkyControllerNetworkConfiguration;
+                break;
+                
             case ARDISCOVERY_PRODUCT_MINIDRONE:
             case ARDISCOVERY_PRODUCT_MAX:
                 error = ARDISCOVERY_ERROR_BAD_PARAMETER;
