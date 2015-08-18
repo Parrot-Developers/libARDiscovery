@@ -50,16 +50,25 @@
 #define ARDISCOVERY_CONNECTION_JSON_SKYCONTROLLER_VERSION                   "skycontroller_version"
 
 /**
- * if set, device/controller supports ARStream2
+ * ARStream2 specific keys
  */
 #define ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_KEY                           "arstream2"
+#define ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_CLIENT_STREAM_PORT_KEY        "arstream2_client_stream_port"
+#define ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_CLIENT_CONTROL_PORT_KEY       "arstream2_client_control_port"
+#define ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_SERVER_STREAM_PORT_KEY        "arstream2_server_stream_port"
+#define ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_SERVER_CONTROL_PORT_KEY       "arstream2_server_control_port"
+#define ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_PACKET_SIZE_KEY           "arstream2_max_packet_size"
+#define ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_LATENCY_KEY               "arstream2_max_latency"
+#define ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_NETWORK_LATENCY_KEY       "arstream2_max_network_latency"
+#define ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_BITRATE_KEY               "arstream2_max_bitrate"
+#define ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_PARAMETER_SETS_KEY            "arstream2_parameter_sets"
 
 
 /**
  * @brief Read/Write buffers max size
  */
-#define ARDISCOVERY_CONNECTION_TX_BUFFER_SIZE 256
-#define ARDISCOVERY_CONNECTION_RX_BUFFER_SIZE 256
+#define ARDISCOVERY_CONNECTION_TX_BUFFER_SIZE 512
+#define ARDISCOVERY_CONNECTION_RX_BUFFER_SIZE 512
 
 /**
  * @brief callback use to send json information of the connection
