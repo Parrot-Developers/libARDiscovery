@@ -300,6 +300,96 @@ Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeGetDefineJsonARStr
 }
 
 /**
+ * @brief get ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_CLIENT_STREAM_PORT_KEY
+ * @return value of ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_CLIENT_STREAM_PORT_KEY
+ */
+JNIEXPORT jstring JNICALL
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeGetDefineJsonARStream2ClientStreamPortKey (JNIEnv *env, jclass class)
+{
+    return  (*env)->NewStringUTF(env, ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_CLIENT_STREAM_PORT_KEY);
+}
+
+/**
+ * @brief get ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_CLIENT_CONTROL_PORT_KEY
+ * @return value of ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_CLIENT_CONTROL_PORT_KEY
+ */
+JNIEXPORT jstring JNICALL
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeGetDefineJsonARStream2ClientControlPortKey (JNIEnv *env, jclass class)
+{
+    return  (*env)->NewStringUTF(env, ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_CLIENT_CONTROL_PORT_KEY);
+}
+
+/**
+ * @brief get ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_SERVER_STREAM_PORT_KEY
+ * @return value of ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_SERVER_STREAM_PORT_KEY
+ */
+JNIEXPORT jstring JNICALL
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeGetDefineJsonARStream2ServerStreamPortKey (JNIEnv *env, jclass class)
+{
+    return  (*env)->NewStringUTF(env, ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_SERVER_STREAM_PORT_KEY);
+}
+
+/**
+ * @brief get ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_SERVER_CONTROL_PORT_KEY
+ * @return value of ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_SERVER_CONTROL_PORT_KEY
+ */
+JNIEXPORT jstring JNICALL
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeGetDefineJsonARStream2ServerControlPortKey (JNIEnv *env, jclass class)
+{
+    return  (*env)->NewStringUTF(env, ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_SERVER_CONTROL_PORT_KEY);
+}
+
+/**
+ * @brief get ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_PACKET_SIZE_KEY
+ * @return value of ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_PACKET_SIZE_KEY
+ */
+JNIEXPORT jstring JNICALL
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeGetDefineJsonARStream2MaxPacketSizeKey (JNIEnv *env, jclass class)
+{
+    return  (*env)->NewStringUTF(env, ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_PACKET_SIZE_KEY);
+}
+
+/**
+ * @brief get ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_LATENCY_KEY
+ * @return value of ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_LATENCY_KEY
+ */
+JNIEXPORT jstring JNICALL
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeGetDefineJsonARStream2MaxLatencyKey (JNIEnv *env, jclass class)
+{
+    return  (*env)->NewStringUTF(env, ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_LATENCY_KEY);
+}
+
+/**
+ * @brief get ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_NETWORK_LATENCY_KEY
+ * @return value of ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_NETWORK_LATENCY_KEY
+ */
+JNIEXPORT jstring JNICALL
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeGetDefineJsonARStream2MaxNetworkLatencyKey (JNIEnv *env, jclass class)
+{
+    return  (*env)->NewStringUTF(env, ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_NETWORK_LATENCY_KEY);
+}
+
+/**
+ * @brief get ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_BITRATE_KEY
+ * @return value of ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_BITRATE_KEY
+ */
+JNIEXPORT jstring JNICALL
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeGetDefineJsonARStream2MaxBitrateKey (JNIEnv *env, jclass class)
+{
+    return  (*env)->NewStringUTF(env, ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_BITRATE_KEY);
+}
+
+/**
+ * @brief get ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_PARAMETER_SETS_KEY
+ * @return value of ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_PARAMETER_SETS_KEY
+ */
+JNIEXPORT jstring JNICALL
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryConnection_nativeGetDefineJsonARStream2ParameterSetsKey (JNIEnv *env, jclass class)
+{
+    return  (*env)->NewStringUTF(env, ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_PARAMETER_SETS_KEY);
+}
+
+/**
  * @brief get ARDISCOVERY_CONNECTION_TX_BUFFER_SIZE
  * @return value of ARDISCOVERY_CONNECTION_TX_BUFFER_SIZE
  */
