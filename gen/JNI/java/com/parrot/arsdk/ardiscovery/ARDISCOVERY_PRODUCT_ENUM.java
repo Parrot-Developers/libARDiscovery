@@ -45,8 +45,8 @@ public enum ARDISCOVERY_PRODUCT_ENUM {
     eARDISCOVERY_PRODUCT_UNKNOWN_ENUM_VALUE (Integer.MIN_VALUE, "Dummy value for all unknown cases"),
    /** WiFi products category */
     ARDISCOVERY_PRODUCT_NSNETSERVICE (0, "WiFi products category"),
-   /** AR DRONE product */
-    ARDISCOVERY_PRODUCT_ARDRONE (0, "AR DRONE product"),
+   /** Bebop Drone product */
+    ARDISCOVERY_PRODUCT_ARDRONE (0, "Bebop Drone product"),
    /** JUMPING SUMO product */
     ARDISCOVERY_PRODUCT_JS (1, "JUMPING SUMO product"),
    /** Sky controller product */
@@ -55,18 +55,20 @@ public enum ARDISCOVERY_PRODUCT_ENUM {
     ARDISCOVERY_PRODUCT_JS_EVO_LIGHT (3, "Jumping Sumo EVO Light product"),
    /** Jumping Sumo EVO Race product */
     ARDISCOVERY_PRODUCT_JS_EVO_RACE (4, "Jumping Sumo EVO Race product"),
+   /** Bebop drone 2.0 product */
+    ARDISCOVERY_PRODUCT_BEBOP_2 (5, "Bebop drone 2.0 product"),
    /** BlueTooth products category */
-    ARDISCOVERY_PRODUCT_BLESERVICE (5, "BlueTooth products category"),
+    ARDISCOVERY_PRODUCT_BLESERVICE (6, "BlueTooth products category"),
    /** DELOS product */
-    ARDISCOVERY_PRODUCT_MINIDRONE (5, "DELOS product"),
+    ARDISCOVERY_PRODUCT_MINIDRONE (6, "DELOS product"),
    /** Delos EVO Light product */
-    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT (6, "Delos EVO Light product"),
+    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT (7, "Delos EVO Light product"),
    /** Delos EVO Brick product */
-    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK (7, "Delos EVO Brick product"),
+    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK (8, "Delos EVO Brick product"),
    /** Delos EVO Hydrofoil product */
-    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL (8, "Delos EVO Hydrofoil product"),
+    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL (9, "Delos EVO Hydrofoil product"),
    /** Max of products */
-    ARDISCOVERY_PRODUCT_MAX (9, "Max of products");
+    ARDISCOVERY_PRODUCT_MAX (10, "Max of products");
 
     private final int value;
     private final String comment;
