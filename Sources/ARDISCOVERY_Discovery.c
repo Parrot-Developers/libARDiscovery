@@ -62,7 +62,7 @@ static const char* ARDISCOVERY_Discovery_ProductNameTable[ARDISCOVERY_PRODUCT_MA
     [ARDISCOVERY_PRODUCT_SKYCONTROLLER] = "Sky Controller",
     [ARDISCOVERY_PRODUCT_JS_EVO_LIGHT]  = "Jumping Night",
     [ARDISCOVERY_PRODUCT_JS_EVO_RACE]   = "Jumping Race",
-    [ARDISCOVERY_PRODUCT_BEBOP_2]       = "Bebop Drone 2",
+    [ARDISCOVERY_PRODUCT_BEBOP_2]       = "Bebop Drone 2.0",
 };
 
 eARDISCOVERY_PRODUCT ARDISCOVERY_getProductService(eARDISCOVERY_PRODUCT product)
@@ -109,9 +109,13 @@ void ARDISCOVERY_getProductPathName(eARDISCOVERY_PRODUCT product, char *buffer, 
         {
             strncpy(buffer, name, nameLen + 1);
             index = buffer;
-            while ((index = strstr(index, " ")) != NULL)
+            while (*index != '\0')
             {
-                *index = '_';
+                if (*index == '.' ||
+                    *index == ' ')
+                {
+                    *index = '_';
+                }
                 index++;
             }
         }
