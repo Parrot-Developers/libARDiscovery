@@ -62,7 +62,7 @@ static const char* ARDISCOVERY_Discovery_ProductNameTable[ARDISCOVERY_PRODUCT_MA
     [ARDISCOVERY_PRODUCT_SKYCONTROLLER] = "Sky Controller",
     [ARDISCOVERY_PRODUCT_JS_EVO_LIGHT]  = "Jumping Night",
     [ARDISCOVERY_PRODUCT_JS_EVO_RACE]   = "Jumping Race",
-    [ARDISCOVERY_PRODUCT_BEBOP_2]       = "Bebop Drone 2",
+    [ARDISCOVERY_PRODUCT_BEBOP_2]       = "Bebop 2",
 };
 
 eARDISCOVERY_PRODUCT ARDISCOVERY_getProductService(eARDISCOVERY_PRODUCT product)
