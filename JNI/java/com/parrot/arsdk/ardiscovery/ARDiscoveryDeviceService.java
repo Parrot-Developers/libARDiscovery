@@ -112,8 +112,6 @@ public class ARDiscoveryDeviceService implements Parcelable
     @Override
     public boolean equals(Object other) 
     {
-        ARSALPrint.d(TAG,"equals");
-        
         boolean isEqual = true;
             
         if ( (other == null) || !(other instanceof ARDiscoveryDeviceService) )
@@ -149,8 +147,6 @@ public class ARDiscoveryDeviceService implements Parcelable
                         }
                         else if (this.getDevice() instanceof ARDiscoveryDeviceBLEService)
                         {
-                            ARSALPrint.d(TAG,"equals");
-                            
                             /* if it is a BLEDevice */
                             ARDiscoveryDeviceBLEService deviceBLEService = (ARDiscoveryDeviceBLEService) this.getDevice();
                             ARDiscoveryDeviceBLEService otherDeviceBLEService = (ARDiscoveryDeviceBLEService) otherDevice.getDevice();
