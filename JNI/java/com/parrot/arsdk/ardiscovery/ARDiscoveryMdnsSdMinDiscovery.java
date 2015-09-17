@@ -50,6 +50,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import android.os.Bundle;
 
 /**
  * Custom mdns-sd implementation of the wifi part of ARDiscoveryService
@@ -70,7 +71,7 @@ public class ARDiscoveryMdnsSdMinDiscovery implements ARDiscoveryWifiDiscovery
 
     public ARDiscoveryMdnsSdMinDiscovery(Set<ARDISCOVERY_PRODUCT_ENUM> supportedProducts)
     {
-        ARSALPrint.v(TAG, "Creating MdsnSd based ARDiscovery");
+        ARSALPrint.d(TAG, "Creating MdsnSd based ARDiscovery");
         // build the list of services to look for
         devicesServices = new HashMap<String, ARDISCOVERY_PRODUCT_ENUM>();
         for (int i = ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_NSNETSERVICE.getValue(); i < ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_BLESERVICE.getValue(); ++i)
@@ -93,7 +94,7 @@ public class ARDiscoveryMdnsSdMinDiscovery implements ARDiscoveryWifiDiscovery
 
     public synchronized void open(ARDiscoveryService broadcaster, Context c)
     {
-        ARSALPrint.v(TAG, "Opening MdsnSd based ARDiscovery");
+        ARSALPrint.d(TAG, "Opening MdsnSd based ARDiscovery");
         this.broadcaster = broadcaster;
         this.context = c;
         // create a multicast lock
@@ -103,7 +104,7 @@ public class ARDiscoveryMdnsSdMinDiscovery implements ARDiscoveryWifiDiscovery
 
     public synchronized void close()
     {
-        ARSALPrint.v(TAG, "Closing MdsnSd based ARDiscovery");
+        ARSALPrint.d(TAG, "Closing MdsnSd based ARDiscovery");
         if (started)
         {
             stop();
@@ -117,7 +118,7 @@ public class ARDiscoveryMdnsSdMinDiscovery implements ARDiscoveryWifiDiscovery
     {
         if (!started)
         {
-            ARSALPrint.v(TAG, "Starting MdsnSd based ARDiscovery");
+            ARSALPrint.d(TAG, "Starting MdsnSd based ARDiscovery");
             if (!multicastLock.isHeld())
             {
                 multicastLock.acquire();
@@ -132,7 +133,7 @@ public class ARDiscoveryMdnsSdMinDiscovery implements ARDiscoveryWifiDiscovery
     {
         if (started)
         {
-            ARSALPrint.v(TAG, "Stopping MdsnSd based ARDiscovery");
+            ARSALPrint.d(TAG, "Stopping MdsnSd based ARDiscovery");
             started = false;
             if (multicastLock.isHeld())
             {
@@ -158,6 +159,30 @@ public class ARDiscoveryMdnsSdMinDiscovery implements ARDiscoveryWifiDiscovery
         {
             if (intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION))
             {
+                ARSALPrint.d(TAG, "Receive CONNECTIVITY_ACTION intent, extras are :");
+                Bundle extras = intent.getExtras();
+                for (String key : extras.keySet()) {
+                    ARSALPrint.d(TAG, "Key : " + key + ", value = " + extras.get(key).toString());
+                }
+                ARSALPrint.d(TAG, "End of extras");
+
+                boolean needFlush = extras.getBoolean(ConnectivityManager.EXTRA_NO_CONNECTIVITY, false);
+                if (needFlush)
+                {
+                    ARSALPrint.d(TAG, "Extra " + ConnectivityManager.EXTRA_NO_CONNECTIVITY + " set to true, need flush");
+                }
+                NetworkInfo netInfos = (NetworkInfo)extras.get(ConnectivityManager.EXTRA_NETWORK_INFO);
+                if (netInfos != null)
+                {
+                    NetworkInfo.State state = netInfos.getState();
+                    if (state.equals(NetworkInfo.State.DISCONNECTED))
+                    {
+                        ARSALPrint.d(TAG, "NetworkInfo.State is DISCONNECTED, need flush");
+                        needFlush = true;
+                    }
+                }
+                
+
                 mdnsSd.stop();
 
                 ConnectivityManager connManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -204,11 +229,18 @@ public class ARDiscoveryMdnsSdMinDiscovery implements ARDiscoveryWifiDiscovery
                 // a default route don't specify the netinterface
                 if (((mWifi != null) && (mWifi.isConnected())) || ((mEth != null) && (mEth.isConnected())))
                 {
-                    ARSALPrint.v(TAG, "Restaring MdsnSd");
+                    ARSALPrint.d(TAG, "Restaring MdsnSd");
                     mdnsSd.start(netInterface);
                 }
                 else
                 {
+                    ARSALPrint.d(TAG, "Not connected to either wifi or ethernet, need flush list");
+                    needFlush = true;
+                }
+
+                if (needFlush)
+                {
+                    ARSALPrint.d(TAG, "Clearing devices list");
                     netDeviceServicesHmap.clear();
                     broadcaster.broadcastDeviceServiceArrayUpdated();
                 }
