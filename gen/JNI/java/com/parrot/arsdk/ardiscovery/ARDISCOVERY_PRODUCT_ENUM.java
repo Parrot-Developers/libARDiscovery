@@ -57,18 +57,20 @@ public enum ARDISCOVERY_PRODUCT_ENUM {
     ARDISCOVERY_PRODUCT_JS_EVO_RACE (4, "Jumping Sumo EVO Race product"),
    /** Bebop drone 2.0 product */
     ARDISCOVERY_PRODUCT_BEBOP_2 (5, "Bebop drone 2.0 product"),
+   /** Power up product */
+    ARDISCOVERY_PRODUCT_POWER_UP (6, "Power up product"),
    /** BlueTooth products category */
-    ARDISCOVERY_PRODUCT_BLESERVICE (6, "BlueTooth products category"),
+    ARDISCOVERY_PRODUCT_BLESERVICE (7, "BlueTooth products category"),
    /** DELOS product */
-    ARDISCOVERY_PRODUCT_MINIDRONE (6, "DELOS product"),
+    ARDISCOVERY_PRODUCT_MINIDRONE (7, "DELOS product"),
    /** Delos EVO Light product */
-    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT (7, "Delos EVO Light product"),
+    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT (8, "Delos EVO Light product"),
    /** Delos EVO Brick product */
-    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK (8, "Delos EVO Brick product"),
+    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK (9, "Delos EVO Brick product"),
    /** Delos EVO Hydrofoil product */
-    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL (9, "Delos EVO Hydrofoil product"),
+    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL (10, "Delos EVO Hydrofoil product"),
    /** Max of products */
-    ARDISCOVERY_PRODUCT_MAX (10, "Max of products");
+    ARDISCOVERY_PRODUCT_MAX (11, "Max of products");
 
     private final int value;
     private final String comment;
