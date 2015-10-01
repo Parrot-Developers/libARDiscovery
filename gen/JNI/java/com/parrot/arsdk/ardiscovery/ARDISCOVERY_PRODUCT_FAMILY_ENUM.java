@@ -51,8 +51,10 @@ public enum ARDISCOVERY_PRODUCT_FAMILY_ENUM {
     ARDISCOVERY_PRODUCT_FAMILY_SKYCONTROLLER (2, "SKY CONTROLLER product family"),
    /** DELOS product */
     ARDISCOVERY_PRODUCT_FAMILY_MINIDRONE (3, "DELOS product"),
+   /** Power Up product family */
+    ARDISCOVERY_PRODUCT_FAMILY_POWER_UP (4, "Power Up product family"),
    /** Max of product familys */
-    ARDISCOVERY_PRODUCT_FAMILY_MAX (4, "Max of product familys");
+    ARDISCOVERY_PRODUCT_FAMILY_MAX (5, "Max of product familys");
 
     private final int value;
     private final String comment;
