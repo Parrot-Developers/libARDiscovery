@@ -129,4 +129,12 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration (ARDISC
  */
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitJumpingSumoNetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration);
 
+/**
+ * @brief Initilize network Configuration adapted to a Unknown Product 1.
+ * @param device The Discovery Device. Must be a Unknown Product 1 Device
+ * @param[out] networkConfiguration The networkConfiguration to Initilize.
+ * @return executing error.
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitUnknown_Product_1NetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration);
+
 #endif // _ARDISCOVERY_DEVICE_WIFI_H_
