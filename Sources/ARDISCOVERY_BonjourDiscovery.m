@@ -248,6 +248,11 @@
     return name;
 }
 
+- (void)removeDeviceService:(ARService*)aService
+{
+    [self.devicesServicesList removeObjectForKey:aService.name];
+}
+
 #pragma mark - Discovery
 - (BOOL)isNetServiceValid:(NSNetService *)aNetService
 {
