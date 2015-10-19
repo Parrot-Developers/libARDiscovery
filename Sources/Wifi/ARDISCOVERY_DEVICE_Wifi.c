@@ -396,14 +396,16 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_DeleteARNetworkAL (ARDISCOVERY_Device
 
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration)
 {
-    // -- Initilize network Configuration adapted to a BebopDrone or linked product (as the SkyController). --
+    // -- Initilize network Configuration adapted to a Bebop, a Bebop 2 or linked product (as the SkyController). --
     
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
     
     // check parameters
     if ((device == NULL) ||
         (networkConfiguration == NULL) ||
-        ((device->productID != ARDISCOVERY_PRODUCT_ARDRONE) && (device->productID != ARDISCOVERY_PRODUCT_SKYCONTROLLER))
+        ((device->productID != ARDISCOVERY_PRODUCT_ARDRONE) &&
+         (device->productID != ARDISCOVERY_PRODUCT_SKYCONTROLLER) &&
+         (device->productID != ARDISCOVERY_PRODUCT_BEBOP_2))
         )
     {
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;
@@ -532,6 +534,13 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitSkyControllerNetworkConfiguration
 {
     // -- Initilize network Configuration adapted to a SkyController. --
     // This should be the same as the Bebop to be able to route the packets
+    return ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration(device, networkConfiguration);
+}
+
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitBebop2NetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration)
+{
+    // -- Initilize network Configuration adapted to a Bebop 2. --
+    // This should be the same as the SkyController to be able to route the packets
     return ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration(device, networkConfiguration);
 }
 
