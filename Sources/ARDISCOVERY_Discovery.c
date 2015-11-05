@@ -59,7 +59,7 @@ static const char* ARDISCOVERY_Discovery_ProductNameTable[ARDISCOVERY_PRODUCT_MA
     // NSNet Service
     [ARDISCOVERY_PRODUCT_ARDRONE]       = "Bebop Drone",
     [ARDISCOVERY_PRODUCT_JS]            = "Jumping Sumo",
-    [ARDISCOVERY_PRODUCT_SKYCONTROLLER] = "Sky Controller",
+    [ARDISCOVERY_PRODUCT_SKYCONTROLLER] = "SkyController",
     [ARDISCOVERY_PRODUCT_JS_EVO_LIGHT]  = "Jumping Night",
     [ARDISCOVERY_PRODUCT_JS_EVO_RACE]   = "Jumping Race",
     [ARDISCOVERY_PRODUCT_BEBOP_2]       = "Bebop 2",
