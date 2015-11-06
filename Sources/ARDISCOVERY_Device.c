@@ -349,6 +349,9 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitWifi (ARDISCOVERY_Device_t *device, eA
             case ARDISCOVERY_PRODUCT_JS:
                 device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Wifi_InitJumpingSumoNetworkConfiguration;
                 break;
+            case ARDISCOVERY_PRODUCT_UNKNOWN_PRODUCT_1:
+                device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Wifi_InitUnknown_Product_1NetworkConfiguration;
+                break;
             case ARDISCOVERY_PRODUCT_SKYCONTROLLER:
             case ARDISCOVERY_PRODUCT_MINIDRONE:
             case ARDISCOVERY_PRODUCT_MAX:
@@ -427,6 +430,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitBLE (ARDISCOVERY_Device_t *device, eAR
             case ARDISCOVERY_PRODUCT_SKYCONTROLLER:
             case ARDISCOVERY_PRODUCT_ARDRONE:
             case ARDISCOVERY_PRODUCT_JS:
+            case ARDISCOVERY_PRODUCT_UNKNOWN_PRODUCT_1:
             case ARDISCOVERY_PRODUCT_MAX:
                 error = ARDISCOVERY_ERROR_BAD_PARAMETER;
             break;
