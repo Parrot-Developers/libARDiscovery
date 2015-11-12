@@ -64,7 +64,6 @@ public abstract class ARDiscoveryConnection
     public static final String ARDISCOVERY_CONNECTION_JSON_C2D_UPDATE_PORT_KEY;
     public static final String ARDISCOVERY_CONNECTION_JSON_C2D_USER_PORT_KEY;
     public static final String ARDISCOVERY_CONNECTION_JSON_SKYCONTROLLER_VERSION;
-    public static final String ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_KEY;
     public static final String ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_CLIENT_STREAM_PORT_KEY;
     public static final String ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_CLIENT_CONTROL_PORT_KEY;
     public static final String ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_SERVER_STREAM_PORT_KEY;
@@ -90,7 +89,6 @@ public abstract class ARDiscoveryConnection
     private static native String nativeGetDefineJsonC2DUpdatePortKey ();
     private static native String nativeGetDefineJsonC2DUserPortKey ();
     private static native String nativeGetDefineJsonSkyControllerVersionKey ();
-    private static native String nativeGetDefineJsonARStream2Key();
     private static native String nativeGetDefineJsonARStream2ClientStreamPortKey();
     private static native String nativeGetDefineJsonARStream2ClientControlPortKey();
     private static native String nativeGetDefineJsonARStream2ServerStreamPortKey();
@@ -131,7 +129,6 @@ public abstract class ARDiscoveryConnection
         ARDISCOVERY_CONNECTION_JSON_C2D_UPDATE_PORT_KEY = nativeGetDefineJsonC2DUpdatePortKey();
         ARDISCOVERY_CONNECTION_JSON_C2D_USER_PORT_KEY = nativeGetDefineJsonC2DUserPortKey();
         ARDISCOVERY_CONNECTION_JSON_SKYCONTROLLER_VERSION = nativeGetDefineJsonSkyControllerVersionKey();
-        ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_KEY = nativeGetDefineJsonARStream2Key();
         ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_CLIENT_STREAM_PORT_KEY = nativeGetDefineJsonARStream2ClientStreamPortKey();
         ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_CLIENT_CONTROL_PORT_KEY = nativeGetDefineJsonARStream2ClientControlPortKey();
         ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_SERVER_STREAM_PORT_KEY = nativeGetDefineJsonARStream2ServerStreamPortKey();
