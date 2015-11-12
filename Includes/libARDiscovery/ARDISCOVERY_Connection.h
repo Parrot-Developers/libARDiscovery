@@ -52,7 +52,6 @@
 /**
  * ARStream2 specific keys
  */
-#define ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_KEY                           "arstream2"
 #define ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_CLIENT_STREAM_PORT_KEY        "arstream2_client_stream_port"
 #define ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_CLIENT_CONTROL_PORT_KEY       "arstream2_client_control_port"
 #define ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_SERVER_STREAM_PORT_KEY        "arstream2_server_stream_port"
