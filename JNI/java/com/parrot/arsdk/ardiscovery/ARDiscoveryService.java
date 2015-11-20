@@ -108,6 +108,8 @@ public class ARDiscoveryService extends Service
     private static ARDISCOVERYSERVICE_WIFI_DISCOVERY_TYPE_ENUM wifiDiscoveryType;
     private static Set<ARDISCOVERY_PRODUCT_ENUM> supportedProducts;
 
+    private static boolean usePublisher;
+
     static
     {
         ARDISCOVERY_SERVICE_NET_DEVICE_FORMAT = nativeGetDefineNetDeviceFormat () + ".";
@@ -141,6 +143,11 @@ public class ARDiscoveryService extends Service
             }
             supportedProducts = products;
         }
+    }
+
+    public static void setUsePublisher(boolean use)
+    {
+        usePublisher = use;
     }
 
     @Override
@@ -248,7 +255,10 @@ public class ARDiscoveryService extends Service
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)
                 {
                     wifiDiscovery = new ARDiscoveryNsdDiscovery(supportedProducts);
-                    wifiPublisher = new ARDiscoveryNsdPublisher();
+                    if (usePublisher)
+                    {
+                        wifiPublisher = new ARDiscoveryNsdPublisher();
+                    }
                     ARSALPrint.d(TAG, "Wifi discovery asked is nsd and it will be ARDiscoveryNsdDiscovery");
                 }
                 else
@@ -264,7 +274,10 @@ public class ARDiscoveryService extends Service
                 ARSALPrint.d(TAG, "Wifi discovery asked is MDSNSDMIN and it will be ARDiscoveryMdnsSdMinDiscovery");
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)
                 {   // uses NSD to publish as MdnsSdMin doesn't supports publishing yet
-                    wifiPublisher = new ARDiscoveryNsdPublisher();
+                    if (usePublisher)
+                    {
+                        wifiPublisher = new ARDiscoveryNsdPublisher();
+                    }
                 }
                 else
                 {
