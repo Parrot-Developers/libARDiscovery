@@ -542,7 +542,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitJumpingSumoNetworkConfiguration (
     
     // check parameters
     if ((device == NULL) || 
-        (device->productID != ARDISCOVERY_PRODUCT_JS) ||
+        (ARDISCOVERY_getProductFamily(device->productID) != ARDISCOVERY_PRODUCT_FAMILY_JS) ||
         (networkConfiguration == NULL))
     {
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;
