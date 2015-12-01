@@ -348,8 +348,9 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitWifi (ARDISCOVERY_Device_t *device, eA
             case ARDISCOVERY_PRODUCT_BEBOP_2:
                 device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Wifi_InitBebop2NetworkConfiguration;
                 break;
-                
             case ARDISCOVERY_PRODUCT_JS:
+            case ARDISCOVERY_PRODUCT_JS_EVO_LIGHT:
+            case ARDISCOVERY_PRODUCT_JS_EVO_RACE:
                 device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Wifi_InitJumpingSumoNetworkConfiguration;
                 break;
             case ARDISCOVERY_PRODUCT_UNKNOWN_PRODUCT_1:
@@ -360,6 +361,9 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitWifi (ARDISCOVERY_Device_t *device, eA
                 break;
                 
             case ARDISCOVERY_PRODUCT_MINIDRONE:
+            case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT:
+            case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK:
+            case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL:
             case ARDISCOVERY_PRODUCT_MAX:
                 error = ARDISCOVERY_ERROR_BAD_PARAMETER;
                 break;
@@ -430,6 +434,9 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitBLE (ARDISCOVERY_Device_t *device, eAR
         switch (product)
         {
             case ARDISCOVERY_PRODUCT_MINIDRONE:
+            case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT:
+            case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK:
+            case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL:
                 device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Ble_InitRollingSpiderNetworkConfiguration;
             break;
 
@@ -437,6 +444,8 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitBLE (ARDISCOVERY_Device_t *device, eAR
             case ARDISCOVERY_PRODUCT_ARDRONE:
             case ARDISCOVERY_PRODUCT_BEBOP_2:
             case ARDISCOVERY_PRODUCT_JS:
+            case ARDISCOVERY_PRODUCT_JS_EVO_LIGHT:
+            case ARDISCOVERY_PRODUCT_JS_EVO_RACE:
             case ARDISCOVERY_PRODUCT_UNKNOWN_PRODUCT_1:
             case ARDISCOVERY_PRODUCT_MAX:
                 error = ARDISCOVERY_ERROR_BAD_PARAMETER;
