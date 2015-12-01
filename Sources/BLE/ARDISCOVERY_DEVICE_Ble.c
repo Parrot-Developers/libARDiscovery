@@ -297,7 +297,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Ble_InitRollingSpiderNetworkConfiguration 
     
     // check parameters
     if ((device == NULL) || 
-        (device->productID != ARDISCOVERY_PRODUCT_MINIDRONE) ||
+        (ARDISCOVERY_getProductFamily(device->productID) != ARDISCOVERY_PRODUCT_FAMILY_MINIDRONE) ||
         (networkConfiguration == NULL))
     {
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;
