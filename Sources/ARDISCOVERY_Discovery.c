@@ -47,6 +47,7 @@ static const uint16_t ARDISCOVERY_Discovery_ProductTable[ARDISCOVERY_PRODUCT_MAX
     [ARDISCOVERY_PRODUCT_JS_EVO_RACE]   = 0x0906,
     [ARDISCOVERY_PRODUCT_BEBOP_2]       = 0x090c,
     [ARDISCOVERY_PRODUCT_UNKNOWN_PRODUCT_1]      = 0x090d,
+    [ARDISCOVERY_PRODUCT_EVINRUDE]      = 0x090e,
 };
 
 static const char* ARDISCOVERY_Discovery_ProductNameTable[ARDISCOVERY_PRODUCT_MAX] =
@@ -65,6 +66,7 @@ static const char* ARDISCOVERY_Discovery_ProductNameTable[ARDISCOVERY_PRODUCT_MA
     [ARDISCOVERY_PRODUCT_JS_EVO_RACE]   = "Jumping Race",
     [ARDISCOVERY_PRODUCT_BEBOP_2]       = "Bebop 2",
     [ARDISCOVERY_PRODUCT_UNKNOWN_PRODUCT_1]      = "Unknown Product 1",
+    [ARDISCOVERY_PRODUCT_EVINRUDE]      = "Evinrude",
 };
 
 eARDISCOVERY_PRODUCT ARDISCOVERY_getProductService(eARDISCOVERY_PRODUCT product)
@@ -208,6 +210,9 @@ eARDISCOVERY_PRODUCT_FAMILY ARDISCOVERY_getProductFamily(eARDISCOVERY_PRODUCT pr
         break;
     case ARDISCOVERY_PRODUCT_UNKNOWN_PRODUCT_1:
         family = ARDISCOVERY_PRODUCT_FAMILY_UNKNOWN_PRODUCT_1;
+        break;
+    case ARDISCOVERY_PRODUCT_EVINRUDE:
+        family = ARDISCOVERY_PRODUCT_FAMILY_FLYING_WING;
         break;
     default:
         break;
