@@ -125,6 +125,9 @@ char* ARDISCOVERY_Error_ToString (eARDISCOVERY_ERROR error)
     case ARDISCOVERY_ERROR_SOCKET_UNREACHABLE:
         return "host or net is not reachable";
         break;
+    case ARDISCOVERY_ERROR_OUTPUT_LENGTH:
+        return "the length of the output is to small";
+        break;
     case ARDISCOVERY_ERROR_JNI:
         return "JNI error";
         break;
