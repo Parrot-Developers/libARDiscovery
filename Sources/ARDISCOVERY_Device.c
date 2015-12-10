@@ -407,6 +407,13 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_WifiAddConnectionCallbacks (ARDISCOVERY_De
     return ARDISCOVERY_DEVICE_Wifi_AddConnectionCallbacks (device, sendJsonCallback, receiveJsonCallback, customData);
 }
 
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_WifiGetIpAddress (ARDISCOVERY_Device_t *device, char *ipAddress, int length)
+{
+    // -- Get the IP address of the device  --
+    
+    return ARDISCOVERY_DEVICE_Wifi_GetIpAddress (device, ipAddress, length);
+}
+
 /***********************
  * -- BLE part --
  ***********************/
