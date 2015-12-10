@@ -80,7 +80,6 @@ typedef void *(*ARDISCOVERY_DEVICE_GetCopyOfSpecificParameters_t) (ARDISCOVERY_D
  */
 typedef eARDISCOVERY_ERROR (*ARDISCOVERY_DEVICE_DelecteSpecificParameters_t) (ARDISCOVERY_Device_t *device);
 
-
 /**
  * @brief DiscoveryDevice contains the informations of a device discovered
  */
@@ -165,6 +164,15 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitWifi (ARDISCOVERY_Device_t *device, eA
  * @return executing error.
  */
 eARDISCOVERY_ERROR ARDISCOVERY_Device_WifiAddConnectionCallbacks (ARDISCOVERY_Device_t *device, ARDISCOVERY_Device_ConnectionJsonCallback_t sendJsonCallback, ARDISCOVERY_Device_ConnectionJsonCallback_t receiveJsonCallback, void *customData);
+
+/**
+ * @brief Get wifi IP address
+ * @param device The Discovery Device.
+ * @param[out] ipAddress ip address of the device
+ * @param[in] length maximum length of the ipAddress output.
+ * @return executing error.
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_WifiGetIpAddress (ARDISCOVERY_Device_t *device, char *ipAddress, int length);
 
 /***********************
  * -- BLE part --

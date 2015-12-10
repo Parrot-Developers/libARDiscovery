@@ -97,6 +97,8 @@ public enum ARDISCOVERY_ERROR_ENUM {
     ARDISCOVERY_ERROR_BUSY (-1987, "discovery is busy"),
    /** host or net is not reachable */
     ARDISCOVERY_ERROR_SOCKET_UNREACHABLE (-1986, "host or net is not reachable"),
+   /** the length of the output is to small */
+    ARDISCOVERY_ERROR_OUTPUT_LENGTH (-1985, "the length of the output is to small"),
    /** JNI error */
     ARDISCOVERY_ERROR_JNI (-3000, "JNI error"),
    /** JNI virtual machine, not initialized */
