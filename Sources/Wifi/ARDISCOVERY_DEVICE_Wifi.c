@@ -394,6 +394,46 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_DeleteARNetworkAL (ARDISCOVERY_Device
     return error;
 }
 
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_GetIpAddress (ARDISCOVERY_Device_t *device, char *ipAddress, int length)
+{
+    // -- Get the IP address of the device  --
+
+    // local declarations
+    eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
+    ARDISCOVERY_DEVICE_WIFI_t *specificWifiParam = NULL;
+    int ipAddressSize = 0;
+
+    // check parameters
+    if((device == NULL) ||
+        (ARDISCOVERY_getProductService (device->productID) != ARDISCOVERY_PRODUCT_NSNETSERVICE) ||
+        (device->specificParameters == NULL) ||
+        (ipAddress == NULL))
+    {
+        error = ARDISCOVERY_ERROR_BAD_PARAMETER;
+    }
+
+    if (error == ARDISCOVERY_OK)
+    {
+        // Cast of device->specificParameters
+        specificWifiParam = (ARDISCOVERY_DEVICE_WIFI_t *) device->specificParameters;
+        
+        ipAddressSize = strlen(specificWifiParam->address) + 1;
+        // check length
+        if(length < ipAddressSize)
+        {
+            error = ARDISCOVERY_ERROR_OUTPUT_LENGTH;
+        }
+    }
+
+    if (error == ARDISCOVERY_OK)
+    {
+        // copy the ip address
+        snprintf(ipAddress, length, "%s", specificWifiParam->address);
+    }
+
+    return error;
+}
+
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration)
 {
     // -- Initilize network Configuration adapted to a Bebop, a Bebop 2 or linked product (as the SkyController). --
