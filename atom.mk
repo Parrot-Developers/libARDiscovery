@@ -14,6 +14,11 @@ LOCAL_LIBRARIES := \
 	libARNetworkAL \
 	json
 
+LOCAL_CONDITIONAL_LIBRARIES := \
+	OPTIONAL:libmux \
+	OPTIONAL:libpomp
+
+
 LOCAL_C_INCLUDES := \
 	$(LOCAL_PATH)/Includes \
 	$(LOCAL_PATH)/Sources
@@ -25,12 +30,14 @@ LOCAL_SRC_FILES := \
 	Sources/ARDISCOVERY_Connection.c \
 	Sources/ARDISCOVERY_Discovery.c \
 	Sources/ARDISCOVERY_Device.c \
+	Sources/ARDISCOVERY_MuxDiscovery.c \
 	Sources/Wifi/ARDISCOVERY_DEVICE_Wifi.c \
 	Sources/BLE/ARDISCOVERY_DEVICE_Ble.c \
 	gen/Sources/ARDISCOVERY_Error.c
 
 LOCAL_INSTALL_HEADERS := \
 	Includes/libARDiscovery/ARDiscovery.h:usr/include/libARDiscovery/ \
+	Includes/libARDiscovery/ARDISCOVERY_MuxDiscovery.h:usr/include/libARDiscovery/ \
 	Includes/libARDiscovery/ARDISCOVERY_Connection.h:usr/include/libARDiscovery/ \
 	Includes/libARDiscovery/ARDISCOVERY_Discovery.h:usr/include/libARDiscovery/ \
 	Includes/libARDiscovery/ARDISCOVERY_NetworkConfiguration.h:usr/include/libARDiscovery/ \

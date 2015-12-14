@@ -98,7 +98,7 @@ public class ARDiscoveryService extends Service
     private ARDiscoveryBLEDiscovery bleDiscovery;
     private ARDiscoveryWifiDiscovery wifiDiscovery;
     private ARDiscoveryNsdPublisher wifiPublisher;
-
+    private ARDiscoveryUsbDiscovery usbDiscovery;
     private final IBinder binder = new LocalBinder();
 
     /**
@@ -179,6 +179,9 @@ public class ARDiscoveryService extends Service
         bleDiscovery.open(this, this);
         // create and open wifi discovery and publisher
         initWifiDiscovery();
+        // create and open UsbDiscovery
+        usbDiscovery = new ARDiscoveryUsbDiscovery();
+        usbDiscovery.open(this, this);
     }
 
     @Override
@@ -196,7 +199,13 @@ public class ARDiscoveryService extends Service
     public void onDestroy()
     {
         super.onDestroy();
-        
+
+        if (usbDiscovery != null)
+        {
+            usbDiscovery.close();
+            usbDiscovery = null;
+        }
+
         if(bleDiscovery != null)
         {
             bleDiscovery.close();
@@ -316,7 +325,7 @@ public class ARDiscoveryService extends Service
         ARSALPrint.d(TAG, "Start discoveries");
         bleDiscovery.start();
         wifiDiscovery.start();
-
+        usbDiscovery.start();
     }
 
     public synchronized void stop()
@@ -324,6 +333,7 @@ public class ARDiscoveryService extends Service
         ARSALPrint.d(TAG, "Stop discoveries");
         bleDiscovery.stop();
         wifiDiscovery.stop();
+        usbDiscovery.stop();
     }
     
     public synchronized void startWifiDiscovering()
@@ -381,6 +391,14 @@ public class ARDiscoveryService extends Service
         if (bleDiscovery != null)
         {
             deviceServicesArray.addAll(bleDiscovery.getDeviceServicesArray());
+        }
+        if (usbDiscovery != null)
+        {
+            ARDiscoveryDeviceService deviceService = usbDiscovery.getDeviceService();
+            if (deviceService != null)
+            {
+                deviceServicesArray.add(deviceService);
+            }
         }
         ARSALPrint.d(TAG,"getDeviceServicesArray: " + deviceServicesArray);
 

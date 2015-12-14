@@ -79,17 +79,18 @@ typedef enum
 } eARDISCOVERY_PRODUCT_FAMILY;
 
 /**
- * @brief Get service of product
- * This function is the only one knowing the correspondance between product
+ * @brief Get product service type
+ * This function is the only one knowing the correspondence between product
  * and service.
- * @param product The product's enumerator
- * @return The corresponding product ID for the service
+ * @param product The product's to get the service from
+ * @return ARDISCOVERY_PRODUCT_NSNETSERVICE if the product is a WIFI product, ARDISCOVERY_PRODUCT_BLESERVICE if the product is a BLE product,
+ * ARDISCOVERY_PRODUCT_USB ofif the product is a USB product. Return ARDISCOVERY_PRODUCT_MAX if the product is invalid,
  */
 eARDISCOVERY_PRODUCT ARDISCOVERY_getProductService(eARDISCOVERY_PRODUCT product);
 
 /**
  * @brief Converts from product enumerator to product ID
- * This function is the only one knowing the correspondance
+ * This function is the only one knowing the correspondence
  * between the product enumerator and the products' IDs.
  * @param product The product's enumerator
  * @return The corresponding product ID
@@ -98,7 +99,7 @@ uint16_t ARDISCOVERY_getProductID(eARDISCOVERY_PRODUCT product);
 
 /**
  * @brief Converts from product enumerator to product name
- * This function is the only one knowing the correspondance
+ * This function is the only one knowing the correspondence
  * between the product enumerator and the products name.
  * @param product The product's enumerator
  * @return The corresponding product name
@@ -107,7 +108,7 @@ const char* ARDISCOVERY_getProductName(eARDISCOVERY_PRODUCT product);
 
 /**
  * @brief Converts from product enumerator to product path name
- * This function is the only one knowing the correspondance
+ * This function is the only one knowing the correspondence
  * between the product enumerator and the products path name.
  * @param product The product's enumerator
  * @param buffer The application buffer that will receive the product path name
@@ -118,7 +119,7 @@ void ARDISCOVERY_getProductPathName(eARDISCOVERY_PRODUCT product, char *buffer, 
 
 /**
  * @brief Converts from product name to product enumerator
- * This function is the only one knowing the correspondance
+ * This function is the only one knowing the correspondence
  * between the products name and the product enumerator.
  * @param name The product's name
  * @return The corresponding product enumerator
@@ -136,7 +137,7 @@ eARDISCOVERY_PRODUCT ARDISCOVERY_getProductFromPathName(const char *name);
 
 /**
  * @brief Converts from product ID to product enumerator
- * This function is the only one knowing the correspondance
+ * This function is the only one knowing the correspondence
  * between the products IDs and the product enumerator.
  * @param productID the productID of the product
  * @return The corresponding product enumerator
@@ -145,7 +146,7 @@ eARDISCOVERY_PRODUCT ARDISCOVERY_getProductFromProductID(uint16_t productID);
 
 /**
  * @brief Get family of product
- * This function is the only one knowing the correspondance between product
+ * This function is the only one knowing the correspondence between product
  * and family.
  * @param product The product's enumerator
  * @return The corresponding product family enumerator value

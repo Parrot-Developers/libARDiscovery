@@ -28,14 +28,57 @@
     OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
     SUCH DAMAGE.
 */
-#ifndef _ARDISCOVERY_H_
-#define _ARDISCOVERY_H_
 
-#include <libARDiscovery/ARDISCOVERY_Connection.h>
-#include <libARDiscovery/ARDISCOVERY_Discovery.h>
-#include <libARDiscovery/ARDISCOVERY_NetworkConfiguration.h>
-#include <libARDiscovery/ARDISCOVERY_MuxDiscovery.h>
-#include <libARDiscovery/ARDISCOVERY_Device.h>
-#include <libARDiscovery/ARDISCOVERY_Error.h>
+package com.parrot.arsdk.ardiscovery;
 
-#endif /* _ARDISCOVERY_H_ */
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class ARDiscoveryDeviceUsbService implements Parcelable
+{
+    private static String TAG = "ARDiscoveryDeviceUsbService";
+
+    private final String serial;
+
+    public ARDiscoveryDeviceUsbService(String serial)
+    {
+        this.serial = serial;
+    }
+
+    public String getSerial() {
+        return serial;
+    }
+
+    @Override
+    public int describeContents()
+    {
+        return Parcelable.CONTENTS_FILE_DESCRIPTOR;
+    }
+
+    protected ARDiscoveryDeviceUsbService(Parcel source)
+    {
+        serial = source.readString();
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags)
+    {
+        dest.writeString(serial);
+    }
+
+    public static final Creator<ARDiscoveryDeviceUsbService> CREATOR = new Creator<ARDiscoveryDeviceUsbService>()
+    {
+        @Override
+        public ARDiscoveryDeviceUsbService createFromParcel(Parcel source)
+        {
+            return new ARDiscoveryDeviceUsbService(source);
+        }
+
+        @Override
+        public ARDiscoveryDeviceUsbService[] newArray(int size)
+        {
+            return new ARDiscoveryDeviceUsbService[size];
+        }
+    };
+};
+
