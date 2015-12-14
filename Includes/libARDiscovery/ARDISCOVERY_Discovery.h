@@ -57,7 +57,9 @@ typedef enum
     ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK,                            ///< Delos EVO Brick product
     ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL,                        ///< Delos EVO Hydrofoil product
 
-    ARDISCOVERY_PRODUCT_MAX                                             ///< Max of products
+    ARDISCOVERY_PRODUCT_USBSERVICE,                                      ///< AOA/iAP usb product category
+    ARDISCOVERY_PRODUCT_UNKNOWNPRODUCT_2 = ARDISCOVERY_PRODUCT_USBSERVICE,///< Unknown product 2 product
+    ARDISCOVERY_PRODUCT_MAX                                              ///< Max of products
 } eARDISCOVERY_PRODUCT;
 
 /**
