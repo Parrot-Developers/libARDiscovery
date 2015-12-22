@@ -353,6 +353,9 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitWifi (ARDISCOVERY_Device_t *device, eA
             case ARDISCOVERY_PRODUCT_JS_EVO_RACE:
                 device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Wifi_InitJumpingSumoNetworkConfiguration;
                 break;
+            case ARDISCOVERY_PRODUCT_POWER_UP:
+                device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Wifi_InitPowerUpNetworkConfiguration;
+                break;
             case ARDISCOVERY_PRODUCT_SKYCONTROLLER:
                 device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Wifi_InitSkyControllerNetworkConfiguration;
                 break;
@@ -404,6 +407,13 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_WifiAddConnectionCallbacks (ARDISCOVERY_De
     return ARDISCOVERY_DEVICE_Wifi_AddConnectionCallbacks (device, sendJsonCallback, receiveJsonCallback, customData);
 }
 
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_WifiGetIpAddress (ARDISCOVERY_Device_t *device, char *ipAddress, int length)
+{
+    // -- Get the IP address of the device  --
+    
+    return ARDISCOVERY_DEVICE_Wifi_GetIpAddress (device, ipAddress, length);
+}
+
 /***********************
  * -- BLE part --
  ***********************/
@@ -443,6 +453,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitBLE (ARDISCOVERY_Device_t *device, eAR
             case ARDISCOVERY_PRODUCT_JS:
             case ARDISCOVERY_PRODUCT_JS_EVO_LIGHT:
             case ARDISCOVERY_PRODUCT_JS_EVO_RACE:
+            case ARDISCOVERY_PRODUCT_POWER_UP:
             case ARDISCOVERY_PRODUCT_MAX:
                 error = ARDISCOVERY_ERROR_BAD_PARAMETER;
             break;

@@ -46,6 +46,7 @@ static const uint16_t ARDISCOVERY_Discovery_ProductTable[ARDISCOVERY_PRODUCT_MAX
     [ARDISCOVERY_PRODUCT_JS_EVO_LIGHT]  = 0x0905,
     [ARDISCOVERY_PRODUCT_JS_EVO_RACE]   = 0x0906,
     [ARDISCOVERY_PRODUCT_BEBOP_2]       = 0x090c,
+    [ARDISCOVERY_PRODUCT_POWER_UP]      = 0x090d,
 };
 
 static const char* ARDISCOVERY_Discovery_ProductNameTable[ARDISCOVERY_PRODUCT_MAX] =
@@ -59,10 +60,11 @@ static const char* ARDISCOVERY_Discovery_ProductNameTable[ARDISCOVERY_PRODUCT_MA
     // NSNet Service
     [ARDISCOVERY_PRODUCT_ARDRONE]       = "Bebop Drone",
     [ARDISCOVERY_PRODUCT_JS]            = "Jumping Sumo",
-    [ARDISCOVERY_PRODUCT_SKYCONTROLLER] = "Sky Controller",
+    [ARDISCOVERY_PRODUCT_SKYCONTROLLER] = "SkyController",
     [ARDISCOVERY_PRODUCT_JS_EVO_LIGHT]  = "Jumping Night",
     [ARDISCOVERY_PRODUCT_JS_EVO_RACE]   = "Jumping Race",
     [ARDISCOVERY_PRODUCT_BEBOP_2]       = "Bebop 2",
+    [ARDISCOVERY_PRODUCT_POWER_UP]      = "Power Up",
 };
 
 eARDISCOVERY_PRODUCT ARDISCOVERY_getProductService(eARDISCOVERY_PRODUCT product)
@@ -142,6 +144,28 @@ eARDISCOVERY_PRODUCT ARDISCOVERY_getProductFromName(const char *name)
     return product;
 }
 
+eARDISCOVERY_PRODUCT ARDISCOVERY_getProductFromPathName(const char *name)
+{
+    uint8_t product = ARDISCOVERY_PRODUCT_MAX;
+    int i = 0;
+
+    char buffer[256];
+
+    if (name == NULL)
+        return ARDISCOVERY_PRODUCT_MAX;
+    int namelen = strlen(name);
+    for (i = 0; (product == ARDISCOVERY_PRODUCT_MAX) && (i < ARDISCOVERY_PRODUCT_MAX); i++)
+    {
+        ARDISCOVERY_getProductPathName(i, buffer, 256);
+        if(namelen < strlen(buffer))
+            continue;
+        if(strncmp(name, buffer, strlen(buffer)) == 0)
+            product = i;
+    }
+
+    return product;
+}
+
 eARDISCOVERY_PRODUCT ARDISCOVERY_getProductFromProductID(uint16_t productID)
 {
     uint8_t product = ARDISCOVERY_PRODUCT_MAX;
@@ -181,6 +205,9 @@ eARDISCOVERY_PRODUCT_FAMILY ARDISCOVERY_getProductFamily(eARDISCOVERY_PRODUCT pr
     case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK:
     case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL:
         family = ARDISCOVERY_PRODUCT_FAMILY_MINIDRONE;
+        break;
+    case ARDISCOVERY_PRODUCT_POWER_UP:
+        family = ARDISCOVERY_PRODUCT_FAMILY_POWER_UP;
         break;
     default:
         break;

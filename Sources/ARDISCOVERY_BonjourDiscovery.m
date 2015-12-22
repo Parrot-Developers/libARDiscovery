@@ -125,6 +125,7 @@
 @property (strong, nonatomic) NSMutableArray *devicesServiceBrowsers;
 
 #pragma mark - Services CoreBluetooth
+@property (strong, nonatomic) dispatch_queue_t centralManagerQueue;
 @property (strong, nonatomic) ARSAL_CentralManager *centralManager;
 @property (nonatomic, assign) BOOL centralManagerInitialized;
 @property (strong, nonatomic) NSMutableDictionary *devicesBLEServicesTimerList;
@@ -150,6 +151,7 @@
 @synthesize controllersServiceBrowser;
 @synthesize devicesServiceBrowsers;
 @synthesize valid;
+@synthesize centralManagerQueue;
 @synthesize centralManager;
 @synthesize centralManagerInitialized;
 @synthesize askForCBDiscovering;
@@ -201,7 +203,8 @@
              * Discover is not in progress
              */
             _sharedInstance.centralManagerInitialized = NO;
-            _sharedInstance.centralManager = [[ARSAL_CentralManager alloc] initWithQueue:nil];
+            _sharedInstance.centralManagerQueue = dispatch_queue_create( "com.parrot.ardiscovery.ble-centralmanager-queue", DISPATCH_QUEUE_SERIAL);
+            _sharedInstance.centralManager = [[ARSAL_CentralManager alloc] initWithQueue:_sharedInstance.centralManagerQueue];
             [_sharedInstance.centralManager addDelegate: _sharedInstance];
             _sharedInstance.isNSNetDiscovering = NO;
             _sharedInstance.isCBDiscovering = NO;
@@ -243,6 +246,11 @@
         name = [[self.currentPublishedService name] copy];
     }
     return name;
+}
+
+- (void)removeDeviceService:(ARService*)aService
+{
+    [self.devicesServicesList removeObjectForKey:aService.name];
 }
 
 #pragma mark - Discovery

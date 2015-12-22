@@ -468,7 +468,15 @@ public class ARDiscoveryBLEDiscoveryImpl implements ARDiscoveryBLEDiscovery
 
             if (leScanCallback != null)
             {
-                bluetoothAdapter.stopLeScan((BluetoothAdapter.LeScanCallback)leScanCallback);
+                try {
+                    bluetoothAdapter.stopLeScan((BluetoothAdapter.LeScanCallback)leScanCallback);
+                }
+                catch (NullPointerException e) {
+                    // Necessary because of https://code.google.com/p/android/issues/detail?id=160503
+                    // See also https://github.com/AltBeacon/android-beacon-library/issues/219
+                    ARSALPrint.e(TAG, "Cannot stop scan.  Unexpected NPE.");
+                    e.printStackTrace();
+                }
             }
             
             startBLEHandler.removeCallbacks(startScanningRunnable);

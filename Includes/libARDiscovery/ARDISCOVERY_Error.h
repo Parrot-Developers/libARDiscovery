@@ -67,6 +67,7 @@ typedef enum
     ARDISCOVERY_ERROR_BAD_PARAMETER, /**< Bad parameters */
     ARDISCOVERY_ERROR_BUSY, /**< discovery is busy*/
     ARDISCOVERY_ERROR_SOCKET_UNREACHABLE, /**< host or net is not reachable */
+    ARDISCOVERY_ERROR_OUTPUT_LENGTH, /**< the length of the output is to small */
     
     ARDISCOVERY_ERROR_JNI = -3000, /**< JNI error */
     ARDISCOVERY_ERROR_JNI_VM, /**< JNI virtual machine, not initialized */
