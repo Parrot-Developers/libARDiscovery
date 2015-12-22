@@ -64,7 +64,16 @@ public abstract class ARDiscoveryConnection
     public static final String ARDISCOVERY_CONNECTION_JSON_C2D_UPDATE_PORT_KEY;
     public static final String ARDISCOVERY_CONNECTION_JSON_C2D_USER_PORT_KEY;
     public static final String ARDISCOVERY_CONNECTION_JSON_SKYCONTROLLER_VERSION;
-    public static final String ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_KEY;
+    public static final String ARDISCOVERY_CONNECTION_JSON_FEATURES_KEY;
+    public static final String ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_CLIENT_STREAM_PORT_KEY;
+    public static final String ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_CLIENT_CONTROL_PORT_KEY;
+    public static final String ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_SERVER_STREAM_PORT_KEY;
+    public static final String ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_SERVER_CONTROL_PORT_KEY;
+    public static final String ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_PACKET_SIZE_KEY;
+    public static final String ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_LATENCY_KEY;
+    public static final String ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_NETWORK_LATENCY_KEY;
+    public static final String ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_BITRATE_KEY;
+    public static final String ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_PARAMETER_SETS_KEY;
 
     public static final int ARDISCOVERY_CONNECTION_SEND_JSON_SIZE;
 
@@ -81,7 +90,16 @@ public abstract class ARDiscoveryConnection
     private static native String nativeGetDefineJsonC2DUpdatePortKey ();
     private static native String nativeGetDefineJsonC2DUserPortKey ();
     private static native String nativeGetDefineJsonSkyControllerVersionKey ();
-    private static native String nativeGetDefineJsonARStream2Key();
+    private static native String nativeGetDefineJsonFeaturesKey ();
+    private static native String nativeGetDefineJsonARStream2ClientStreamPortKey();
+    private static native String nativeGetDefineJsonARStream2ClientControlPortKey();
+    private static native String nativeGetDefineJsonARStream2ServerStreamPortKey();
+    private static native String nativeGetDefineJsonARStream2ServerControlPortKey();
+    private static native String nativeGetDefineJsonARStream2MaxPacketSizeKey();
+    private static native String nativeGetDefineJsonARStream2MaxLatencyKey();
+    private static native String nativeGetDefineJsonARStream2MaxNetworkLatencyKey();
+    private static native String nativeGetDefineJsonARStream2MaxBitrateKey();
+    private static native String nativeGetDefineJsonARStream2ParameterSetsKey();
 
     private static native int nativeGetDefineTxBufferSize ();
 
@@ -113,7 +131,16 @@ public abstract class ARDiscoveryConnection
         ARDISCOVERY_CONNECTION_JSON_C2D_UPDATE_PORT_KEY = nativeGetDefineJsonC2DUpdatePortKey();
         ARDISCOVERY_CONNECTION_JSON_C2D_USER_PORT_KEY = nativeGetDefineJsonC2DUserPortKey();
         ARDISCOVERY_CONNECTION_JSON_SKYCONTROLLER_VERSION = nativeGetDefineJsonSkyControllerVersionKey();
-        ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_KEY = nativeGetDefineJsonARStream2Key();
+        ARDISCOVERY_CONNECTION_JSON_FEATURES_KEY = nativeGetDefineJsonFeaturesKey();
+        ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_CLIENT_STREAM_PORT_KEY = nativeGetDefineJsonARStream2ClientStreamPortKey();
+        ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_CLIENT_CONTROL_PORT_KEY = nativeGetDefineJsonARStream2ClientControlPortKey();
+        ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_SERVER_STREAM_PORT_KEY = nativeGetDefineJsonARStream2ServerStreamPortKey();
+        ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_SERVER_CONTROL_PORT_KEY = nativeGetDefineJsonARStream2ServerControlPortKey();
+        ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_PACKET_SIZE_KEY = nativeGetDefineJsonARStream2MaxPacketSizeKey();
+        ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_LATENCY_KEY = nativeGetDefineJsonARStream2MaxLatencyKey();
+        ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_NETWORK_LATENCY_KEY = nativeGetDefineJsonARStream2MaxNetworkLatencyKey();
+        ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_BITRATE_KEY = nativeGetDefineJsonARStream2MaxBitrateKey();
+        ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_PARAMETER_SETS_KEY = nativeGetDefineJsonARStream2ParameterSetsKey();
         ARDISCOVERY_CONNECTION_SEND_JSON_SIZE = nativeGetDefineTxBufferSize() -1; /* -1 for the null character of the native json */
     }
 

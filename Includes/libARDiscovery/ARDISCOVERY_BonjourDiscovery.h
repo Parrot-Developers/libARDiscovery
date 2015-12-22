@@ -140,6 +140,12 @@
 #pragma mark - Resolve
 
 /**
+ * Remove an existing service from the list of known services.
+ * Service will be re-added next time it's discovered.
+ */
+- (void)removeDeviceService:(ARService*)aService;
+
+/**
  * Try to resolve the given service
  * Resolution is queued until all previous resolutions
  * are complete, or failed

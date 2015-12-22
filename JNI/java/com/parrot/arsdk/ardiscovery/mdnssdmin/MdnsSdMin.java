@@ -153,7 +153,7 @@ public class MdnsSdMin
      */
     public void start(NetworkInterface netInterface)
     {
-        ARSALPrint.v(TAG, "Starting MdsnSd");
+        ARSALPrint.d(TAG, "Starting MdsnSd");
         if (socket == null)
         {
             // create multicast socket
@@ -190,7 +190,7 @@ public class MdnsSdMin
      */
     public void stop()
     {
-        ARSALPrint.v(TAG, "Stopping MdsnSd");
+        ARSALPrint.d(TAG, "Stopping MdsnSd");
         if (socket != null)
         {
             socket.close();
@@ -212,7 +212,7 @@ public class MdnsSdMin
      */
     public void sendQueries()
     {
-        ARSALPrint.v(TAG, "Sending queries");
+        ARSALPrint.d(TAG, "Sending queries");
         for (int t = 0; t < QUERY_DURATION_MS; t += QUERY_INTERVAL_MS)
         {
             queryHandler.sendMessageDelayed(queryHandler.obtainMessage(0), t);
@@ -224,7 +224,7 @@ public class MdnsSdMin
      */
     public void cancelSendQueries()
     {
-        ARSALPrint.v(TAG, "Cancel sending queries");
+        ARSALPrint.d(TAG, "Cancel sending queries");
         queryHandler.removeMessages(0);
     }
 
@@ -299,11 +299,11 @@ public class MdnsSdMin
                             final String name = ptr.substring(0, pos > 0 ? pos - 1 : ptr.length());
                             if (srv.getTtl() > 0)
                             {
-                                ARSALPrint.v(TAG, "New service " + name);
+                                ARSALPrint.d(TAG, "New service " + name);
                                 listener.onServiceAdded(name, question, address, srv.getPort(), txts);
                             } else
                             {
-                                ARSALPrint.v(TAG, "Service removed " + name);
+                                ARSALPrint.d(TAG, "Service removed " + name);
                                 listener.onServiceRemoved(name, question);
                             }
                         }
@@ -344,7 +344,7 @@ public class MdnsSdMin
                     @Override
                     public void handleMessage(Message msg)
                     {
-                       ARSALPrint.v(TAG, "sending query packet");
+                       ARSALPrint.d(TAG, "sending query packet");
                        try
                         {
                             byte[] buf = query.encode();

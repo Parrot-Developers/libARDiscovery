@@ -114,6 +114,15 @@ ARNETWORKAL_Manager_t *ARDISCOVERY_DEVICE_Wifi_NewARNetworkAL (ARDISCOVERY_Devic
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_DeleteARNetworkAL (ARDISCOVERY_Device_t *device, ARNETWORKAL_Manager_t **networkAL);
 
 /**
+ * @brief Get wifi IP address
+ * @param device The Discovery Device.
+ * @param[out] ipAddress ip address of the device
+ * @param[in] length maximum length of the ipAddress output.
+ * @return executing error.
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_GetIpAddress (ARDISCOVERY_Device_t *device, char *ipAddress, int length);
+
+/**
  * @brief Initilize network Configuration adapted to a BebopDrone.
  * @param device The Discovery Device. Must be a Bebop Drone Device
  * @param[out] networkConfiguration The networkConfiguration to Initilize.
@@ -144,5 +153,13 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitBebop2NetworkConfiguration (ARDIS
  * @return executing error.
  */
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitJumpingSumoNetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration);
+
+/**
+ * @brief Initilize network Configuration adapted to a Unknown Product 1.
+ * @param device The Discovery Device. Must be a Unknown Product 1 Device
+ * @param[out] networkConfiguration The networkConfiguration to Initilize.
+ * @return executing error.
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitUnknown_Product_1NetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration);
 
 #endif // _ARDISCOVERY_DEVICE_WIFI_H_

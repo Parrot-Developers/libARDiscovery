@@ -48,6 +48,7 @@ typedef enum
     ARDISCOVERY_PRODUCT_JS_EVO_LIGHT,                                   ///< Jumping Sumo EVO Light product
     ARDISCOVERY_PRODUCT_JS_EVO_RACE,                                    ///< Jumping Sumo EVO Race product
     ARDISCOVERY_PRODUCT_BEBOP_2,                                        ///< Bebop drone 2.0 product
+    ARDISCOVERY_PRODUCT_UNKNOWN_PRODUCT_1,                                       ///< Unknown product 1 product
 
     ARDISCOVERY_PRODUCT_BLESERVICE,                                     ///< BlueTooth products category
     ARDISCOVERY_PRODUCT_MINIDRONE = ARDISCOVERY_PRODUCT_BLESERVICE,     ///< DELOS product
@@ -67,6 +68,7 @@ typedef enum
     ARDISCOVERY_PRODUCT_FAMILY_JS,            ///< JUMPING SUMO product family
     ARDISCOVERY_PRODUCT_FAMILY_SKYCONTROLLER, ///< SKY CONTROLLER product family
     ARDISCOVERY_PRODUCT_FAMILY_MINIDRONE,     ///< DELOS product
+    ARDISCOVERY_PRODUCT_FAMILY_UNKNOWN_PRODUCT_1,      ///< Unknown Product 1 product family
     ARDISCOVERY_PRODUCT_FAMILY_MAX            ///< Max of product familys
 } eARDISCOVERY_PRODUCT_FAMILY;
 
@@ -116,6 +118,15 @@ void ARDISCOVERY_getProductPathName(eARDISCOVERY_PRODUCT product, char *buffer, 
  * @return The corresponding product enumerator
  */
 eARDISCOVERY_PRODUCT ARDISCOVERY_getProductFromName(const char *name);
+
+/**
+ * @brief Converts from product path name to product enumerator
+ * This function is the only one knowing the correspondance
+ * between the products name and the product enumerator.
+ * @param name The product's name
+ * @return The corresponding product enumerator
+ */
+eARDISCOVERY_PRODUCT ARDISCOVERY_getProductFromPathName(const char *name);
 
 /**
  * @brief Converts from product ID to product enumerator
