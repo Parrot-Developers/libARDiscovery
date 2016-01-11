@@ -69,7 +69,7 @@ static const char* ARDISCOVERY_Discovery_ProductNameTable[ARDISCOVERY_PRODUCT_MA
     [ARDISCOVERY_PRODUCT_JS_EVO_RACE]   = "Jumping Race",
     [ARDISCOVERY_PRODUCT_BEBOP_2]       = "Bebop 2",
     [ARDISCOVERY_PRODUCT_UNKNOWN_PRODUCT_1]      = "Unknown Product 1",
-    [ARDISCOVERY_PRODUCT_EVINRUDE]      = "Evinrude",
+    [ARDISCOVERY_PRODUCT_EVINRUDE]      = "Disco",
 
     // USB service
     [ARDISCOVERY_PRODUCT_UNKNOWNPRODUCT_2] = "UnknownProduct 2",
