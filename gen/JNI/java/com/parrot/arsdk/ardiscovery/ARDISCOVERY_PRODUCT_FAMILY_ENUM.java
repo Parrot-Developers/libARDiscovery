@@ -53,8 +53,8 @@ public enum ARDISCOVERY_PRODUCT_FAMILY_ENUM {
     ARDISCOVERY_PRODUCT_FAMILY_MINIDRONE (3, "DELOS product"),
    /** Power Up product family */
     ARDISCOVERY_PRODUCT_FAMILY_POWER_UP (4, "Power Up product family"),
-   /** Flying wings product family */
-    ARDISCOVERY_PRODUCT_FAMILY_FLYING_WING (5, "Flying wings product family"),
+   /** Fixed wing product family */
+    ARDISCOVERY_PRODUCT_FAMILY_FIXED_WING (5, "Fixed wing product family"),
    /** Max of product familys */
     ARDISCOVERY_PRODUCT_FAMILY_MAX (6, "Max of product familys");
 
