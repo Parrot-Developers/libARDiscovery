@@ -72,7 +72,7 @@ typedef enum
     ARDISCOVERY_PRODUCT_FAMILY_SKYCONTROLLER, ///< SKY CONTROLLER product family
     ARDISCOVERY_PRODUCT_FAMILY_MINIDRONE,     ///< DELOS product
     ARDISCOVERY_PRODUCT_FAMILY_UNKNOWN_PRODUCT_1,      ///< Unknown Product 1 product family
-    ARDISCOVERY_PRODUCT_FAMILY_FLYING_WING,   ///< Flying wings product family
+    ARDISCOVERY_PRODUCT_FAMILY_FIXED_WING,   ///< Fixed wing product family
     ARDISCOVERY_PRODUCT_FAMILY_MAX            ///< Max of product familys
 } eARDISCOVERY_PRODUCT_FAMILY;
 
