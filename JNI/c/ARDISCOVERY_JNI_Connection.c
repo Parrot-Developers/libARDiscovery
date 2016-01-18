@@ -54,8 +54,6 @@
 
 #define ARDISCOVERY_JNICONNECTION_TAG "JNIDiscoveryConnection"
 
-static JavaVM *ARDISCOVERY_JNICONNECTION_VM; /**< reference to the java virtual machine */
-
 static jmethodID ARDISCOVERY_JNICONNECTION_METHOD_CONNECTION_SEND_JSON_CALLBACK;
 static jmethodID ARDISCOVERY_JNICONNECTION_METHOD_CONNECTION_RECEIVE_JSON_CALLBACK;
 
@@ -123,7 +121,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_JNIConnection_ReceiveJsonCallback (uint8_t *dataR
  *
  *****************************************/
 
-static JavaVM* ARDISCOVERY_JNICONNECTION_VM = NULL; /** reference to the java virtual machine */
+JavaVM* ARDISCOVERY_JNI_VM = NULL; /** reference to the java virtual machine */
 
 /**
  * @brief save the reference to the java virtual machine
@@ -138,7 +136,7 @@ JNI_OnLoad(JavaVM *VM, void *reserved)
     ARSAL_PRINT(ARSAL_PRINT_DEBUG, ARDISCOVERY_JNICONNECTION_TAG, "Library has been loaded");
 
     /* Saving the reference to the java virtual machine */
-    ARDISCOVERY_JNICONNECTION_VM = VM;
+    ARDISCOVERY_JNI_VM = VM;
 
     /* Return the JNI version */
     return JNI_VERSION_1_6;
@@ -649,7 +647,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_JNIConnection_SendJsonCallback (uint8_t *dataTx, 
     int nativeDataTxLength = 0;
 
     /* check the virtual machine */
-    if (ARDISCOVERY_JNICONNECTION_VM == NULL)
+    if (ARDISCOVERY_JNI_VM == NULL)
     {
         error = ARDISCOVERY_ERROR_JNI_VM;
     }
@@ -663,13 +661,13 @@ eARDISCOVERY_ERROR ARDISCOVERY_JNIConnection_SendJsonCallback (uint8_t *dataTx, 
     if (error == ARDISCOVERY_OK)
     {
         /* get the environment */
-        getEnvResult = (*ARDISCOVERY_JNICONNECTION_VM)->GetEnv(ARDISCOVERY_JNICONNECTION_VM, (void **) &env, JNI_VERSION_1_6);
+        getEnvResult = (*ARDISCOVERY_JNI_VM)->GetEnv(ARDISCOVERY_JNI_VM, (void **) &env, JNI_VERSION_1_6);
 
         /* if no environment then attach the thread to the virtual machine */
         if (getEnvResult == JNI_EDETACHED)
         {
             ARSAL_PRINT(ARSAL_PRINT_DEBUG, ARDISCOVERY_JNICONNECTION_TAG, "attach the thread to the virtual machine ...");
-            attachResult = (*ARDISCOVERY_JNICONNECTION_VM)->AttachCurrentThread(ARDISCOVERY_JNICONNECTION_VM, &env, NULL);
+            attachResult = (*ARDISCOVERY_JNI_VM)->AttachCurrentThread(ARDISCOVERY_JNI_VM, &env, NULL);
         }
 
         if (env == NULL)
@@ -717,7 +715,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_JNIConnection_SendJsonCallback (uint8_t *dataTx, 
     /* if the thread has been attached then detach the thread from the virtual machine */
     if ((getEnvResult == JNI_EDETACHED) && (env != NULL))
     {
-        (*ARDISCOVERY_JNICONNECTION_VM)->DetachCurrentThread(ARDISCOVERY_JNICONNECTION_VM);
+        (*ARDISCOVERY_JNI_VM)->DetachCurrentThread(ARDISCOVERY_JNI_VM);
     }
 
     if (error != ARDISCOVERY_OK)
@@ -743,7 +741,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_JNIConnection_ReceiveJsonCallback (uint8_t *dataR
     jstring jIP = NULL;
 
     /* check the virtual machine */
-    if (ARDISCOVERY_JNICONNECTION_VM == NULL)
+    if (ARDISCOVERY_JNI_VM == NULL)
     {
         error = ARDISCOVERY_ERROR_JNI_VM;
     }
@@ -757,13 +755,13 @@ eARDISCOVERY_ERROR ARDISCOVERY_JNIConnection_ReceiveJsonCallback (uint8_t *dataR
     if (error == ARDISCOVERY_OK)
     {
         /* get the environment */
-        getEnvResult = (*ARDISCOVERY_JNICONNECTION_VM)->GetEnv(ARDISCOVERY_JNICONNECTION_VM, (void **) &env, JNI_VERSION_1_6);
+        getEnvResult = (*ARDISCOVERY_JNI_VM)->GetEnv(ARDISCOVERY_JNI_VM, (void **) &env, JNI_VERSION_1_6);
 
         /* if no environment then attach the thread to the virtual machine */
         if (getEnvResult == JNI_EDETACHED)
         {
             ARSAL_PRINT(ARSAL_PRINT_DEBUG, ARDISCOVERY_JNICONNECTION_TAG, "attach the thread to the virtual machine ...");
-            attachResult = (*ARDISCOVERY_JNICONNECTION_VM)->AttachCurrentThread(ARDISCOVERY_JNICONNECTION_VM, &env, NULL);
+            attachResult = (*ARDISCOVERY_JNI_VM)->AttachCurrentThread(ARDISCOVERY_JNI_VM, &env, NULL);
         }
 
         if (env == NULL)
@@ -801,7 +799,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_JNIConnection_ReceiveJsonCallback (uint8_t *dataR
     /* if the thread has been attached then detach the thread from the virtual machine */
     if ((getEnvResult == JNI_EDETACHED) && (env != NULL))
     {
-        (*ARDISCOVERY_JNICONNECTION_VM)->DetachCurrentThread(ARDISCOVERY_JNICONNECTION_VM);
+        (*ARDISCOVERY_JNI_VM)->DetachCurrentThread(ARDISCOVERY_JNI_VM);
     }
 
     if (error != ARDISCOVERY_OK)
