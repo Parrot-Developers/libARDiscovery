@@ -481,7 +481,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitBLE (ARDISCOVERY_Device_t *device, eAR
     
     if (error == ARDISCOVERY_OK)
     {
-        // Initialize wifi specific parameters
+        // Initialize BLE specific parameters
         error = ARDISCOVERY_DEVICE_Ble_CreateSpecificParameters (device, bleDeviceManager, bleDevice);
     }
     

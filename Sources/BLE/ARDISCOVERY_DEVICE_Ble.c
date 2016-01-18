@@ -53,13 +53,6 @@
  * Private header
  *************************/
 
-// RollingSpider
-
-#define ROLLINGSPIDER_CONTROLLER_TO_DEVICE_NONACK_ID 10
-#define ROLLINGSPIDER_CONTROLLER_TO_DEVICE_ACK_ID 11
-#define ROLLINGSPIDER_CONTROLLER_TO_DEVICE_EMERGENCY_ID 12
-#define ROLLINGSPIDER_DEVICE_TO_CONTROLLER_NAVDATA_ID ((ARNETWORKAL_MANAGER_BLE_ID_MAX /2) - 1)
-#define ROLLINGSPIDER_DEVICE_TO_CONTROLLER_EVENT_ID ((ARNETWORKAL_MANAGER_BLE_ID_MAX /2) - 2)
 
 /*************************
  * Implementation
@@ -67,7 +60,7 @@
 
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Ble_CreateSpecificParameters (ARDISCOVERY_Device_t *device, ARNETWORKAL_BLEDeviceManager_t bleDeviceManager, ARNETWORKAL_BLEDevice_t bleDevice)
 {
-    // Initialize wifi specific parameters 
+    // Initialize BLE specific parameters 
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
     ARDISCOVERY_DEVICE_BLE_t *specificBLEParam = NULL;
     
@@ -260,7 +253,7 @@ ARNETWORKAL_Manager_t *ARDISCOVERY_DEVICE_Ble_NewARNetworkAL (ARDISCOVERY_Device
 
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Ble_DeleteARNetworkAL (ARDISCOVERY_Device_t *device, ARNETWORKAL_Manager_t **networkAL)
 {
-    // -- Delete a networlAL create by ARDISCOVERY_DEVICE_Wifi_NewARNetworkAL --
+    // -- Delete a networlAL create by ARDISCOVERY_DEVICE_Ble_NewARNetworkAL --
     
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
     

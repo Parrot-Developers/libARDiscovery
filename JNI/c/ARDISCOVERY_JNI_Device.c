@@ -47,6 +47,9 @@
 #include <libARDiscovery/ARDISCOVERY_Error.h>
 #include <libARDiscovery/ARDISCOVERY_Device.h>
 
+#include <BLE/ARDISCOVERY_DEVICE_Ble.h>
+#include "ARDISCOVERY_JNI_DEVICE_Ble.h"
+
 /*****************************************
  *
  *             define :
@@ -54,8 +57,6 @@
  *****************************************/
 
 #define ARDISCOVERY_JNIDEVICE_TAG "JNIDiscoveryDevice"
-
-static JavaVM *ARDISCOVERY_JNIDEVICE_VM; /**< reference to the java virtual machine */
 
 /*****************************************
  *
@@ -71,7 +72,71 @@ eARDISCOVERY_ERROR ARDISCOVERY_JNI_Device_ReceiveJsonCallback (json_object *json
  *
  *****************************************/
 
-static JavaVM* ARDISCOVERY_JNIDEVICE_VM = NULL; /** reference to the java virtual machine */
+JNIEXPORT void JNICALL
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryDevice_nativeStaticInit (JNIEnv *env, jclass class)
+{
+    /* local declarations */
+    jclass jBLEPartCls = NULL;
+
+    /* get ARDiscoveryConnection */
+    jBLEPartCls = (*env)->FindClass(env, "com/parrot/arsdk/ardiscovery/ARDiscoveryDevice$BLEPart");
+        
+    ARDISCOVERY_JNIDEVICE_BLE_METHOD_NEWNETWORKAL = (*env)->GetMethodID (env, jBLEPartCls, "newARNetworkAL", "()J");
+    ARDISCOVERY_JNIDEVICE_BLE_METHOD_DELETENETWORKAL = (*env)->GetMethodID (env, jBLEPartCls, "deleteARNetworkAL", "()I");
+    
+    /* cleanup */
+    (*env)->DeleteLocalRef (env, jBLEPartCls);
+}
+
+/**
+ * @brief get ROLLINGSPIDER_CONTROLLER_TO_DEVICE_NONACK_ID
+ * @return value of ROLLINGSPIDER_CONTROLLER_TO_DEVICE_NONACK_ID
+ */
+JNIEXPORT jint JNICALL
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryDevice_nativeGetCToDNonAckId (JNIEnv *env, jclass class)
+{
+    return ROLLINGSPIDER_CONTROLLER_TO_DEVICE_NONACK_ID;
+}
+
+/**
+ * @brief get ROLLINGSPIDER_CONTROLLER_TO_DEVICE_ACK_ID
+ * @return value of ROLLINGSPIDER_CONTROLLER_TO_DEVICE_ACK_ID
+ */
+JNIEXPORT jint JNICALL
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryDevice_nativeGetCToDAckId (JNIEnv *env, jclass class)
+{
+    return ROLLINGSPIDER_CONTROLLER_TO_DEVICE_ACK_ID;
+}
+
+/**
+ * @brief get ROLLINGSPIDER_CONTROLLER_TO_DEVICE_EMERGENCY_ID
+ * @return value of ROLLINGSPIDER_CONTROLLER_TO_DEVICE_EMERGENCY_ID
+ */
+JNIEXPORT jint JNICALL
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryDevice_nativeGetCToDEmergencyId (JNIEnv *env, jclass class)
+{
+    return ROLLINGSPIDER_CONTROLLER_TO_DEVICE_EMERGENCY_ID;
+}
+
+/**
+ * @brief get ROLLINGSPIDER_DEVICE_TO_CONTROLLER_NAVDATA_ID
+ * @return value of ROLLINGSPIDER_DEVICE_TO_CONTROLLER_NAVDATA_ID
+ */
+JNIEXPORT jint JNICALL
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryDevice_nativeGetDToCNavDataId (JNIEnv *env, jclass class)
+{
+    return ROLLINGSPIDER_DEVICE_TO_CONTROLLER_NAVDATA_ID;
+}
+
+/**
+ * @brief get ROLLINGSPIDER_DEVICE_TO_CONTROLLER_EVENT_ID
+ * @return value of ROLLINGSPIDER_DEVICE_TO_CONTROLLER_EVENT_ID
+ */
+JNIEXPORT jint JNICALL
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryDevice_nativeGetDToCEventId (JNIEnv *env, jclass class)
+{
+    return ROLLINGSPIDER_DEVICE_TO_CONTROLLER_EVENT_ID;
+}
 
 /**
  * @brief Create and initialize a new device
@@ -130,6 +195,7 @@ Java_com_parrot_arsdk_ardiscovery_ARDiscoveryDevice_nativeDelete (JNIEnv *env, j
     // local declarations
     ARDISCOVERY_Device_t *device = (ARDISCOVERY_Device_t*) (intptr_t) jDevice;
 
+    // Delete native device
     ARDISCOVERY_Device_Delete (&device);
 }
 
@@ -162,6 +228,15 @@ Java_com_parrot_arsdk_ardiscovery_ARDiscoveryDevice_nativeInitWifi(JNIEnv *env, 
     return error;
 }
 
+JNIEXPORT jint JNICALL
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryDevice_nativeInitBLE(JNIEnv *env, jobject thizz, jlong jDevice, jint product, jobject jBLEPart)
+{
+    // -- Initialize the Discovery Device with a BLE device --
+    
+    ARDISCOVERY_Device_t *device = (ARDISCOVERY_Device_t*) (intptr_t) jDevice;
+        
+    return  ARDISCOVERY_JNI_Device_InitBLE (env, device, product, jBLEPart);
+}
 
 /*****************************************
  *
@@ -222,3 +297,65 @@ eARDISCOVERY_ERROR ARDISCOVERY_JNI_Device_ReceiveJsonCallback (json_object *json
 
     return error;
 }
+
+eARDISCOVERY_ERROR ARDISCOVERY_JNI_Device_InitBLE (JNIEnv *env, ARDISCOVERY_Device_t *device, eARDISCOVERY_PRODUCT product, jobject jBLEPart)
+{
+    // -- Initialize the Discovery Device with a BLE device --
+        
+    eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
+    
+    // check parameters
+    if ((device == NULL) ||
+        (jBLEPart == NULL) ||
+        (ARDISCOVERY_getProductService (product) != ARDISCOVERY_PRODUCT_BLESERVICE))
+    {
+        error = ARDISCOVERY_ERROR_BAD_PARAMETER;
+    }
+    // No Else: the checking parameters sets error to ARNETWORK_ERROR_BAD_PARAMETER and stop the processing
+    
+    //TODO see to check if the device is already initialized !!!!
+    
+    if (error == ARDISCOVERY_OK)
+    {
+        switch (product)
+        {
+            case ARDISCOVERY_PRODUCT_MINIDRONE:
+            case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT:
+            case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK:
+            case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL:
+                device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Ble_InitRollingSpiderNetworkConfiguration;
+                break;
+                
+            case ARDISCOVERY_PRODUCT_SKYCONTROLLER:
+            case ARDISCOVERY_PRODUCT_ARDRONE:
+            case ARDISCOVERY_PRODUCT_JS:
+            case ARDISCOVERY_PRODUCT_MAX:
+                error = ARDISCOVERY_ERROR_BAD_PARAMETER;
+                break;
+                
+            default:
+                ARSAL_PRINT (ARSAL_PRINT_ERROR, ARDISCOVERY_JNIDEVICE_TAG, "Product:%d not known", product);
+                error = ARDISCOVERY_ERROR_BAD_PARAMETER;
+                break;
+        }
+    }
+    
+    if (error == ARDISCOVERY_OK)
+    {
+        // Initialize common parameters
+        device->productID = product;
+        device->newNetworkAL = ARDISCOVERY_JNI_DEVICE_Ble_NewARNetworkAL;
+        device->deleteNetworkAL = ARDISCOVERY_JNI_DEVICE_Ble_DeleteARNetworkAL;
+        device->getCopyOfSpecificParameters = ARDISCOVERY_JNI_DEVICE_Ble_GetCopyOfSpecificParameters;
+        device->deleteSpecificParameters = ARDISCOVERY_JNI_DEVICE_Ble_DeleteSpecificParameters;
+    }
+    
+    if (error == ARDISCOVERY_OK)
+    {
+        // Initialize BLE specific parameters
+        error = ARDISCOVERY_JNI_DEVICE_Ble_CreateSpecificParameters (env, device, jBLEPart);
+    }
+    
+    return error;
+}
+
