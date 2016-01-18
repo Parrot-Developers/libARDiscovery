@@ -29,58 +29,54 @@
     SUCH DAMAGE.
 */
 /**
- * @file ARDISCOVERY_DEVICE_Ble.h
+ * @file ARDISCOVERY_JNI_DEVICE_Ble.h
  * @brief Discovery BLE Device contains the informations of a device discovered
  * @date 02/03/2015
  * @author maxime.maitre@parrot.com
  */
 
-#ifndef _ARDISCOVERY_DEVICE_BLE_H_
-#define _ARDISCOVERY_DEVICE_BLE_H_
+#ifndef _ARDISCOVERY_JNI_DEVICE_BLE_H_
+#define _ARDISCOVERY_JNI_DEVICE_BLE_H_
 
-#include <json/json.h>
+#include <jni.h>
 #include <libARNetworkAL/ARNETWORKAL_Manager.h>
 #include <libARNetworkAL/ARNETWORKAL_Error.h>
-#include <libARNetwork/ARNETWORK_IOBufferParam.h>
 #include <libARDiscovery/ARDISCOVERY_Error.h>
 #include <libARDiscovery/ARDISCOVERY_Discovery.h>
-#include <libARDiscovery/ARDISCOVERY_NetworkConfiguration.h>
 #include <libARDiscovery/ARDISCOVERY_Device.h>
 
-// RollingSpider buffer IDs
+extern JavaVM *ARDISCOVERY_JNI_VM; /**< reference to the java virtual machine */
 
-#define ROLLINGSPIDER_CONTROLLER_TO_DEVICE_NONACK_ID 10
-#define ROLLINGSPIDER_CONTROLLER_TO_DEVICE_ACK_ID 11
-#define ROLLINGSPIDER_CONTROLLER_TO_DEVICE_EMERGENCY_ID 12
-#define ROLLINGSPIDER_DEVICE_TO_CONTROLLER_NAVDATA_ID ((ARNETWORKAL_MANAGER_BLE_ID_MAX /2) - 1)
-#define ROLLINGSPIDER_DEVICE_TO_CONTROLLER_EVENT_ID ((ARNETWORKAL_MANAGER_BLE_ID_MAX /2) - 2)
+jmethodID ARDISCOVERY_JNIDEVICE_BLE_METHOD_NEWNETWORKAL;
+jmethodID ARDISCOVERY_JNIDEVICE_BLE_METHOD_DELETENETWORKAL;
 
 /**
- * @brief specific parameters for Wifi Device
+ * @brief specific parameters for BLE Device
  */
 typedef struct
 {
-    ARNETWORKAL_BLEDeviceManager_t deviceManager;
-    ARNETWORKAL_BLEDevice_t device;
-    
-}ARDISCOVERY_DEVICE_BLE_t;
+    jobject jBLEPart;
+}ARDISCOVERY_JNI_DEVICE_BLE_t;
 
 /**
  * @brief Create BLE SpecificParameters
  * @warning This function allocate memory.
+ * @param env java environement.
  * @param device The Discovery Device to Initialize.
+ * @param jBLEPart BLE java part.
  * @return executing error.
- * @see ARDISCOVERY_DEVICE_Ble_DeleteSpecificParameters.
+ * @see ARDISCOVERY_JNI_DEVICE_Ble_DeleteSpecificParameters.
  */
-eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Ble_CreateSpecificParameters (ARDISCOVERY_Device_t *device, ARNETWORKAL_BLEDeviceManager_t bleDeviceManager, ARNETWORKAL_BLEDevice_t bleDevice);
+eARDISCOVERY_ERROR ARDISCOVERY_JNI_DEVICE_Ble_CreateSpecificParameters (JNIEnv *env, ARDISCOVERY_Device_t *device, jobject jBLEPart);
+
 /**
  * @brief Delete BLE SpecificParameters
  * @warning This function free memory.
  * @param device The Discovery Device to Initialize.
  * @return executing error.
- * @see ARDISCOVERY_DEVICE_Ble_CreateSpecificParameters.
+ * @see ARDISCOVERY_JNI_DEVICE_Ble_CreateSpecificParameters.
  */
-eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Ble_DeleteSpecificParameters (ARDISCOVERY_Device_t *device);
+eARDISCOVERY_ERROR ARDISCOVERY_JNI_DEVICE_Ble_DeleteSpecificParameters (ARDISCOVERY_Device_t *device);
 
 /**
  * @brief Copy BLE specificParameters 
@@ -88,7 +84,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Ble_DeleteSpecificParameters (ARDISCOVERY_
  * @param[out] error Executing error.
  * @return new specificParameters.
  */
-void *ARDISCOVERY_DEVICE_Ble_GetCopyOfSpecificParameters (ARDISCOVERY_Device_t *deviceToCopy, eARDISCOVERY_ERROR *error);
+void *ARDISCOVERY_JNI_DEVICE_Ble_GetCopyOfSpecificParameters (ARDISCOVERY_Device_t *deviceToCopy, eARDISCOVERY_ERROR *error);
 
 /**
  * @brief Create a new networlAL adapted to the device.
@@ -96,25 +92,17 @@ void *ARDISCOVERY_DEVICE_Ble_GetCopyOfSpecificParameters (ARDISCOVERY_Device_t *
  * @param[out] error Executing error.
  * @param[out] errorAL Executing networkAL error.
  * @return new networkAL.
- * @see ARDISCOVERY_DEVICE_Ble_DeleteARNetworkAL
+ * @see ARDISCOVERY_JNI_DEVICE_Ble_DeleteARNetworkAL
  */
-ARNETWORKAL_Manager_t *ARDISCOVERY_DEVICE_Ble_NewARNetworkAL (ARDISCOVERY_Device_t *device, eARDISCOVERY_ERROR *error, eARNETWORKAL_ERROR *errorAL);
+ARNETWORKAL_Manager_t *ARDISCOVERY_JNI_DEVICE_Ble_NewARNetworkAL (ARDISCOVERY_Device_t *device, eARDISCOVERY_ERROR *error, eARNETWORKAL_ERROR *errorAL);
 
 /**
- * @brief Delete a networlAL create by ARDISCOVERY_DEVICE_Ble_NewARNetworkAL
+ * @brief Delete a networlAL create by ARDISCOVERY_JNI_DEVICE_Ble_NewARNetworkAL
  * @param device The Discovery Device.
  * @param networkAL The networkAL to delete.
  * @return executing error.
- * @see ARDISCOVERY_DEVICE_Ble_NewARNetworkAL
+ * @see ARDISCOVERY_JNI_DEVICE_Ble_NewARNetworkAL
  */
-eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Ble_DeleteARNetworkAL (ARDISCOVERY_Device_t *device, ARNETWORKAL_Manager_t **networkAL);
+eARDISCOVERY_ERROR ARDISCOVERY_JNI_DEVICE_Ble_DeleteARNetworkAL (ARDISCOVERY_Device_t *device, ARNETWORKAL_Manager_t **networkAL);
 
-/**
- * @brief Initilize network Configuration adapted to a Rolling Spider.
- * @param device The Discovery Device. Must be a Jumping Sumo Device
- * @param[out] networkConfiguration The networkConfiguration to Initilize.
- * @return executing error.
- */
-eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Ble_InitRollingSpiderNetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration);
-
-#endif // _ARDISCOVERY_DEVICE_BLE_H_
+#endif // _ARDISCOVERY_JNI_DEVICE_BLE_H_
