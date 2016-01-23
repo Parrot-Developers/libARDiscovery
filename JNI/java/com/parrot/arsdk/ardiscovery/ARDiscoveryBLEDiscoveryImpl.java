@@ -250,18 +250,26 @@ public class ARDiscoveryBLEDiscoveryImpl implements ARDiscoveryBLEDiscovery
         }
         else
         {
-            ARSALPrint.d(TAG,"BLE Is Available");
-            bleIsAvailable = true;
+            /* Attempt to initialize Bluetooth adapter. */
+            final BluetoothManager bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
+            bluetoothAdapter = bluetoothManager.getAdapter();
+            
+            if (bluetoothAdapter == null)
+            {
+                ARSALPrint.d(TAG,"BLE Is NOT Available");
+                bleIsAvailable = false;
+            }
+            else 
+            {
+                ARSALPrint.d(TAG,"BLE Is Available");
+                bleIsAvailable = true;
+            }
         }
     }
 
     @TargetApi(18)
     private void initBLE()
     {
-        /* Initializes Bluetooth adapter. */
-        final BluetoothManager bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
-        bluetoothAdapter = bluetoothManager.getAdapter();
-
         bleScanner = new BLEScanner();
 
         leScanCallback = new BluetoothAdapter.LeScanCallback()
