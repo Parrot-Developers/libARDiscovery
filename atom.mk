@@ -37,23 +37,31 @@ LOCAL_INSTALL_HEADERS := \
 ifndef ARSDK_BUILD_FOR_APP
 
 # Embedded: Use avahi without dbus
-LOCAL_SRC_FILES += Sources/ARDISCOVERY_AvahiDiscovery_nodbus.c
-LOCAL_INSTALL_HEADERS += Includes/libARDiscovery/ARDISCOVERY_AvahiDiscovery.h:usr/include/libARDiscovery/
+LOCAL_SRC_FILES += \
+	Sources/ARDISCOVERY_AvahiDiscovery_nodbus.c
+LOCAL_INSTALL_HEADERS += \
+	Includes/libARDiscovery/ARDISCOVERY_AvahiDiscovery.h:usr/include/libARDiscovery/
 
 else ifeq ("$(TARGET_OS)-$(TARGET_OS_FLAVOUR)","linux-native")
 
 # Native linux: use avahi with dbus
-LOCAL_LIBRARIES += avahi
-LOCAL_SRC_FILES += Sources/ARDISCOVERY_AvahiDiscovery.c
-LOCAL_INSTALL_HEADERS += Includes/libARDiscovery/ARDISCOVERY_AvahiDiscovery.h:usr/include/libARDiscovery/
+LOCAL_LIBRARIES += \
+	avahi
+LOCAL_SRC_FILES += \
+	Sources/ARDISCOVERY_AvahiDiscovery.c
+LOCAL_INSTALL_HEADERS += \
+	Includes/libARDiscovery/ARDISCOVERY_AvahiDiscovery.h:usr/include/libARDiscovery/
 
 else ifeq ("$(TARGET_OS)","darwin")
 
-ifneq ("$(TARGET_OS_FLAVOUR)","native")
 # Darwin: use bonjour
-LOCAL_SRC_FILES += Sources/ARDISCOVERY_BonjourDiscovery.m
-LOCAL_INSTALL_HEADERS += Includes/libARDiscovery/ARDISCOVERY_BonjourDiscovery.h:usr/include/libARDiscovery/
-endif
+LOCAL_SRC_FILES += \
+	Sources/ARDISCOVERY_BonjourDiscovery.m
+LOCAL_INSTALL_HEADERS += \
+	Includes/libARDiscovery/ARDISCOVERY_BonjourDiscovery.h:usr/include/libARDiscovery/
+LOCAL_LDLIBS += \
+	-framework Foundation \
+	-framework CoreBluetooth
 
 endif
 
