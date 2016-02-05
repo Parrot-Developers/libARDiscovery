@@ -38,6 +38,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.os.Bundle;
 
 import com.parrot.arsdk.ardiscovery.mdnssdmin.MdnsSdMin;
 import com.parrot.arsdk.arsal.ARSALPrint;
@@ -50,7 +51,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import android.os.Bundle;
 
 /**
  * Custom mdns-sd implementation of the wifi part of ARDiscoveryService
@@ -162,7 +162,7 @@ public class ARDiscoveryMdnsSdMinDiscovery implements ARDiscoveryWifiDiscovery
                 ARSALPrint.d(TAG, "Receive CONNECTIVITY_ACTION intent, extras are :");
                 Bundle extras = intent.getExtras();
                 for (String key : extras.keySet()) {
-                    ARSALPrint.d(TAG, "Key : " + key + ", value = " + extras.get(key).toString());
+                    ARSALPrint.d(TAG, "Key : " + key + ", value = " + (extras.get(key) != null ? extras.get(key).toString() : "NULL"));
                 }
                 ARSALPrint.d(TAG, "End of extras");
 
