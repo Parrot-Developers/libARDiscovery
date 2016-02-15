@@ -18,6 +18,9 @@ LOCAL_C_INCLUDES := \
 	$(LOCAL_PATH)/Includes \
 	$(LOCAL_PATH)/Sources
 
+LOCAL_CFLAGS := \
+	-DHAVE_CONFIG_H
+
 LOCAL_SRC_FILES := \
 	Sources/ARDISCOVERY_Connection.c \
 	Sources/ARDISCOVERY_Discovery.c \
