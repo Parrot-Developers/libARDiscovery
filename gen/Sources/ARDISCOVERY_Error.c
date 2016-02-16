@@ -40,7 +40,7 @@
 
 #include <libARDiscovery/ARDISCOVERY_Error.h>
 
-char* ARDISCOVERY_Error_ToString (eARDISCOVERY_ERROR error)
+const char* ARDISCOVERY_Error_ToString (eARDISCOVERY_ERROR error)
 {
     switch (error)
     {

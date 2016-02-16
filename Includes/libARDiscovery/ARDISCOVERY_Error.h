@@ -97,6 +97,6 @@ typedef enum
  *
  * @note User should NEVER try to modify a returned string
  */
-char* ARDISCOVERY_Error_ToString (eARDISCOVERY_ERROR error);
+const char* ARDISCOVERY_Error_ToString (eARDISCOVERY_ERROR error);
 
 #endif /* _ARDISCOVERY_ERROR_H_ */
