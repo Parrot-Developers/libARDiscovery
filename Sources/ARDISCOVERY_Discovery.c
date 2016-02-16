@@ -159,18 +159,21 @@ eARDISCOVERY_PRODUCT ARDISCOVERY_getProductFromName(const char *name)
 eARDISCOVERY_PRODUCT ARDISCOVERY_getProductFromPathName(const char *name)
 {
     uint8_t product = ARDISCOVERY_PRODUCT_MAX;
+    size_t namelen;
     int i = 0;
 
     char buffer[256];
 
     if (name == NULL)
         return ARDISCOVERY_PRODUCT_MAX;
-    int namelen = strlen(name);
+
+    namelen = strlen(name);
     for (i = 0; (product == ARDISCOVERY_PRODUCT_MAX) && (i < ARDISCOVERY_PRODUCT_MAX); i++)
     {
         ARDISCOVERY_getProductPathName(i, buffer, 256);
         if(namelen < strlen(buffer))
             continue;
+
         if(strncmp(name, buffer, strlen(buffer)) == 0)
             product = i;
     }

@@ -40,8 +40,8 @@
 typedef struct ARDISCOVERY_Connection_ComData_t
 {
     uint8_t *buffer; /**< data buffer */
-    int32_t size; /**< size of the data */
-    int32_t capacity; /**< size allocated of the data buffer */
+    uint32_t size; /**< size of the data */
+    uint32_t capacity; /**< size allocated of the data buffer */
 } ARDISCOVERY_Connection_ComData_t;
 
 /**
