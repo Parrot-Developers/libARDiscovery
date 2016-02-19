@@ -111,6 +111,9 @@
 #pragma mark Private part
 @interface ARDiscovery () <NSNetServiceBrowserDelegate, NSNetServiceDelegate, CBCentralManagerDelegate>
 
+#pragma mark - Supported products list
+@property (strong, nonatomic) NSSet *supportedProducts;
+
 #pragma mark - Controller/Devices Services list
 @property (strong, nonatomic) NSMutableDictionary *controllersServicesList;
 @property (strong, nonatomic) NSMutableDictionary *devicesServicesList;
@@ -172,6 +175,16 @@
             _sharedInstance.controllersServicesList = [[NSMutableDictionary alloc] init];
             _sharedInstance.devicesServicesList = [[NSMutableDictionary alloc] init];
             _sharedInstance.devicesBLEServicesTimerList = [[NSMutableDictionary alloc] init];
+        
+            /**
+             * Supported products list init with all products of eARDISCOVERY_PRODUCT
+             */
+            NSMutableSet *allProducts = [[NSMutableSet alloc] init];
+            for(eARDISCOVERY_PRODUCT product = 0 ; product < ARDISCOVERY_PRODUCT_MAX ; product++)
+            {
+                [allProducts addObject:[NSNumber numberWithInt:product]];
+            }
+            _sharedInstance.supportedProducts = [[NSSet alloc] initWithSet:allProducts];
 
             /**
              * Current published service init
@@ -212,6 +225,19 @@
         });
 
     return _sharedInstance;
+}
+
+#pragma mark - Set supported products list
+- (void)setSupportedProducts:(NSSet*)products
+{
+    @synchronized (self)
+    {
+        if(_supportedProducts != nil)
+        {
+            NSLog(@"%s Supported products list was not empty", __FUNCTION__);
+        }
+        _supportedProducts = products;
+    }
 }
 
 #pragma mark - Getters
@@ -571,7 +597,7 @@
                 }
             }
             
-            if (aService.product != ARDISCOVERY_PRODUCT_MAX)
+            if (aService.product != ARDISCOVERY_PRODUCT_MAX && [self.supportedProducts containsObject:[NSNumber numberWithInt:aService.product]])
             {
                 [self.devicesServicesList setObject:aService forKey:aService.name];
                 if (!moreComing)
@@ -768,8 +794,11 @@
                             aService.product = i;
                     }
 
-                    [self.devicesServicesList setObject:aService forKey:[peripheral.identifier UUIDString]];
-                    [self sendDevicesListUpdateNotification];
+                    if([self.supportedProducts containsObject:[NSNumber numberWithInt:aService.product]])
+                    {
+                        [self.devicesServicesList setObject:aService forKey:[peripheral.identifier UUIDString]];
+                        [self sendDevicesListUpdateNotification];
+                    }
                 }
                 else
                 {
