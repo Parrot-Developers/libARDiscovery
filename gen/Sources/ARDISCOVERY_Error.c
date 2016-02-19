@@ -168,7 +168,6 @@ const char* ARDISCOVERY_Error_ToString (eARDISCOVERY_ERROR error)
         return "The size of the buffer storing the Json is too small";
         break;
     default:
-        return "Unknown value";
         break;
     }
     return "Unknown value";
