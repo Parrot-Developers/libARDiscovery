@@ -236,9 +236,9 @@ ARNETWORKAL_Manager_t *ARDISCOVERY_Device_NewARNetworkAL (ARDISCOVERY_Device_t *
     if ((localError != ARDISCOVERY_OK) || (localErrorAL != ARNETWORKAL_OK))
     {
         ARSAL_PRINT (ARSAL_PRINT_ERROR, ARDISCOVERY_DEVICE_TAG, "error: %s", ARDISCOVERY_Error_ToString (localError));
-        
-        // not NULL pointer already checked
-        discoveryDevice->deleteNetworkAL (discoveryDevice, &networkALManager);
+
+        if (discoveryDevice)
+            discoveryDevice->deleteNetworkAL (discoveryDevice, &networkALManager);
     }
     // No else: skipped by an error 
 

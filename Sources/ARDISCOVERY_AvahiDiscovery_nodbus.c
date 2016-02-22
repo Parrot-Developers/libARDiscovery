@@ -178,7 +178,7 @@ static eARDISCOVERY_ERROR ARDISCOVERY_AvahiDiscovery_CreateService(ARDISCOVERY_A
     if (serviceData == NULL)
     {
         ERR("Null parameter");
-        error = ARDISCOVERY_ERROR;
+        return ARDISCOVERY_ERROR;
     }
 
     configfile = fopen(ARDISCOVERY_CONFIG_FILE,"w");
@@ -263,9 +263,11 @@ void ARDISCOVERY_AvahiDiscovery_Publish(ARDISCOVERY_AvahiDiscovery_PublisherData
         {
             error = ARDISCOVERY_ERROR_BUILD_NAME;
         }
+        else
+        {
+            error = ARDISCOVERY_AvahiDiscovery_CreateService(serviceData);
+        }
     }
-
-    error = ARDISCOVERY_AvahiDiscovery_CreateService(serviceData);
 
     if (error != ARDISCOVERY_OK)
     {
