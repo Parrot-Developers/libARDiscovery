@@ -560,6 +560,7 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_ControllerInitSocket (ARDISCOVE
     int selectErr = 0;
     char dump[10];
     int nbTryToConnect = 0;
+    int ret;
 
     if (connectionData == NULL)
     {
@@ -579,8 +580,10 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_ControllerInitSocket (ARDISCOVE
         
         /* set the socket non blocking */
         flags = fcntl(connectionData->socket, F_GETFL, 0);
-        fcntl(connectionData->socket, F_SETFL, flags | O_NONBLOCK);
-        
+        ret = fcntl(connectionData->socket, F_SETFL, flags | O_NONBLOCK);
+        if (ret < 0)
+            ARSAL_PRINT(ARSAL_PRINT_ERROR, ARDISCOVERY_CONNECTION_TAG, "fcntl error: %s", strerror(errno));
+
         ARSAL_PRINT(ARSAL_PRINT_DEBUG, ARDISCOVERY_CONNECTION_TAG, "contoller try to connect ip:%s port:%d", ip, port);
         
         // try to connect to the socket
@@ -706,7 +709,10 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_ControllerInitSocket (ARDISCOVE
             if (FD_ISSET(connectionData->abortPipe[0], &readSet))
             {
                 /* If the abortPipe is ready for a read, dump bytes from it (so it won't be ready next time) */
-                read (connectionData->abortPipe[0], &dump, 10);
+                ret = read (connectionData->abortPipe[0], &dump, 10);
+                if (ret < 0)
+                    ARSAL_PRINT(ARSAL_PRINT_ERROR, ARDISCOVERY_CONNECTION_TAG, "read() error: %s", errno, strerror(errno));
+
                 error = ARDISCOVERY_ERROR_ABORT;
             }
             /* No else: no timeout */
@@ -937,6 +943,7 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_TxPending (ARDISCOVERY_Connecti
     struct timeval tv = { ARDISCOVERY_CONNECTION_TIMEOUT_SEC, 0 };
     int selectErr = 0;
     char dump[10];
+    int ret;
     
     /* initilize set */
     FD_ZERO(&readSet);
@@ -985,7 +992,10 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_TxPending (ARDISCOVERY_Connecti
             if (FD_ISSET(connectionData->abortPipe[0], &readSet))
             {
                 /* If the abortPipe is ready for a read, dump bytes from it (so it won't be ready next time) */
-                read (connectionData->abortPipe[0], &dump, 10);
+                ret = read (connectionData->abortPipe[0], &dump, 10);
+                if (ret < 0)
+                    ARSAL_PRINT(ARSAL_PRINT_ERROR, ARDISCOVERY_CONNECTION_TAG, "read() error: %s", errno, strerror(errno));
+
                 error = ARDISCOVERY_ERROR_ABORT;
             }
         }
