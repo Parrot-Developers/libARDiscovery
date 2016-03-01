@@ -367,6 +367,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitWifi (ARDISCOVERY_Device_t *device, eA
             case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT:
             case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK:
             case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL:
+            case ARDISCOVERY_PRODUCT_MINIDRONE_DELOS3:
             case ARDISCOVERY_PRODUCT_MAX:
                 error = ARDISCOVERY_ERROR_BAD_PARAMETER;
                 break;
@@ -447,6 +448,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitBLE (ARDISCOVERY_Device_t *device, eAR
             case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT:
             case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK:
             case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL:
+            case ARDISCOVERY_PRODUCT_MINIDRONE_DELOS3:
                 device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Ble_InitRollingSpiderNetworkConfiguration;
             break;
 
