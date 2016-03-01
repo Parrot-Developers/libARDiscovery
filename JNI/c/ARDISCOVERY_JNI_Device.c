@@ -324,6 +324,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_JNI_Device_InitBLE (JNIEnv *env, ARDISCOVERY_Devi
             case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK:
             case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL:
             case ARDISCOVERY_PRODUCT_MINIDRONE_DELOS3:
+            case ARDISCOVERY_PRODUCT_MINIDRONE_WINGX:
                 device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Ble_InitRollingSpiderNetworkConfiguration;
                 break;
                 

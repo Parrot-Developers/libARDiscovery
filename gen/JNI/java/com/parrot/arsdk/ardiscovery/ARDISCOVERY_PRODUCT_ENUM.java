@@ -73,12 +73,14 @@ public enum ARDISCOVERY_PRODUCT_ENUM {
     ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL (11, "Delos EVO Hydrofoil product"),
    /** Delos3 product */
     ARDISCOVERY_PRODUCT_MINIDRONE_DELOS3 (12, "Delos3 product"),
+   /** WingX product */
+    ARDISCOVERY_PRODUCT_MINIDRONE_WINGX (13, "WingX product"),
    /** AOA/iAP usb product category */
-    ARDISCOVERY_PRODUCT_USBSERVICE (13, "AOA/iAP usb product category"),
+    ARDISCOVERY_PRODUCT_USBSERVICE (14, "AOA/iAP usb product category"),
    /** Sky controller 2 product */
-    ARDISCOVERY_PRODUCT_SKYCONTROLLER_2 (13, "Sky controller 2 product"),
+    ARDISCOVERY_PRODUCT_SKYCONTROLLER_2 (14, "Sky controller 2 product"),
    /** Max of products */
-    ARDISCOVERY_PRODUCT_MAX (14, "Max of products");
+    ARDISCOVERY_PRODUCT_MAX (15, "Max of products");
 
     private final int value;
     private final String comment;

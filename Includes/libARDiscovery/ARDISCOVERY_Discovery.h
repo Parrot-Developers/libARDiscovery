@@ -57,6 +57,7 @@ typedef enum
     ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK,                            ///< Delos EVO Brick product
     ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL,                        ///< Delos EVO Hydrofoil product
     ARDISCOVERY_PRODUCT_MINIDRONE_DELOS3,                               ///< Delos3 product
+    ARDISCOVERY_PRODUCT_MINIDRONE_WINGX,                                ///< WingX product
 
     ARDISCOVERY_PRODUCT_USBSERVICE,                                      ///< AOA/iAP usb product category
     ARDISCOVERY_PRODUCT_SKYCONTROLLER_2 = ARDISCOVERY_PRODUCT_USBSERVICE,///< Sky controller 2 product
