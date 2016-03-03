@@ -858,7 +858,26 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_RxPending (ARDISCOVERY_Connecti
             /* Read content from incoming connection */
             ssize_t readSize = 0;
             readSize = ARSAL_Socket_Recv (connectionData->socket, connectionData->rxData.buffer, ARDISCOVERY_CONNECTION_RX_BUFFER_SIZE, 0);
-            connectionData->rxData.size += readSize;
+            if (readSize > 0)
+            {
+                /* update the rxdata size */
+                connectionData->rxData.size += readSize;
+            }
+            else
+            {
+                if ((readSize == 0 || readSize == -1) &&
+                    (errno == EAGAIN || errno == EWOULDBLOCK))
+                {
+                    ARSAL_PRINT(ARSAL_PRINT_DEBUG, ARDISCOVERY_CONNECTION_TAG, "No more data to read");
+                    // Nothing to do here, it just means that we had a size which is a multiple of ARDISCOVERY_CONNECTION_RX_BUFFER_SIZE
+                }
+                else
+                {
+                    connectionData->rxData.size = 0;
+                    ARSAL_PRINT(ARSAL_PRINT_ERROR, ARDISCOVERY_CONNECTION_TAG, "ARSAL_Socket_Recv did return %d", readSize);
+                    error = ARDISCOVERY_ERROR_READ;
+                }
+            }
 
             while ((error == ARDISCOVERY_OK) && (readSize == ARDISCOVERY_CONNECTION_RX_BUFFER_SIZE))
             {
