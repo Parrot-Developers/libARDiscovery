@@ -822,14 +822,18 @@
                     }
                 }
                 
-                NSTimer *timer = (NSTimer *)[self.devicesBLEServicesTimerList objectForKey:[peripheral.identifier UUIDString]];
-                if(timer != nil)
-                {
-                    [timer invalidate];
-                    timer = nil;
-                }
-                timer = [NSTimer scheduledTimerWithTimeInterval:kServiceBLERefreshTime target:self selector:@selector(deviceBLETimeout:) userInfo:aService repeats:NO];
-                [self.devicesBLEServicesTimerList setObject:timer forKey:[peripheral.identifier UUIDString]];
+                // dispatch synchronously in the main thread because the timer is not fired otherwise
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    NSTimer *timer = (NSTimer *)[self.devicesBLEServicesTimerList objectForKey:[peripheral.identifier UUIDString]];
+                    if(timer != nil)
+                    {
+                        [timer invalidate];
+                        timer = nil;
+                    }
+                    
+                    timer = [NSTimer scheduledTimerWithTimeInterval:kServiceBLERefreshTime target:self selector:@selector(deviceBLETimeout:) userInfo:aService repeats:NO];
+                    [self.devicesBLEServicesTimerList setObject:timer forKey:[peripheral.identifier UUIDString]];
+                });
             }
         }
     }
