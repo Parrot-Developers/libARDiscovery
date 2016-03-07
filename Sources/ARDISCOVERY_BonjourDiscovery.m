@@ -775,27 +775,28 @@
                 ARService *aService = [self.devicesServicesList objectForKey:[peripheral.identifier UUIDString]];
                 if(aService == nil)
                 {
-                    NSLog(@"New device %@", [advertisementData objectForKey:CBAdvertisementDataLocalNameKey]);
-                    ARBLEService *bleService = [[ARBLEService alloc] init];
-                    bleService.centralManager = self.centralManager;
-                    bleService.peripheral = peripheral;
-                    
-                    aService = [[ARService alloc] init];
-                    aService.service = bleService;
-                    aService.name = [advertisementData objectForKey:CBAdvertisementDataLocalNameKey];
-                    aService.signal = RSSI;
-                    
                     NSData *manufacturerData = [advertisementData valueForKey:CBAdvertisementDataManufacturerDataKey];
                     uint16_t *ids = (uint16_t *) manufacturerData.bytes;
-                    aService.product = ARDISCOVERY_PRODUCT_MAX;
-                    for (int i = ARDISCOVERY_PRODUCT_BLESERVICE ; (aService.product == ARDISCOVERY_PRODUCT_MAX) && (i < ARDISCOVERY_PRODUCT_MAX) ; i++)
+                    eARDISCOVERY_PRODUCT product = ARDISCOVERY_PRODUCT_MAX;
+                    for (int i = ARDISCOVERY_PRODUCT_BLESERVICE ; (product == ARDISCOVERY_PRODUCT_MAX) && (i < ARDISCOVERY_PRODUCT_MAX) ; i++)
                     {
                         if (ids[2] == ARDISCOVERY_getProductID(i))
-                            aService.product = i;
+                            product = i;
                     }
-
-                    if([self.supportedProducts containsObject:[NSNumber numberWithInt:aService.product]])
+                    
+                    if([self.supportedProducts containsObject:[NSNumber numberWithInt:product]])
                     {
+                        NSLog(@"New device %@", [advertisementData objectForKey:CBAdvertisementDataLocalNameKey]);
+                        ARBLEService *bleService = [[ARBLEService alloc] init];
+                        bleService.centralManager = self.centralManager;
+                        bleService.peripheral = peripheral;
+                        
+                        aService = [[ARService alloc] init];
+                        aService.service = bleService;
+                        aService.name = [advertisementData objectForKey:CBAdvertisementDataLocalNameKey];
+                        aService.signal = RSSI;
+                        aService.product = product;
+                        
                         [self.devicesServicesList setObject:aService forKey:[peripheral.identifier UUIDString]];
                         [self sendDevicesListUpdateNotification];
                     }
