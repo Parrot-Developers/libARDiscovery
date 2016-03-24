@@ -45,15 +45,15 @@
 #include "libmux.h"
 #include "libmux-arsdk.h"
 
-#define TAG     "ARDISCOVERY_MuxDiscovery"
+#define TAG "ARDISCOVERY_MuxDiscovery"
 
 struct MuxDiscoveryCtx {
 	struct mux_ctx        *muxctx;
-	device_added_cb_t 	  device_added_cb;
+	device_added_cb_t     device_added_cb;
 	device_removed_cb_t   device_removed_cb;
 	device_conn_resp_cb_t device_conn_resp_cb;
-	eof_cb_t 			  eof_cb;
-	void       			  *userdata;
+	eof_cb_t              eof_cb;
+	void                  *userdata;
 };
 
 /**
@@ -113,7 +113,41 @@ static void mux_rx_conn_resp(struct pomp_msg *msg, struct MuxDiscoveryCtx *ctx)
 	free(json);
 }
 
-static void mux_channel_cb(struct mux_ctx *mux_ctx, uint32_t chanid,
+
+static void mux_backend_channel_cb(struct mux_ctx *mux_ctx, uint32_t chanid,
+			enum mux_channel_event event,
+			struct pomp_buffer *buf, void *userdata)
+{
+	struct MuxDiscoveryCtx *ctx = (struct MuxDiscoveryCtx*)userdata;
+	struct pomp_msg *msg = NULL;
+
+	switch (event) {
+	case MUX_CHANNEL_RESET:
+		ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "mux backend channel reset");
+	break;
+	case MUX_CHANNEL_DATA:
+		/* Create pomp message from buffer */
+		msg = pomp_msg_new_with_buffer(buf);
+		if (msg) {
+			/* Decode message */
+			switch (pomp_msg_get_id(msg)) {
+			case MUX_ARSDK_MSG_ID_CONN_RESP:
+				mux_rx_conn_resp(msg, ctx);
+			break;
+			default:
+				ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "unsupported backend channel msg %d", pomp_msg_get_id(msg));
+			break;
+			}
+			pomp_msg_destroy(msg);
+		}
+	break;
+	default:
+		ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "unsupported backend channel event %d", event);
+	break;
+	}
+}
+
+static void mux_discovery_channel_cb(struct mux_ctx *mux_ctx, uint32_t chanid,
 		enum mux_channel_event event,
 		struct pomp_buffer *buf, void *userdata)
 {
@@ -122,7 +156,7 @@ static void mux_channel_cb(struct mux_ctx *mux_ctx, uint32_t chanid,
 
 	switch (event) {
 	case MUX_CHANNEL_RESET:
-		ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "mux channel reset");
+		ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "mux discovery channel reset");
 		if (ctx->eof_cb)
 			ctx->eof_cb(ctx->userdata);
 	break;
@@ -138,15 +172,15 @@ static void mux_channel_cb(struct mux_ctx *mux_ctx, uint32_t chanid,
 			case MUX_ARSDK_MSG_ID_DEVICE_REMOVED:
 				rx_device_removed(msg, ctx);
 			break;
-			case MUX_ARSDK_MSG_ID_CONN_RESP:
-				mux_rx_conn_resp(msg, ctx);
+			default:
+				ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "unsupported discovery channel msg %d", pomp_msg_get_id(msg));
 			break;
 			}
 			pomp_msg_destroy(msg);
 		}
 	break;
 	default:
-		ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "unsupported channel event %d", event);
+		ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "unsupported discovery channel event %d", event);
 	break;
 	}
 }
@@ -154,6 +188,7 @@ static void mux_channel_cb(struct mux_ctx *mux_ctx, uint32_t chanid,
 static void cleanup(struct MuxDiscoveryCtx *ctx)
 {
 	if (ctx) {
+		mux_channel_close(ctx->muxctx, MUX_ARSDK_CHANNEL_ID_DISCOVERY);
 		mux_channel_close(ctx->muxctx, MUX_ARSDK_CHANNEL_ID_BACKEND);
 		mux_unref(ctx->muxctx);
 		free(ctx);
@@ -162,9 +197,8 @@ static void cleanup(struct MuxDiscoveryCtx *ctx)
 
 /**
  */
-POMP_ATTRIBUTE_FORMAT_PRINTF(3, 4)
-static int mux_write_msg(struct mux_ctx *mux,
-		uint32_t msgid,
+POMP_ATTRIBUTE_FORMAT_PRINTF(4, 5)
+static int mux_write_msg(struct mux_ctx *mux, uint32_t chanid, uint32_t msgid,
 		const char *fmt, ...)
 {
 	int res = 0;
@@ -183,8 +217,7 @@ static int mux_write_msg(struct mux_ctx *mux,
 		goto out;
 	}
 
-	res = mux_encode(mux, MUX_ARSDK_CHANNEL_ID_BACKEND,
-			pomp_msg_get_buffer(msg));
+	res = mux_encode(mux, chanid, pomp_msg_get_buffer(msg));
 	if (res < 0 && res != -EPIPE) {
 		ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "error mux_encode %d", -res);
 		goto out;
@@ -216,19 +249,27 @@ struct MuxDiscoveryCtx* ARDiscovery_MuxDiscovery_new(struct mux_ctx *muxctx, dev
 	ctx->eof_cb = eof_cb;
 	ctx->userdata = userdata;
 
-	// open mux channel
-	ret = mux_channel_open(ctx->muxctx, MUX_ARSDK_CHANNEL_ID_BACKEND, &mux_channel_cb, ctx);
+	// open discovery channel
+	ret = mux_channel_open(ctx->muxctx, MUX_ARSDK_CHANNEL_ID_DISCOVERY, &mux_discovery_channel_cb, ctx);
 	if (ret < 0) {
-	    ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Error opening BACKEND channel %d", ret);
+		ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Error opening discovery channel %d", ret);
+		goto fail;
+	}
+
+	// open backend channel
+	ret = mux_channel_open(ctx->muxctx, MUX_ARSDK_CHANNEL_ID_BACKEND, &mux_backend_channel_cb, ctx);
+	if (ret < 0) {
+		ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Error opening backend channel %d", ret);
 		goto fail;
 	}
 
 	// send discovery request
-	ret = mux_write_msg(ctx->muxctx, MUX_ARSDK_MSG_ID_DISCOVER, NULL);
+	ret = mux_write_msg(ctx->muxctx, MUX_ARSDK_CHANNEL_ID_DISCOVERY, MUX_ARSDK_MSG_ID_DISCOVER, NULL);
 	if (ret < 0) {
-	    ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Error sending Discovery request %d", ret);
+		ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Error sending discovery request %d", ret);
 		goto fail;
 	}
+
 	return ctx;
 
 fail:
@@ -241,13 +282,13 @@ int ARDiscovery_MuxDiscovery_sendConnReq(struct MuxDiscoveryCtx* ctx,
 		const char* deviceId, const char* json)
 {
 	int ret;
-    ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "mux_write_msg MUX_ARSDK_MSG_ID_CONN_REQ");
-	ret = mux_write_msg(ctx->muxctx, MUX_ARSDK_MSG_ID_CONN_REQ, MUX_ARSDK_MSG_FMT_ENC_CONN_REQ,
+	ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "mux_write_msg MUX_ARSDK_MSG_ID_CONN_REQ");
+	ret = mux_write_msg(ctx->muxctx, MUX_ARSDK_CHANNEL_ID_BACKEND, MUX_ARSDK_MSG_ID_CONN_REQ, MUX_ARSDK_MSG_FMT_ENC_CONN_REQ,
 			controllerName, controllerType, deviceId, json) ;
 	if (ret < 0) {
-	    ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Error sending Connection request %d", ret);
+		ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Error sending Connection request %d", ret);
 	}
-    ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "mux_write_msg MUX_ARSDK_MSG_ID_CONN_REQ done %d", ret);
+	ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "mux_write_msg MUX_ARSDK_MSG_ID_CONN_REQ done %d", ret);
 	return ret;
 }
 
