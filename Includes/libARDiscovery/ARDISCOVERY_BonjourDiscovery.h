@@ -39,6 +39,7 @@
 #import <CoreBluetooth/CoreBluetooth.h>
 #include <libARSAL/ARSAL_CentralManager.h>
 #import <libARDiscovery/ARDISCOVERY_Discovery.h>
+#import <libARDiscovery/ARDISCOVERY_MuxDiscovery.h>
 
 #pragma mark Notifications
 
@@ -90,10 +91,16 @@
 @property (nonatomic, strong) CBPeripheral *peripheral;
 @end
 
+@interface ARUSBService : NSObject
+@property (nonatomic, assign) struct mux_ctx *usbMux;
+@property (nonatomic, assign) NSUInteger connectionId; // Service unique key in deviceServicesList
+@property (nonatomic, strong) NSString *serial;
+@end
+
 @interface ARService : NSObject
 @property (nonatomic, strong) NSString *name;               ///< Name of the device
 @property (nonatomic, assign) eARDISCOVERY_PRODUCT product; ///< Specific product
-@property (nonatomic, strong) id service;                   ///< Can be NSNetService or ARBLEService
+@property (nonatomic, strong) id service;                   ///< Can be NSNetService or ARBLEService or ARUSBService
 @property (nonatomic, strong) NSNumber *signal;
 @end
 

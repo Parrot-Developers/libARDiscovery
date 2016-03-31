@@ -1,0 +1,490 @@
+//
+//  USBAccessoryManager.m
+//  ARUtils
+//
+//  Created by Cyril Hervouin on 03/02/16.
+//  Copyright © 2016 Parrot SA. All rights reserved.
+//
+
+#import <libARDiscovery/USBAccessoryManager.h>
+#import <libARDiscovery/ARDISCOVERY_MuxDiscovery.h>
+#import <libARSAL/ARSAL_Thread.h>
+#import "libmux.h"
+#import <ExternalAccessory/ExternalAccessory.h>
+#import <libpomp.h>
+#import <errno.h>
+
+#define USB_INPUT_BUFFER_SIZE       64000
+
+NSString *const UISupportedExternalAccessoryProtocols = @"UISupportedExternalAccessoryProtocols";
+
+@interface USBAccessoryManager () <EAAccessoryDelegate, NSStreamDelegate>
+@property (nonatomic, strong) EAAccessory* accessory;
+@property (nonatomic, strong) EASession *session;
+@property (nonatomic, strong) NSThread *sessionThread;
+@property (nonatomic, assign) ARSAL_Thread_t muxThread;
+@property (nonatomic, assign) struct mux_ctx *usbMux;
+@property (nonatomic, assign) struct MuxDiscoveryCtx *muxDiscovery;
+@property (nonatomic, strong) dispatch_semaphore_t connectSemaphore;
+@property (nonatomic, copy) void (^connectionCbBlock)(uint32_t status, const char* json);
+
+@property (nonatomic, strong) NSMutableData *dataToWrite;
+@end
+
+@implementation USBAccessoryManager
+
+#pragma mark - Singleton
++ (USBAccessoryManager *)sharedInstance
+{
+    static USBAccessoryManager *_sharedInstance = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        _sharedInstance = [[USBAccessoryManager alloc] init];
+        [[NSNotificationCenter defaultCenter] addObserver:_sharedInstance selector:@selector(accessoryDidConnect:) name:EAAccessoryDidConnectNotification object:nil];
+        [[EAAccessoryManager sharedAccessoryManager] registerForLocalNotifications];
+        if(_sharedInstance.usbMux == nil)
+        {
+            _sharedInstance.dataToWrite = [[NSMutableData alloc] init];
+            NSMutableArray *accessoryList = [[NSMutableArray alloc] initWithArray:[[EAAccessoryManager sharedAccessoryManager] connectedAccessories]];
+            for(EAAccessory *connectedAccessory in accessoryList)
+            {
+                [_sharedInstance tryToOpenSessionForAccessory:connectedAccessory];
+            }
+        }
+    });
+
+    return _sharedInstance;
+}
+
+-(void)dealloc
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    [self cleanUp];
+}
+
+#pragma mark - CleanUp
+- (void)cleanUp
+{
+    NSLog(@"%s clean up", __FUNCTION__);
+    if(self.session != nil)
+    {
+        [self performSelector:@selector(closeSession) onThread:self.sessionThread withObject:nil waitUntilDone:YES];
+        [self.sessionThread cancel];
+        self.sessionThread = nil;
+    }
+    if(self.muxDiscovery != NULL)
+    {
+        if(self.connectSemaphore != NULL)
+        {
+            dispatch_semaphore_signal(self.connectSemaphore);
+        }
+        ARDiscovery_MuxDiscovery_dispose(self.muxDiscovery);
+        self.muxDiscovery = nil;
+    }
+    if(self.usbMux != NULL)
+    {
+        mux_stop(self.usbMux);
+        mux_unref(self.usbMux);
+        self.usbMux = NULL;
+    }
+    self.accessory = nil;
+}
+
+#pragma mark - EAAccessory
+#pragma mark EAAccessory Notifications
+- (void)accessoryDidConnect:(NSNotification*)notification
+{
+    EAAccessory *connectedAccessory = [[notification userInfo] objectForKey:EAAccessoryKey];
+
+    if(self.usbMux == nil)
+    {
+        [self tryToOpenSessionForAccessory:connectedAccessory];
+    }
+}
+
+#pragma mark EAAccessoryDelegate
+- (void)accessoryDidDisconnect:(EAAccessory *)disconnectedAccessory
+{
+    if ([disconnectedAccessory connectionID] == [self.accessory connectionID])
+    {
+        NSLog(@"%s Disconnect the current accessory", __FUNCTION__);
+        [self.delegate USBAccessoryManager:self didRemoveDeviceWithConnectionId:disconnectedAccessory.connectionID];
+        [self cleanUp];
+    }
+}
+
+#pragma mark EASession lifecycle
+// open an EASession with the current accessory
+- (void)openSession:(NSString *)protocol
+{
+    self.session = [[EASession alloc] initWithAccessory:self.accessory forProtocol:protocol];
+
+    if (self.session)
+    {
+        [[self.session inputStream] setDelegate:self];
+        [[self.session inputStream] scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
+        [[self.session inputStream] open];
+
+        [[self.session outputStream] setDelegate:self];
+        [[self.session outputStream] scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
+        [[self.session outputStream] open];
+
+        [self createMux];
+    }
+    else
+    {
+        [self.sessionThread cancel];
+        self.sessionThread = nil;
+        NSLog(@"%s Open session failed", __FUNCTION__);
+    }
+}
+
+// close the session with the current accessory.
+- (void)closeSession
+{
+    [[self.session inputStream] setDelegate:nil];
+    [[self.session inputStream] close];
+    [[self.session inputStream] removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
+    [[self.session outputStream] setDelegate:nil];
+    [[self.session outputStream] close];
+    [[self.session outputStream] removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
+
+    self.session = nil;
+}
+
+- (void)tryToOpenSessionForAccessory:(EAAccessory*)connectedAccessory
+{
+    NSString *parrotMuxProtocol = [[[NSBundle mainBundle] objectForInfoDictionaryKey:UISupportedExternalAccessoryProtocols] objectAtIndex:0];
+
+    NSLog(@"%s Try to connect accessory : %@. Protocol : %@", __FUNCTION__, connectedAccessory.name, parrotMuxProtocol);
+
+    if(connectedAccessory)
+    {
+        for (NSString* protocol in [connectedAccessory protocolStrings])
+        {
+            if([protocol isEqualToString:parrotMuxProtocol])
+            {
+                self.accessory = connectedAccessory;
+                [self.accessory setDelegate:self];
+
+                if(self.sessionThread == nil)
+                {
+                    self.sessionThread = [[NSThread alloc] initWithTarget:self selector:@selector(sessionThreadMain) object:nil];
+                    [self.sessionThread start];
+                }
+                [self performSelector:@selector(openSession:) onThread:self.sessionThread withObject:protocol waitUntilDone:YES];
+                break;
+            }
+        }
+    }
+}
+
+#pragma mark EASession's Thread main method
+- (void)sessionThreadMain
+{
+    NSRunLoop *runLoop = [NSRunLoop currentRunLoop];
+    NSDate* futureDate = [NSDate dateWithTimeIntervalSinceNow:1.0];
+    NSTimer *keepAliveTimer = [[NSTimer alloc] initWithFireDate:futureDate interval:0.1 target:nil selector:nil userInfo:nil repeats:YES];
+    [runLoop addTimer:keepAliveTimer forMode:NSDefaultRunLoopMode];
+
+    while (![NSThread currentThread].isCancelled && [runLoop runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]]);
+
+    //clean up
+    [keepAliveTimer invalidate];
+    [NSThread exit];
+}
+
+#pragma mark EASession NSStreamDelegate
+// handle stream event
+- (void)stream:(NSStream *)aStream handleEvent:(NSStreamEvent)eventCode
+{
+    switch (eventCode) {
+        case NSStreamEventNone:
+            NSLog(@"%s NSStreamEventNone", __FUNCTION__);
+            break;
+        case NSStreamEventOpenCompleted:
+            //NSLog(@"%s NSStreamEventOpenCompleted", __FUNCTION__);
+            break;
+        case NSStreamEventHasBytesAvailable:
+            //NSLog(@"%s NSStreamEventHasBytesAvailable", __FUNCTION__);
+            [self readDataFromAccessory];
+            break;
+        case NSStreamEventHasSpaceAvailable:
+            //NSLog(@"%s NSStreamEventHasSpaceAvailable", __FUNCTION__);
+            [self writeDataToAccessory];
+            break;
+        case NSStreamEventErrorOccurred:
+            NSLog(@"%s NSStreamEventErrorOccurred", __FUNCTION__);
+            break;
+        case NSStreamEventEndEncountered:
+            //NSLog(@"%s NSStreamEventEndEncountered", __FUNCTION__);
+            [self closeSession];
+            [self tryToOpenSessionForAccessory:self.accessory];
+            break;
+        default:
+            NSLog(@"%s default", __FUNCTION__);
+            break;
+    }
+}
+
+#pragma mark EASession NSStream IO
+// low level write method - write data to the accessory while there is space available and data to write
+- (void)writeDataToAccessory
+{
+    @synchronized(self.dataToWrite) {
+
+        while (([[self.session outputStream] hasSpaceAvailable]) && ([self.dataToWrite length] > 0))
+        {
+            NSInteger bytesWritten = [[self.session outputStream] write:[self.dataToWrite bytes] maxLength:[self.dataToWrite length]];
+            //NSLog(@"%s Write to accessory. bytesWritten: %ld", __FUNCTION__, (long)bytesWritten);
+            if (bytesWritten == -1)
+            {
+                NSLog(@"%s write error", __FUNCTION__);
+                break;
+            }
+            else if (bytesWritten > 0)
+            {
+                [self.dataToWrite replaceBytesInRange:NSMakeRange(0, bytesWritten) withBytes:NULL length:0];
+            }
+        }
+    }
+}
+
+// low level read method - read data while there is data and space available in the input buffer
+- (void)readDataFromAccessory
+{
+    while ([[self.session inputStream] hasBytesAvailable])
+    {
+        NSInteger bytesRead = 0;
+        void *data = NULL;
+        struct pomp_buffer *buf = pomp_buffer_new_get_data(USB_INPUT_BUFFER_SIZE, &data);
+
+        bytesRead = [[self.session inputStream] read:(uint8_t *)data maxLength:USB_INPUT_BUFFER_SIZE];
+        //NSLog(@"%s Read data from accessory. bytesRead: %ld", __FUNCTION__, (long)bytesRead);
+
+        pomp_buffer_set_len(buf, (size_t)bytesRead);
+
+        while ([self writeDataToMux:buf] != 0);
+
+        pomp_buffer_unref(buf);
+    }
+}
+
+#pragma mark - Mux
+// create a new mux with no file descriptor and a tx callback
+- (void)createMux
+{
+    if(self.usbMux == NULL)
+    {
+        struct mux_ops ops;
+        ops.tx = libmux_mux_ops_tx_callback;
+        ops.chan_cb = libmux_mux_ops_channel_cb;
+        ops.fdeof = NULL;
+        ops.userdata = (__bridge void *)self;
+        self.usbMux = mux_new(-1, NULL, &ops, 0);
+
+        if(self.usbMux != NULL)
+        {;
+            ARSAL_Thread_Create(&_muxThread, runMuxThread, (__bridge void *)self);
+            [self createMuxDiscovery];
+        }
+        else
+        {
+            NSLog(@"%s Failed to create Mux", __FUNCTION__);
+        }
+    }
+}
+
+static void* runMuxThread(void* arg)
+{
+    USBAccessoryManager *this = (__bridge USBAccessoryManager *)(arg);
+    if(this)
+    {
+        mux_run(this.usbMux);
+    }
+    return NULL;
+}
+
+- (void)createMuxDiscovery
+{
+    if(self.usbMux != NULL)
+    {
+        self.muxDiscovery = ARDiscovery_MuxDiscovery_new(self.usbMux, device_added_cb, device_removed_cb, device_conn_resp_cb, eof_cb, (__bridge void *)self);
+        if(self.muxDiscovery == NULL)
+        {
+            NSLog(@"%s Failed to create MuxDiscovery", __FUNCTION__);
+        }
+    }
+}
+
+// read data from mux - high level method called by the tx callback to write data to the accessory
+- (int)readDataFromMux:(struct pomp_buffer *)buf
+{
+    int retval = 0;
+    const void *data = NULL;
+    size_t len = 0;
+
+    if(self.session == nil)
+    {
+        retval = -ENOENT;
+    }
+
+    if(retval == 0)
+    {
+        retval = pomp_buffer_get_cdata(buf, &data, &len, NULL);
+    }
+
+    if (retval == 0)
+    {
+        //NSLog(@"%s read data from mux. Lenght : %d", __FUNCTION__, (int)len);
+        NSData *nsdata = [NSData dataWithBytes:data length:len];
+
+        @synchronized(self.dataToWrite)
+        {
+            if (self.dataToWrite == nil)
+            {
+                self.dataToWrite = [[NSMutableData alloc] init];
+            }
+            [self.dataToWrite appendData:nsdata];
+        }
+
+        [self performSelector:@selector(writeDataToAccessory) onThread:self.sessionThread withObject:nil waitUntilDone:NO];
+    }
+
+    return retval;
+}
+
+// write to the mux - high level method to write data to the mux when data have been read from the accessory
+- (int)writeDataToMux:(struct pomp_buffer *)buf
+{
+    int retval = 0;
+
+    if(buf != NULL && self.usbMux != NULL)
+    {
+        //NSLog(@"%s write data to mux", __FUNCTION__);
+        retval = mux_decode(self.usbMux, buf);
+    }
+
+    return retval;
+}
+
+// tx callback - called by the mux when there is data to transfer to the accessory
+static int libmux_mux_ops_tx_callback(struct mux_ctx *ctx, struct pomp_buffer *buf, void *userdata)
+{
+    int ret = 0;
+    USBAccessoryManager *this = (__bridge USBAccessoryManager *)userdata;
+    if (this)
+    {
+        ret = [this readDataFromMux:buf];
+    }
+
+    return ret;
+}
+
+static void libmux_mux_ops_channel_cb(struct mux_ctx *ctx, uint32_t chanid, enum mux_channel_event event, struct pomp_buffer *buf, void *userdata)
+{
+    USBAccessoryManager *this = (__bridge USBAccessoryManager *)userdata;
+    if (this)
+    {
+        //NSLog(@"USBAccessoryManager %s Mux Channel callback. Channel Id : %d. Channel Event : %@", __FUNCTION__, chanid, event == MUX_CHANNEL_RESET ? @"RESET" : @"DATA");
+    }
+}
+
+#pragma mark - MuxDiscovery
+- (eARDISCOVERY_ERROR)muxDiscoveryConnect:(NSString*)name model:(NSString*)model deviceId:(NSString*)serial json:(NSString*)jsonStr callback:(void (^)(uint32_t status, const char* json))connectionCbBlock
+{
+    eARDISCOVERY_ERROR err = ARDISCOVERY_ERROR;
+
+    self.connectSemaphore = dispatch_semaphore_create(0);
+
+    if(self.muxDiscovery != NULL)
+    {
+        self.connectionCbBlock = connectionCbBlock;
+        int result =  ARDiscovery_MuxDiscovery_sendConnReq(self.muxDiscovery, [name UTF8String], [model UTF8String], [serial UTF8String], [jsonStr UTF8String]);
+        if(result == 0)
+        {
+            //NSLog(@"%s Wait for connection from mux", __FUNCTION__);
+            dispatch_semaphore_wait(self.connectSemaphore, DISPATCH_TIME_FOREVER);
+            err = ARDISCOVERY_OK;
+        }
+    }
+    self.connectSemaphore = nil;
+    return err;
+}
+
+- (void)muxDiscoveryCancelConnect
+{
+    //NSLog(@"%s Cancel connect", __FUNCTION__);
+    if(self.connectSemaphore != NULL)
+    {
+        dispatch_semaphore_signal(self.connectSemaphore);
+    }
+    if(_muxDiscovery != NULL)
+    {
+        ARDiscovery_MuxDiscovery_dispose(_muxDiscovery);
+    }
+}
+
+static void device_added_cb(const char *name, uint32_t type, const char *id, void *userdata)
+{
+    USBAccessoryManager *this = (__bridge USBAccessoryManager *)userdata;
+    if(this)
+    {
+        //NSLog(@"USBAccessoryManager %s Device added cb. Notify delegate : %@. Device name : %@", __FUNCTION__, this.delegate, [NSString stringWithUTF8String:name]);
+        [this.delegate USBAccessoryManager:this didAddDeviceWithConnectionId:this.accessory.connectionID name:name mux:this.usbMux serial:id productType:type];
+    }
+}
+
+static void device_removed_cb(const char *name, uint32_t type, const char *id, void *userdata)
+{
+    USBAccessoryManager *this = (__bridge USBAccessoryManager *)userdata;
+    if(this)
+    {
+        //NSLog(@"USBAccessoryManager %s Device removed cb. Notify delegate : %@", __FUNCTION__, this.delegate);
+        if(this.connectSemaphore != NULL)
+        {
+            dispatch_semaphore_signal(this.connectSemaphore);
+        }
+    }
+}
+
+static void device_conn_resp_cb(uint32_t status, const char* json, void *userdata)
+{
+    USBAccessoryManager *this = (__bridge USBAccessoryManager *)userdata;
+    if(this)
+    {
+        //NSLog(@"USBAccessoryManager %s Connection response cb", __FUNCTION__);
+        if(this.connectionCbBlock != NULL)
+        {
+            this.connectionCbBlock(status, json);
+            this.connectionCbBlock = NULL;
+            if(this.connectSemaphore != NULL)
+            {
+                dispatch_semaphore_signal(this.connectSemaphore);
+            }
+        }
+    }
+}
+
+static void eof_cb(void *userdata)
+{
+    USBAccessoryManager *this = (__bridge USBAccessoryManager *)userdata;
+    if(this)
+    {
+        //NSLog(@"USBAccessoryManager %s EOF cb", __FUNCTION__);
+        if(this.connectSemaphore != NULL)
+        {
+            dispatch_semaphore_signal(this.connectSemaphore);
+        }
+
+        if(this.muxDiscovery != NULL)
+        {
+            ARDiscovery_MuxDiscovery_dispose(this.muxDiscovery);
+            this.muxDiscovery = nil;
+        }
+
+        [this createMuxDiscovery];
+    }
+}
+
+@end
