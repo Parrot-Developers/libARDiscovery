@@ -66,16 +66,27 @@ else ifeq ("$(TARGET_OS)","darwin")
 
 # Darwin: use bonjour
 LOCAL_SRC_FILES += \
-	Sources/ARDISCOVERY_BonjourDiscovery.m \
-	Sources/USBAccessoryManager.m
+	Sources/ARDISCOVERY_BonjourDiscovery.m
+
 LOCAL_INSTALL_HEADERS += \
-	Includes/libARDiscovery/ARDISCOVERY_BonjourDiscovery.h:usr/include/libARDiscovery/ \
-	Includes/libARDiscovery/USBAccessoryManager.h:usr/include/libARDiscovery/
+	Includes/libARDiscovery/ARDISCOVERY_BonjourDiscovery.h:usr/include/libARDiscovery/
+
 LOCAL_LDLIBS += \
 	-framework Foundation \
-	-framework CoreBluetooth \
+	-framework CoreBluetooth
+
+ifeq ("$(TARGET_OS_FLAVOUR)","iphoneos")
+
+LOCAL_SRC_FILES += \
+	Sources/USBAccessoryManager.m
+
+LOCAL_INSTALL_HEADERS += \
+	Includes/libARDiscovery/USBAccessoryManager.h:usr/include/libARDiscovery/
+
+LOCAL_LDLIBS +=	\
 	-framework ExternalAccessory
 
+endif
 endif
 
 include $(BUILD_LIBRARY)
