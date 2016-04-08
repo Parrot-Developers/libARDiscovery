@@ -41,7 +41,10 @@
 #import <libARDiscovery/ARDISCOVERY_Discovery.h>
 #import <netdb.h>
 #import <libARDiscovery/ARDISCOVERY_MuxDiscovery.h>
+
+#ifdef USE_USB_ACCESSORY
 #import <libARDiscovery/USBAccessoryManager.h>
+#endif
 
 #define ARDISCOVERY_BONJOURDISCOVERY_TAG            "ARDISCOVERY_BonjourDiscovery"
 
@@ -121,7 +124,11 @@
 @end
 
 #pragma mark Private part
+#ifdef USE_USB_ACCESSORY
 @interface ARDiscovery () <NSNetServiceBrowserDelegate, NSNetServiceDelegate, CBCentralManagerDelegate, USBAccessoryManagerDelegate>
+#else
+@interface ARDiscovery () <NSNetServiceBrowserDelegate, NSNetServiceDelegate, CBCentralManagerDelegate>
+#endif
 
 #pragma mark - Supported products list
 @property (strong, nonatomic) NSSet *supportedProducts;
@@ -234,8 +241,9 @@
             _sharedInstance.isNSNetDiscovering = NO;
             _sharedInstance.isCBDiscovering = NO;
             _sharedInstance.askForCBDiscovering = NO;
-        
+#ifdef USE_USB_ACCESSORY
             [[USBAccessoryManager sharedInstance] setDelegate:_sharedInstance];
+#endif
         });
 
     return _sharedInstance;
@@ -922,6 +930,7 @@
     return res;
 }
 
+#ifdef USE_USB_ACCESSORY
 #pragma mark - USBAccessoryManagerDelegate methods
 
 - (void)USBAccessoryManager:(USBAccessoryManager*)usbAccessoryManager didAddDeviceWithConnectionId:(NSUInteger)connectionId name:(const char *)name mux:(struct mux_ctx *)mux serial:(const char *)serial productType:(uint32_t)productType
@@ -991,6 +1000,7 @@
         }
     }
 }
+#endif
 
 #pragma mark - Notification sender
 - (void)sendPublishNotification

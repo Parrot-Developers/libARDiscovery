@@ -86,6 +86,8 @@ LOCAL_INSTALL_HEADERS += \
 LOCAL_LDLIBS +=	\
 	-framework ExternalAccessory
 
+LOCAL_CFLAGS += -DUSE_USB_ACCESSORY=1
+endif
 endif
 endif
 
