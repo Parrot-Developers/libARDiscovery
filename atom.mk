@@ -89,6 +89,5 @@ LOCAL_LDLIBS +=	\
 LOCAL_CFLAGS += -DUSE_USB_ACCESSORY=1
 endif
 endif
-endif
 
 include $(BUILD_LIBRARY)
