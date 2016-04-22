@@ -47,6 +47,10 @@ static const uint16_t ARDISCOVERY_Discovery_ProductTable[ARDISCOVERY_PRODUCT_MAX
     [ARDISCOVERY_PRODUCT_JS_EVO_RACE]   = 0x0906,
     [ARDISCOVERY_PRODUCT_BEBOP_2]       = 0x090c,
     [ARDISCOVERY_PRODUCT_UNKNOWN_PRODUCT_1]      = 0x090d,
+    [ARDISCOVERY_PRODUCT_EVINRUDE]      = 0x090e,
+
+    // USB Service
+    [ARDISCOVERY_PRODUCT_UNKNOWNPRODUCT_2]=0x090f
 };
 
 static const char* ARDISCOVERY_Discovery_ProductNameTable[ARDISCOVERY_PRODUCT_MAX] =
@@ -65,6 +69,10 @@ static const char* ARDISCOVERY_Discovery_ProductNameTable[ARDISCOVERY_PRODUCT_MA
     [ARDISCOVERY_PRODUCT_JS_EVO_RACE]   = "Jumping Race",
     [ARDISCOVERY_PRODUCT_BEBOP_2]       = "Bebop 2",
     [ARDISCOVERY_PRODUCT_UNKNOWN_PRODUCT_1]      = "Unknown Product 1",
+    [ARDISCOVERY_PRODUCT_EVINRUDE]      = "Disco",
+
+    // USB service
+    [ARDISCOVERY_PRODUCT_UNKNOWNPRODUCT_2] = "UnknownProduct 2",
 };
 
 eARDISCOVERY_PRODUCT ARDISCOVERY_getProductService(eARDISCOVERY_PRODUCT product)
@@ -75,9 +83,13 @@ eARDISCOVERY_PRODUCT ARDISCOVERY_getProductService(eARDISCOVERY_PRODUCT product)
     {
         retval = ARDISCOVERY_PRODUCT_NSNETSERVICE;
     }
-    else if(ARDISCOVERY_PRODUCT_BLESERVICE <= product && product < ARDISCOVERY_PRODUCT_MAX)
+    else if(ARDISCOVERY_PRODUCT_BLESERVICE <= product && product < ARDISCOVERY_PRODUCT_USBSERVICE)
     {
         retval = ARDISCOVERY_PRODUCT_BLESERVICE;
+    }
+    else if(ARDISCOVERY_PRODUCT_USBSERVICE <= product && product < ARDISCOVERY_PRODUCT_MAX)
+    {
+        retval = ARDISCOVERY_PRODUCT_USBSERVICE;
     }
 
     return retval;
@@ -147,18 +159,21 @@ eARDISCOVERY_PRODUCT ARDISCOVERY_getProductFromName(const char *name)
 eARDISCOVERY_PRODUCT ARDISCOVERY_getProductFromPathName(const char *name)
 {
     uint8_t product = ARDISCOVERY_PRODUCT_MAX;
+    size_t namelen;
     int i = 0;
 
     char buffer[256];
 
     if (name == NULL)
         return ARDISCOVERY_PRODUCT_MAX;
-    int namelen = strlen(name);
+
+    namelen = strlen(name);
     for (i = 0; (product == ARDISCOVERY_PRODUCT_MAX) && (i < ARDISCOVERY_PRODUCT_MAX); i++)
     {
         ARDISCOVERY_getProductPathName(i, buffer, 256);
         if(namelen < strlen(buffer))
             continue;
+
         if(strncmp(name, buffer, strlen(buffer)) == 0)
             product = i;
     }
@@ -198,6 +213,7 @@ eARDISCOVERY_PRODUCT_FAMILY ARDISCOVERY_getProductFamily(eARDISCOVERY_PRODUCT pr
         family = ARDISCOVERY_PRODUCT_FAMILY_JS;
         break;
     case ARDISCOVERY_PRODUCT_SKYCONTROLLER:
+    case ARDISCOVERY_PRODUCT_UNKNOWNPRODUCT_2:
         family = ARDISCOVERY_PRODUCT_FAMILY_SKYCONTROLLER;
         break;
     case ARDISCOVERY_PRODUCT_MINIDRONE:
@@ -208,6 +224,9 @@ eARDISCOVERY_PRODUCT_FAMILY ARDISCOVERY_getProductFamily(eARDISCOVERY_PRODUCT pr
         break;
     case ARDISCOVERY_PRODUCT_UNKNOWN_PRODUCT_1:
         family = ARDISCOVERY_PRODUCT_FAMILY_UNKNOWN_PRODUCT_1;
+        break;
+    case ARDISCOVERY_PRODUCT_EVINRUDE:
+        family = ARDISCOVERY_PRODUCT_FAMILY_FIXED_WING;
         break;
     default:
         break;

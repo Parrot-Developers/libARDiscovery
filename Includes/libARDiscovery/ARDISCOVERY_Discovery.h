@@ -49,6 +49,7 @@ typedef enum
     ARDISCOVERY_PRODUCT_JS_EVO_RACE,                                    ///< Jumping Sumo EVO Race product
     ARDISCOVERY_PRODUCT_BEBOP_2,                                        ///< Bebop drone 2.0 product
     ARDISCOVERY_PRODUCT_UNKNOWN_PRODUCT_1,                                       ///< Unknown product 1 product
+    ARDISCOVERY_PRODUCT_EVINRUDE,                                       ///< Evinrude product
 
     ARDISCOVERY_PRODUCT_BLESERVICE,                                     ///< BlueTooth products category
     ARDISCOVERY_PRODUCT_MINIDRONE = ARDISCOVERY_PRODUCT_BLESERVICE,     ///< DELOS product
@@ -56,7 +57,9 @@ typedef enum
     ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK,                            ///< Delos EVO Brick product
     ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL,                        ///< Delos EVO Hydrofoil product
 
-    ARDISCOVERY_PRODUCT_MAX                                             ///< Max of products
+    ARDISCOVERY_PRODUCT_USBSERVICE,                                      ///< AOA/iAP usb product category
+    ARDISCOVERY_PRODUCT_UNKNOWNPRODUCT_2 = ARDISCOVERY_PRODUCT_USBSERVICE,///< Unknown product 2 product
+    ARDISCOVERY_PRODUCT_MAX                                              ///< Max of products
 } eARDISCOVERY_PRODUCT;
 
 /**
@@ -69,6 +72,7 @@ typedef enum
     ARDISCOVERY_PRODUCT_FAMILY_SKYCONTROLLER, ///< SKY CONTROLLER product family
     ARDISCOVERY_PRODUCT_FAMILY_MINIDRONE,     ///< DELOS product
     ARDISCOVERY_PRODUCT_FAMILY_UNKNOWN_PRODUCT_1,      ///< Unknown Product 1 product family
+    ARDISCOVERY_PRODUCT_FAMILY_FIXED_WING,   ///< Fixed wing product family
     ARDISCOVERY_PRODUCT_FAMILY_MAX            ///< Max of product familys
 } eARDISCOVERY_PRODUCT_FAMILY;
 

@@ -63,6 +63,10 @@
 #define ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_BITRATE_KEY               "arstream2_max_bitrate"
 #define ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_PARAMETER_SETS_KEY            "arstream2_parameter_sets"
 
+/**
+ * Audio specific keys
+ */
+#define ARDISCOVERY_CONNECTION_JSON_AUDIO_CODEC_VERSION_KEY                 "audio_codec"
 
 /**
  * @brief Read/Write buffers max size

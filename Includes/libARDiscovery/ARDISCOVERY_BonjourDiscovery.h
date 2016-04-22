@@ -101,6 +101,13 @@
 
 + (ARDiscovery *)sharedInstance;
 
+#pragma mark - Set supported products list
+/*
+ * Set the list of supported products. 
+ * Products of type [NSNumber numberWithInt:<eARDISCOVERY_PRODUCT>]
+ */
+- (void)setSupportedProducts:(NSSet*)products;
+
 #pragma mark Start / Stop
 /**
  * Starts ARDiscovery if it isntt discovering

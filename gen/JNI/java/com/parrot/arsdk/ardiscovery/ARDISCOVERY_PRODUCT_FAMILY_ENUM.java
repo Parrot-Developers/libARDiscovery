@@ -53,8 +53,10 @@ public enum ARDISCOVERY_PRODUCT_FAMILY_ENUM {
     ARDISCOVERY_PRODUCT_FAMILY_MINIDRONE (3, "DELOS product"),
    /** Unknown Product 1 product family */
     ARDISCOVERY_PRODUCT_FAMILY_UNKNOWN_PRODUCT_1 (4, "Unknown Product 1 product family"),
+   /** Fixed wing product family */
+    ARDISCOVERY_PRODUCT_FAMILY_FIXED_WING (5, "Fixed wing product family"),
    /** Max of product familys */
-    ARDISCOVERY_PRODUCT_FAMILY_MAX (5, "Max of product familys");
+    ARDISCOVERY_PRODUCT_FAMILY_MAX (6, "Max of product familys");
 
     private final int value;
     private final String comment;
