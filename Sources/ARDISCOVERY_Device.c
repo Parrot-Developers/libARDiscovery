@@ -237,7 +237,7 @@ ARNETWORKAL_Manager_t *ARDISCOVERY_Device_NewARNetworkAL (ARDISCOVERY_Device_t *
     {
         ARSAL_PRINT (ARSAL_PRINT_ERROR, ARDISCOVERY_DEVICE_TAG, "error: %s", ARDISCOVERY_Error_ToString (localError));
 
-        if (discoveryDevice)
+        if (discoveryDevice && discoveryDevice->deleteNetworkAL)
             discoveryDevice->deleteNetworkAL (discoveryDevice, &networkALManager);
     }
     // No else: skipped by an error 
