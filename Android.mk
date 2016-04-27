@@ -11,7 +11,8 @@ LOCAL_SRC_FILES := \
     JNI/c/ARDISCOVERY_JNI_Discovery.c \
     JNI/c/ARDISCOVERY_JNI_DEVICE_Ble.c \
     JNI/c/ARDISCOVERY_JNI_MuxDiscovery.c \
+    JNI/c/ARDISCOVERY_JNI_MuxConnection.c
 
 LOCAL_LDLIBS := -llog -lz
-LOCAL_SHARED_LIBRARIES := libARDiscovery-prebuilt json-prebuilt libARSAL-prebuilt libARNetworkAL-prebuilt
+LOCAL_SHARED_LIBRARIES := libARDiscovery-prebuilt json-prebuilt libARSAL-prebuilt libARNetworkAL-prebuilt libmux-prebuilt
 include $(BUILD_SHARED_LIBRARY)

@@ -37,19 +37,17 @@
 
 #define TAG "ARDISCOVERY_JNI_MuxDiscovery"
 
-static jmethodID g_onDeviceAdded;
-static jmethodID g_onDeviceRemoved;
-static jmethodID g_onReset;
+static jmethodID g_onDeviceConnected;
 
 struct jni_ctx {
-    struct MuxDiscoveryCtx      *discovery_ctx;
+    struct MuxConnectionCtx     *connection_ctx;
     jobject                     *thizz;
     struct mux_ctx              *muxctx;
 };
 
 static JavaVM* g_jvm;
 
-static void device_added_cb(const char *name, uint32_t type, const char *id, void *userdata)
+static void device_conn_resp_cb(uint32_t status, const char* json, void *userdata)
 {
     struct jni_ctx* ctx = (struct jni_ctx*)userdata;
     JNIEnv* env = NULL;
@@ -59,71 +57,22 @@ static void device_added_cb(const char *name, uint32_t type, const char *id, voi
         return;
     }
 
-    jstring jname = (*env)->NewStringUTF(env, name);
-    jstring jid = (*env)->NewStringUTF(env, id);
+    jstring jjson = (*env)->NewStringUTF(env, json);
 
-    (*env)->CallVoidMethod(env, ctx->thizz, g_onDeviceAdded, jname, type, jid);
+    (*env)->CallVoidMethod(env, ctx->thizz, g_onDeviceConnected, (jint)status, jjson);
 
-    if (jname) {
-        (*env)->DeleteLocalRef(env, jname);
-    }
-    if (jid) {
-        (*env)->DeleteLocalRef(env, jid);
-    }
-}
-
-static void device_removed_cb(const char *name, uint32_t type, const char *id, void *userdata)
-{
-    struct jni_ctx* ctx = (struct jni_ctx*)userdata;
-    JNIEnv* env = NULL;
-    if ((*g_jvm)->GetEnv(g_jvm, (void **)&env, JNI_VERSION_1_6) != JNI_OK)
-    {
-        ARSAL_PRINT(ARSAL_PRINT_WARNING, TAG, "thread not attached to JVM");
-        return;
+    if (jjson) {
+        (*env)->DeleteLocalRef(env, jjson);
     }
 
-    jstring jname = (*env)->NewStringUTF(env, name);
-    jstring jid = (*env)->NewStringUTF(env, id);
-
-    (*env)->CallVoidMethod(env, ctx->thizz, g_onDeviceRemoved, jname, type, jid);
-
-    if (jname) {
-        (*env)->DeleteLocalRef(env, jname);
-    }
-    if (jid) {
-        (*env)->DeleteLocalRef(env, jid);
-    }
-}
-
-static void eof_cb(void *userdata)
-{
-    struct jni_ctx* ctx = (struct jni_ctx*)userdata;
-    JNIEnv* env = NULL;
-    if ((*g_jvm)->GetEnv(g_jvm, (void **)&env, JNI_VERSION_1_6) != JNI_OK)
-    {
-        ARSAL_PRINT(ARSAL_PRINT_WARNING, TAG, "thread not attached to JVM");
-        return;
-    }
-    ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "mux eof: restart discovery");
-
-    (*env)->CallVoidMethod(env, ctx->thizz, g_onReset);
-
-    if (ctx->discovery_ctx)
-        ARDiscovery_MuxDiscovery_dispose(ctx->discovery_ctx);
-
-    ctx->discovery_ctx = ARDiscovery_MuxDiscovery_new(ctx->muxctx,
-                                    &device_added_cb, &device_removed_cb,
-                                    &eof_cb, ctx);
-    if (!ctx->discovery_ctx)
-        ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Error creating MuxDiscovery");
 }
 
 
 static void cleanup(JNIEnv *env, struct jni_ctx *ctx)
 {
     if (ctx != NULL) {
-        if (ctx->discovery_ctx != NULL) {
-            ARDiscovery_MuxDiscovery_dispose(ctx->discovery_ctx);
+        if (ctx->connection_ctx != NULL) {
+            ARDiscovery_MuxConnection_dispose(ctx->connection_ctx);
         }
         if (ctx->thizz != NULL) {
             (*env)->DeleteGlobalRef(env, ctx->thizz);
@@ -134,7 +83,7 @@ static void cleanup(JNIEnv *env, struct jni_ctx *ctx)
 }
 
 JNIEXPORT void JNICALL
-Java_com_parrot_arsdk_ardiscovery_ARDiscoveryMux_nativeClInit (JNIEnv *env, jclass clazz)
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryMux_nativeClInitConnection (JNIEnv *env, jclass clazz)
 {
     jint res = (*env)->GetJavaVM(env, &g_jvm);
     if (res < 0)
@@ -142,26 +91,16 @@ Java_com_parrot_arsdk_ardiscovery_ARDiscoveryMux_nativeClInit (JNIEnv *env, jcla
         ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Unable to get JavaVM pointer");
     }
 
-    g_onDeviceAdded = (*env)->GetMethodID (env, clazz, "onDeviceAdded", "(Ljava/lang/String;ILjava/lang/String;)V");
-    if (!g_onDeviceAdded)
+    g_onDeviceConnected = (*env)->GetMethodID (env, clazz, "onDeviceConnected", "(ILjava/lang/String;)V");
+    if (!g_onDeviceConnected)
     {
-        ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Unable to find method onDeviceAdded");
-    }
-    g_onDeviceRemoved = (*env)->GetMethodID (env, clazz, "onDeviceRemoved", "(Ljava/lang/String;ILjava/lang/String;)V");
-    if (!g_onDeviceAdded)
-    {
-        ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Unable to find method onDeviceRemoved");
-    }
-    g_onReset = (*env)->GetMethodID (env, clazz, "onReset", "()V");
-    if (!g_onReset)
-    {
-        ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Unable to find method onReset");
+        ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Unable to find method onDeviceConnected");
     }
 }
 
 
 JNIEXPORT jlong JNICALL
-Java_com_parrot_arsdk_ardiscovery_ARDiscoveryMux_nativeNew (JNIEnv *env, jobject thizz, jlong jMuxCtxPtr)
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryMux_nativeNewConnection (JNIEnv *env, jobject thizz, jlong jMuxCtxPtr)
 {
     ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "Creating new ARDiscoveryMux");
     struct jni_ctx *ctx = calloc(1, sizeof(*ctx));
@@ -180,7 +119,7 @@ Java_com_parrot_arsdk_ardiscovery_ARDiscoveryMux_nativeNew (JNIEnv *env, jobject
     }
 
     ctx->muxctx = muxctx;
-    ctx->discovery_ctx = ARDiscovery_MuxDiscovery_new(muxctx, &device_added_cb, &device_removed_cb, &eof_cb, ctx);
+    ctx->connection_ctx = ARDiscovery_MuxConnection_new(muxctx, &device_conn_resp_cb, ctx);
 
     if (ctx == NULL) {
         ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Error creating MuxDiscovery");
@@ -194,8 +133,32 @@ fail:
     return (jlong)(intptr_t)NULL;
 }
 
+
+JNIEXPORT jint JNICALL
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryMux_nativeSendConnectRequest(JNIEnv *env, jobject thizz, jlong jCtx,
+        jstring controllerName, jstring controllerType, jstring deviceId, jstring json)
+{
+    ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "Send connection request");
+    struct jni_ctx* ctx = (struct jni_ctx*) (intptr_t) jCtx;
+
+    const char *cControlerName = (*env)->GetStringUTFChars(env, controllerName, 0);
+    const char *cControllerType = (*env)->GetStringUTFChars(env, controllerType, 0);
+    const char *cDeviceId = (*env)->GetStringUTFChars(env, deviceId, 0);
+    const char *cJson = (*env)->GetStringUTFChars(env, json, 0);
+
+    int ret = ARDiscovery_MuxConnection_sendConnReq(ctx->connection_ctx, cControlerName,
+            cControllerType, cDeviceId, cJson);
+
+    (*env)->ReleaseStringUTFChars(env, controllerName, cControlerName);
+    (*env)->ReleaseStringUTFChars(env, controllerType, cControllerType);
+    (*env)->ReleaseStringUTFChars(env, deviceId, cDeviceId);
+    (*env)->ReleaseStringUTFChars(env, json, cJson);
+
+    return (jint)ret;
+}
+
 JNIEXPORT void JNICALL
-Java_com_parrot_arsdk_ardiscovery_ARDiscoveryMux_nativeDispose (JNIEnv *env, jobject thizz, jlong jCtx)
+Java_com_parrot_arsdk_ardiscovery_ARDiscoveryMux_nativeDisposeConnection (JNIEnv *env, jobject thizz, jlong jCtx)
 {
     ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "Disposing ARDiscoveryMux");
     struct jni_ctx* ctx = (struct jni_ctx*) (intptr_t) jCtx;

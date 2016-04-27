@@ -47,6 +47,8 @@
 #include <libARDiscovery/ARDISCOVERY_Discovery.h>
 #include <libARDiscovery/ARDISCOVERY_NetworkConfiguration.h>
 
+struct mux_ctx;
+
 //TODO add!!!
 typedef eARDISCOVERY_ERROR (*ARDISCOVERY_Device_ConnectionJsonCallback_t) (json_object *jsonObj, void *customData);
 
@@ -187,5 +189,37 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_WifiGetIpAddress (ARDISCOVERY_Device_t *de
  * @return executing error.
  */
 eARDISCOVERY_ERROR ARDISCOVERY_Device_InitBLE (ARDISCOVERY_Device_t *device, eARDISCOVERY_PRODUCT product, ARNETWORKAL_BLEDeviceManager_t bleDeviceManager, ARNETWORKAL_BLEDevice_t bleDevice);
+
+/***********************
+ * -- USB part --
+ ***********************/
+
+/**
+ * @brief Initialize the Discovery Device with an usb device.
+ * @param device The Discovery Device to Initialize.
+ * @param[in] product Parrot's product to initialized
+ * @param[in] mux The mux instance to use
+ * @return executing error.
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_Device_InitUSB (ARDISCOVERY_Device_t *device, eARDISCOVERY_PRODUCT product, struct mux_ctx *mux);
+
+/**
+ * @brief Add connection callbacks to an usb device.
+ * @param device The Discovery Device to add callback.
+ * @param[in] sendJsonCallback Callback to add a json part durring the connection.
+ * @param[in] receiveJsonCallback Callback to read a json part durring the connection.
+ * @param[in] customData custom data given as parameter to the callbacks.
+ * @return executing error.
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_Device_UsbAddConnectionCallbacks (ARDISCOVERY_Device_t *device, ARDISCOVERY_Device_ConnectionJsonCallback_t sendJsonCallback, ARDISCOVERY_Device_ConnectionJsonCallback_t receiveJsonCallback, void *customData);
+
+
+/**
+ * @brief Get the mux associated with an usb device.
+ * @param device The Discovery Device.
+ * @param[out] mux the mux pointer.
+ * @return executing error.
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_Device_UsbGetMux(ARDISCOVERY_Device_t *device, struct mux_ctx **mux);
 
 #endif // _ARDISCOVERY_DEVICE_H_

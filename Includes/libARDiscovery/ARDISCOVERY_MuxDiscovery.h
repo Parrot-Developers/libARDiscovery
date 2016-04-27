@@ -35,20 +35,32 @@
 /* Forward declarations */
 struct mux_ctx;
 struct MuxDiscoveryCtx;
+struct MuxConnectionCtx;
 
 typedef void (*device_added_cb_t)(const char *name, uint32_t type, const char *id, void *userdata);
 typedef void (*device_removed_cb_t)(const char *name, uint32_t type, const char *id, void *userdata);
 typedef void (*device_conn_resp_cb_t)(uint32_t status, const char* json, void *userdata);
 typedef void (*eof_cb_t)(void *userdata);
 
-struct MuxDiscoveryCtx* ARDiscovery_MuxDiscovery_new(struct mux_ctx *muxctx,
-		device_added_cb_t device_added_cb,device_removed_cb_t device_removed_cb,
-		device_conn_resp_cb_t device_conn_resp_cb, eof_cb_t eof_cb, void* userdata);
+struct MuxDiscoveryCtx* ARDiscovery_MuxDiscovery_new(
+	struct mux_ctx *muxctx,
+	device_added_cb_t device_added_cb,
+	device_removed_cb_t device_removed_cb,
+	eof_cb_t eof_cb,
+	void* userdata);
 
-int ARDiscovery_MuxDiscovery_sendConnReq(struct MuxDiscoveryCtx* ctx,
+void ARDiscovery_MuxDiscovery_dispose(struct MuxDiscoveryCtx *ctx);
+
+struct MuxConnectionCtx* ARDiscovery_MuxConnection_new(
+	struct mux_ctx *muxctx,
+	device_conn_resp_cb_t device_conn_resp_cb,
+	void *userdata);
+
+int ARDiscovery_MuxConnection_sendConnReq(struct MuxConnectionCtx* ctx,
 		const char* controllerName, const char* controllerType,
 		const char* deviceId, const char* json);
 
-void ARDiscovery_MuxDiscovery_dispose(struct MuxDiscoveryCtx *ctx);
+void ARDiscovery_MuxConnection_dispose(struct MuxConnectionCtx *ctx);
+
 
 #endif /** _ARDISCOVERY_MUX_DISCOVERY_H_ */

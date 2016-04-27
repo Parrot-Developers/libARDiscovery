@@ -35,14 +35,14 @@ import android.util.Log;
 
 import com.parrot.mux.Mux;
 
-public class ARDiscoveryMux {
+public class ARDiscoveryMux
+{
 
     public interface Listener {
         void onDeviceAdded(String name, int type, String deviceId);
 
         void onDeviceRemoved();
     }
-
     public interface ConnectCallback {
         void onConnected(int status, String json);
     }
@@ -52,16 +52,19 @@ public class ARDiscoveryMux {
     private long cPtr;
     private Listener listener;
     private final Object connectLock = new Object();
-    private ConnectCallback connectCallback;
     private String deviceName;
     private int deviceType;
     private String deviceId;
+    private ConnectCallback connectCallback;
+    private Mux.Ref muxRef;
 
     static {
         nativeClInit();
+        nativeClInitConnection();
     }
 
-    public ARDiscoveryMux(Mux.Ref muxRef) {
+    public ARDiscoveryMux(Mux mux) {
+        this.muxRef = mux.newMuxRef();
         this.cPtr = nativeNew(muxRef.getCPtr());
     }
 
@@ -76,28 +79,32 @@ public class ARDiscoveryMux {
         }
     }
 
+
     public int connect(String device, String model, String id, String json, ConnectCallback connectCallback) {
+        int ret = -1;
         if (isValid()) {
             synchronized (connectLock) {
                 if (this.connectCallback != null) {
                     throw new RuntimeException("Connection already in progress!");
                 }
                 this.connectCallback = connectCallback;
-                if (nativeSendConnectRequest(cPtr, device, model, id, json) == 0) {
+                long muxConn = nativeNewConnection(muxRef.getCPtr());
+                if (nativeSendConnectRequest(muxConn, device, model, id, json) == 0) {
                     try {
                         connectLock.wait();
                     } catch (InterruptedException e) {
                     }
-                    return 0;
+                    ret = 0;
                 }
+                nativeDisposeConnection(muxConn);
             }
         }
-        return -1;
+        return ret;
     }
 
     public void cancelConnect() {
-        synchronized (this) {
-            this.notifyAll();
+        synchronized (connectLock) {
+            connectLock.notifyAll();
         }
     }
 
@@ -113,6 +120,7 @@ public class ARDiscoveryMux {
             listener.onDeviceRemoved();
         }
         listener = null;
+        muxRef.release();
         Log.d(TAG, "ARDiscoveryMux destroy done");
     }
 
@@ -170,7 +178,7 @@ public class ARDiscoveryMux {
             }
         } catch (Throwable t) {
             // catch all before returning to native code
-            Log.e(TAG, "exception in onDeviceRemoved", t);
+            Log.e(TAG, "exception in onDeviceConnected", t);
         }
     }
 
@@ -195,12 +203,15 @@ public class ARDiscoveryMux {
     }
 
     private static native void nativeClInit();
+    private static native void nativeClInitConnection();
 
     private native long nativeNew(long muxCPtr);
+    private native long nativeNewConnection(long muxCPtr);
 
     private native int nativeSendConnectRequest(long cPtr, String controllerName, String controllerTpe,
                                                 String deviceId, String json);
 
     private native void nativeDispose(long cPtr);
+    private native void nativeDisposeConnection(long cPtr);
 };
 

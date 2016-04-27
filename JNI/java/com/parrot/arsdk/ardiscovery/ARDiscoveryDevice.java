@@ -6,6 +6,7 @@ import android.content.Context;
 import com.parrot.arsdk.arnetworkal.ARNETWORKAL_ERROR_ENUM;
 import com.parrot.arsdk.arnetworkal.ARNetworkALManager;
 import com.parrot.arsdk.arsal.ARSALPrint;
+import com.parrot.mux.Mux;
 
 public class ARDiscoveryDevice
 {
@@ -31,6 +32,7 @@ public class ARDiscoveryDevice
     
     private native int nativeInitWifi(long jARDiscoveryDevice, int product, String name, String address, int port);
     private native int nativeInitBLE(long jARDiscoveryDevice, int product, BLEPart blePart);
+    private native int nativeInitUsb(long jARDiscoveryDevice, int product, long mux);
     
     private long nativeARDiscoveryDevice;
     private boolean initOk;
@@ -142,6 +144,30 @@ public class ARDiscoveryDevice
                     blePart.bleDevice = bleDevice;
 
                     int nativeError = nativeInitBLE(nativeARDiscoveryDevice, product.getValue(), blePart);
+                    error = ARDISCOVERY_ERROR_ENUM.getFromValue(nativeError);
+                }
+                else
+                {
+                    error = ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_ERROR_BAD_PARAMETER;
+                }
+            }
+        }
+
+        return error;
+    }
+
+    public ARDISCOVERY_ERROR_ENUM initUSB (ARDISCOVERY_PRODUCT_ENUM product, Mux mux)
+    {
+        ARDISCOVERY_ERROR_ENUM error = ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_OK;
+        synchronized (this)
+        {
+            if (initOk == true)
+            {
+                if (product != null)
+                {
+                    Mux.Ref muxRef = mux.newMuxRef();
+                    int nativeError = nativeInitUsb(nativeARDiscoveryDevice, product.getValue(), muxRef.getCPtr());
+                    muxRef.release();
                     error = ARDISCOVERY_ERROR_ENUM.getFromValue(nativeError);
                 }
                 else

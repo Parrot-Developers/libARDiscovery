@@ -339,7 +339,7 @@
          * Start NSNetServiceBrowser
          */
         [controllersServiceBrowser searchForServicesOfType:kServiceNetControllerType inDomain:kServiceNetDomain];
-        for (int i = 0; i < [devicesServiceBrowsers count]; ++i)
+        for (NSUInteger i = 0; i < [devicesServiceBrowsers count]; ++i)
         {
             NSNetServiceBrowser *browser = [devicesServiceBrowsers objectAtIndex:i];
             [browser searchForServicesOfType:[NSString stringWithFormat:kServiceNetDeviceFormat, ARDISCOVERY_getProductID(ARDISCOVERY_PRODUCT_NSNETSERVICE + i)] inDomain:kServiceNetDomain];
@@ -484,7 +484,7 @@
     struct sockaddr_in *socketAddress = nil;
     NSString *ipString = nil;
     int port;
-    int i;
+    NSUInteger i;
 
     name = [[aService service] name];
     NSArray *adresses = ((NSNetService *)[aService service]).addresses;

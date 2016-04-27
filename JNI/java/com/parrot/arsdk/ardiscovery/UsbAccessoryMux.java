@@ -41,7 +41,6 @@ import android.hardware.usb.UsbAccessory;
 import android.hardware.usb.UsbManager;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.parrot.mux.Mux;
 
@@ -138,9 +137,7 @@ public class UsbAccessoryMux {
                             }
                         }, "muxThread");
                         muxThread.start();
-                        Mux.Ref muxRef = usbMux.newMuxRef();
-                        discoveryChannel = new ARDiscoveryMux(muxRef);
-                        muxRef.release();
+                        discoveryChannel = new ARDiscoveryMux(usbMux);
                         if (mDiscoveryListener != null) {
                             discoveryChannel.setListener(mDiscoveryListener);
                         }
@@ -161,14 +158,14 @@ public class UsbAccessoryMux {
 
     private void closeMux() {
         synchronized (this) {
+            if (discoveryChannel != null) {
+                discoveryChannel.destroy();
+                discoveryChannel = null;
+            }
             if (usbMux != null) {
                 usbMux.stop();
                 usbMux.destroy();
                 usbMux = null;
-            }
-            if (discoveryChannel != null) {
-                discoveryChannel.destroy();
-                discoveryChannel = null;
             }
             if (muxFileDescriptor != null) {
                 try {

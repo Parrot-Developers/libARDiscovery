@@ -33,6 +33,7 @@ LOCAL_SRC_FILES := \
 	Sources/ARDISCOVERY_MuxDiscovery.c \
 	Sources/Wifi/ARDISCOVERY_DEVICE_Wifi.c \
 	Sources/BLE/ARDISCOVERY_DEVICE_Ble.c \
+	Sources/Usb/ARDISCOVERY_DEVICE_Usb.c \
 	gen/Sources/ARDISCOVERY_Error.c
 
 LOCAL_INSTALL_HEADERS := \

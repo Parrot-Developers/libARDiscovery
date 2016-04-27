@@ -179,7 +179,7 @@ NSString *const UISupportedExternalAccessoryProtocols = @"UISupportedExternalAcc
     }
 }
 
-#pragma mark EASession's Thread main method
+#pragma mark EASession Thread main method
 - (void)sessionThreadMain
 {
     NSRunLoop *runLoop = [NSRunLoop currentRunLoop];
@@ -309,7 +309,7 @@ static void* runMuxThread(void* arg)
 {
     if(self.usbMux != NULL)
     {
-        self.muxDiscovery = ARDiscovery_MuxDiscovery_new(self.usbMux, device_added_cb, device_removed_cb, device_conn_resp_cb, eof_cb, (__bridge void *)self);
+        self.muxDiscovery = ARDiscovery_MuxDiscovery_new(self.usbMux, device_added_cb, device_removed_cb, eof_cb, (__bridge void *)self);
         if(self.muxDiscovery == NULL)
         {
             NSLog(@"%s Failed to create MuxDiscovery", __FUNCTION__);
@@ -395,12 +395,13 @@ static void libmux_mux_ops_channel_cb(struct mux_ctx *ctx, uint32_t chanid, enum
 {
     eARDISCOVERY_ERROR err = ARDISCOVERY_ERROR;
 
+    struct MuxConnectionCtx *muxConnection = ARDiscovery_MuxConnection_new(self.usbMux, device_conn_resp_cb, (__bridge void *)self);
     self.connectSemaphore = dispatch_semaphore_create(0);
 
     if(self.muxDiscovery != NULL)
     {
         self.connectionCbBlock = connectionCbBlock;
-        int result =  ARDiscovery_MuxDiscovery_sendConnReq(self.muxDiscovery, [name UTF8String], [model UTF8String], [serial UTF8String], [jsonStr UTF8String]);
+        int result =  ARDiscovery_MuxConnection_sendConnReq(muxConnection, [name UTF8String], [model UTF8String], [serial UTF8String], [jsonStr UTF8String]);
         if(result == 0)
         {
             //NSLog(@"%s Wait for connection from mux", __FUNCTION__);
@@ -409,6 +410,7 @@ static void libmux_mux_ops_channel_cb(struct mux_ctx *ctx, uint32_t chanid, enum
         }
     }
     self.connectSemaphore = nil;
+    ARDiscovery_MuxConnection_dispose(muxConnection);
     return err;
 }
 

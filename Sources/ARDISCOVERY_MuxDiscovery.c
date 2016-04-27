@@ -51,8 +51,13 @@ struct MuxDiscoveryCtx {
 	struct mux_ctx        *muxctx;
 	device_added_cb_t     device_added_cb;
 	device_removed_cb_t   device_removed_cb;
-	device_conn_resp_cb_t device_conn_resp_cb;
 	eof_cb_t              eof_cb;
+	void                  *userdata;
+};
+
+struct MuxConnectionCtx {
+	struct mux_ctx        *muxctx;
+	device_conn_resp_cb_t device_conn_resp_cb;
 	void                  *userdata;
 };
 
@@ -96,7 +101,7 @@ static void rx_device_removed(struct pomp_msg *msg, struct MuxDiscoveryCtx *ctx)
 	free(id);
 }
 
-static void mux_rx_conn_resp(struct pomp_msg *msg, struct MuxDiscoveryCtx *ctx)
+static void mux_rx_conn_resp(struct pomp_msg *msg, struct MuxConnectionCtx *ctx)
 {
 	int res = 0;
 	uint32_t status;
@@ -118,7 +123,7 @@ static void mux_backend_channel_cb(struct mux_ctx *mux_ctx, uint32_t chanid,
 			enum mux_channel_event event,
 			struct pomp_buffer *buf, void *userdata)
 {
-	struct MuxDiscoveryCtx *ctx = (struct MuxDiscoveryCtx*)userdata;
+	struct MuxConnectionCtx *ctx = (struct MuxConnectionCtx*)userdata;
 	struct pomp_msg *msg = NULL;
 
 	switch (event) {
@@ -185,10 +190,18 @@ static void mux_discovery_channel_cb(struct mux_ctx *mux_ctx, uint32_t chanid,
 	}
 }
 
-static void cleanup(struct MuxDiscoveryCtx *ctx)
+static void discovery_cleanup(struct MuxDiscoveryCtx *ctx)
 {
 	if (ctx) {
 		mux_channel_close(ctx->muxctx, MUX_ARSDK_CHANNEL_ID_DISCOVERY);
+		mux_unref(ctx->muxctx);
+		free(ctx);
+	}
+}
+
+static void connection_cleanup(struct MuxConnectionCtx *ctx)
+{
+	if (ctx) {
 		mux_channel_close(ctx->muxctx, MUX_ARSDK_CHANNEL_ID_BACKEND);
 		mux_unref(ctx->muxctx);
 		free(ctx);
@@ -230,7 +243,7 @@ out:
 
 
 struct MuxDiscoveryCtx* ARDiscovery_MuxDiscovery_new(struct mux_ctx *muxctx, device_added_cb_t device_added_cb,
-		device_removed_cb_t device_removed_cb, device_conn_resp_cb_t device_conn_resp_cb, eof_cb_t eof_cb, void* userdata)
+						     device_removed_cb_t device_removed_cb, eof_cb_t eof_cb, void* userdata)
 {
 	int ret;
 	struct MuxDiscoveryCtx *ctx = NULL;
@@ -245,7 +258,6 @@ struct MuxDiscoveryCtx* ARDiscovery_MuxDiscovery_new(struct mux_ctx *muxctx, dev
 
 	ctx->device_added_cb = device_added_cb;
 	ctx->device_removed_cb = device_removed_cb;
-	ctx->device_conn_resp_cb = device_conn_resp_cb;
 	ctx->eof_cb = eof_cb;
 	ctx->userdata = userdata;
 
@@ -253,13 +265,6 @@ struct MuxDiscoveryCtx* ARDiscovery_MuxDiscovery_new(struct mux_ctx *muxctx, dev
 	ret = mux_channel_open(ctx->muxctx, MUX_ARSDK_CHANNEL_ID_DISCOVERY, &mux_discovery_channel_cb, ctx);
 	if (ret < 0) {
 		ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Error opening discovery channel %d", ret);
-		goto fail;
-	}
-
-	// open backend channel
-	ret = mux_channel_open(ctx->muxctx, MUX_ARSDK_CHANNEL_ID_BACKEND, &mux_backend_channel_cb, ctx);
-	if (ret < 0) {
-		ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Error opening backend channel %d", ret);
 		goto fail;
 	}
 
@@ -273,11 +278,43 @@ struct MuxDiscoveryCtx* ARDiscovery_MuxDiscovery_new(struct mux_ctx *muxctx, dev
 	return ctx;
 
 fail:
-	cleanup(ctx);
+	discovery_cleanup(ctx);
 	return NULL;
 }
 
-int ARDiscovery_MuxDiscovery_sendConnReq(struct MuxDiscoveryCtx* ctx,
+struct MuxConnectionCtx* ARDiscovery_MuxConnection_new(struct mux_ctx *muxctx,
+						       device_conn_resp_cb_t device_conn_resp_cb,
+						       void *userdata)
+{
+	int ret;
+	struct MuxConnectionCtx *ctx = NULL;
+
+	/* Allocate internal object */
+	ctx = calloc(1, sizeof(*ctx));
+	if (ctx == NULL)
+		return NULL;
+
+	ctx->muxctx = muxctx;
+	mux_ref(ctx->muxctx);
+
+	ctx->device_conn_resp_cb = device_conn_resp_cb;
+	ctx->userdata = userdata;
+
+	// open backend channel
+	ret = mux_channel_open(ctx->muxctx, MUX_ARSDK_CHANNEL_ID_BACKEND, &mux_backend_channel_cb, ctx);
+	if (ret < 0) {
+		ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Error opening backend channel %d", ret);
+		goto fail;
+	}
+
+	return ctx;
+
+fail:
+	connection_cleanup(ctx);
+	return NULL;
+}
+
+int ARDiscovery_MuxConnection_sendConnReq(struct MuxConnectionCtx* ctx,
 		const char* controllerName, const char* controllerType,
 		const char* deviceId, const char* json)
 {
@@ -294,8 +331,12 @@ int ARDiscovery_MuxDiscovery_sendConnReq(struct MuxDiscoveryCtx* ctx,
 
 void ARDiscovery_MuxDiscovery_dispose(struct MuxDiscoveryCtx *ctx)
 {
-	cleanup(ctx);
+	discovery_cleanup(ctx);
+}
+
+void ARDiscovery_MuxConnection_dispose(struct MuxConnectionCtx *ctx)
+{
+	connection_cleanup(ctx);
 }
 
 #endif // BUILD_LIBMUX
-
