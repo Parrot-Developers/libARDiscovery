@@ -56,7 +56,7 @@ public class UsbAccessoryMux {
     private static final String ACTION_USB_PERMISSION = "com.parrot.arsdk.USB_ACCESSORY_PERMISSION";
 
     private static final String MANUFACTURER_ID = "Parrot";
-    private static final String SKYCONTROLLER2_MODEL_ID = "MPP";
+    private static final String SKYCONTROLLER2_MODEL_ID = "Skycontroller 2";
 
     private static final String TAG = "UsbAccessoryMux";
     private static UsbAccessoryMux sInstance;
