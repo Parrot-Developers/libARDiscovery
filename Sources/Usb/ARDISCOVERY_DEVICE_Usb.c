@@ -43,7 +43,12 @@
 #include <libARNetworkAL/ARNETWORKAL_Error.h>
 #include <libARDiscovery/ARDISCOVERY_MuxDiscovery.h>
 #include <libARDiscovery/ARDISCOVERY_Device.h>
+
+#ifdef BUILD_LIBMUX
 #include <libmux.h>
+#else
+struct mux_ctx;
+#endif
 
 #include "ARDISCOVERY_DEVICE_Usb.h"
 
@@ -76,6 +81,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Usb_ReceiveJsonCallback (uint8_t *dataRx, 
 
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Usb_CreateSpecificParameters (ARDISCOVERY_Device_t *device, struct mux_ctx *mux)
 {
+#ifdef BUILD_LIBMUX
     // Initialize usb specific parameters
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
     ARDISCOVERY_DEVICE_USB_t *specificUsbParam = NULL;
@@ -118,10 +124,14 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Usb_CreateSpecificParameters (ARDISCOVERY_
     // No else: skipped no error
 
     return error;
+#else
+    return ARDISCOVERY_ERROR;
+#endif
 }
 
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Usb_DeleteSpecificParameters (ARDISCOVERY_Device_t *device)
 {
+#ifdef BUILD_LIBMUX
     // -- Delete SpecificParameters allocated by the usb initialization --
 
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
@@ -150,10 +160,14 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Usb_DeleteSpecificParameters (ARDISCOVERY_
     }
 
     return error;
+#else
+    return ARDISCOVERY_ERROR;
+#endif
 }
 
 void *ARDISCOVERY_DEVICE_Usb_GetCopyOfSpecificParameters (ARDISCOVERY_Device_t *device, eARDISCOVERY_ERROR *error)
 {
+#ifdef BUILD_LIBMUX
     // -- Copy the specificParameters --
 
     eARDISCOVERY_ERROR localError = ARDISCOVERY_OK;
@@ -218,10 +232,16 @@ void *ARDISCOVERY_DEVICE_Usb_GetCopyOfSpecificParameters (ARDISCOVERY_Device_t *
     // No else: error is not returned
 
     return specificUsbParam;
+#else
+    if (error)
+	    *error = ARDISCOVERY_ERROR;
+    return NULL;
+#endif
 }
 
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Usb_AddConnectionCallbacks (ARDISCOVERY_Device_t *device, ARDISCOVERY_Device_ConnectionJsonCallback_t sendJsonCallback, ARDISCOVERY_Device_ConnectionJsonCallback_t receiveJsonCallback, void *customData)
 {
+#ifdef BUILD_LIBMUX
     // -- Usb Add Connection Callbacks --
 
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
@@ -247,10 +267,14 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Usb_AddConnectionCallbacks (ARDISCOVERY_De
     }
 
     return error;
+#else
+    return ARDISCOVERY_ERROR;
+#endif
 }
 
 ARNETWORKAL_Manager_t *ARDISCOVERY_DEVICE_Usb_NewARNetworkAL (ARDISCOVERY_Device_t *device, eARDISCOVERY_ERROR *error, eARNETWORKAL_ERROR *errorAL)
 {
+#ifdef BUILD_LIBMUX
     // -- Create a new networlAL adapted to the device --
 
     eARDISCOVERY_ERROR localError = ARDISCOVERY_OK;
@@ -314,10 +338,16 @@ ARNETWORKAL_Manager_t *ARDISCOVERY_DEVICE_Usb_NewARNetworkAL (ARDISCOVERY_Device
     }
 
     return networkAL;
+#else
+    if (error)
+	    *error = ARDISCOVERY_ERROR;
+    return NULL;
+#endif
 }
 
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Usb_DeleteARNetworkAL (ARDISCOVERY_Device_t *device, ARNETWORKAL_Manager_t **networkAL)
 {
+#ifdef BUILD_LIBMUX
     // --  Delete a networlAL create by ARDISCOVERY_DEVICE_Usb_NewARNetworkAL --
 
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
@@ -345,10 +375,14 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Usb_DeleteARNetworkAL (ARDISCOVERY_Device_
     }
 
     return error;
+#else
+    return ARDISCOVERY_ERROR;
+#endif
 }
 
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Usb_InitSkyController2NetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration)
 {
+#ifdef BUILD_LIBMUX
     // -- Initilize network Configuration adapted to a SkyController2. --
 
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
@@ -455,6 +489,9 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Usb_InitSkyController2NetworkConfiguration
     }
 
     return error;
+#else
+    return ARDISCOVERY_ERROR;
+#endif
 }
 
 static void device_conn_resp_cb(uint32_t status, const char* json, void *userdata)
@@ -494,7 +531,7 @@ static void device_conn_resp_cb(uint32_t status, const char* json, void *userdat
 
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Usb_DiscoveryConnect (ARDISCOVERY_Device_t *device)
 {
-
+#ifdef BUILD_LIBMUX
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
     ARDISCOVERY_DEVICE_USB_t *specificUsbParam = NULL;
     struct MuxConnectionCtx *conn_ctx = NULL;
@@ -577,11 +614,14 @@ end:
     ARDiscovery_MuxConnection_dispose(conn_ctx);
 
     return error;
+#else
+    return ARDISCOVERY_ERROR;
+#endif
 }
 
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Usb_GetMux(ARDISCOVERY_Device_t *device, struct mux_ctx **mux)
 {
-
+#ifdef BUILD_LIBMUX
     ARDISCOVERY_DEVICE_USB_t *specificUsbParam = NULL;
 
     // check parameters
@@ -597,4 +637,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Usb_GetMux(ARDISCOVERY_Device_t *device, s
     (*mux) = specificUsbParam->mux;
 
     return ARDISCOVERY_OK;
+#else
+    return ARDISCOVERY_ERROR;
+#endif
 }

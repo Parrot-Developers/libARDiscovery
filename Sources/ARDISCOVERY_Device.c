@@ -42,7 +42,8 @@
 #include <libARNetworkAL/ARNETWORKAL_Error.h>
 #include <libARDiscovery/ARDISCOVERY_Connection.h>
 #include <libARDiscovery/ARDISCOVERY_Device.h>
-#include <libmux.h>
+
+struct mux_ctx;
 
 #include "Wifi/ARDISCOVERY_DEVICE_Wifi.h"
 #include "BLE/ARDISCOVERY_DEVICE_Ble.h"
