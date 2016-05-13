@@ -76,7 +76,7 @@ LOCAL_LDLIBS += \
 	-framework Foundation \
 	-framework CoreBluetooth
 
-ifneq ("$(TARGET_OS_FLAVOUR)","iphoneos", "iphonesimulator")
+ifeq ("$(TARGET_OS_FLAVOUR)","iphoneos")
 
 LOCAL_SRC_FILES += \
 	Sources/USBAccessoryManager.m
