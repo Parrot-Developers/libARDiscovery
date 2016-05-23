@@ -73,6 +73,7 @@ public abstract class ARDiscoveryConnection
     public static final String ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_LATENCY_KEY;
     public static final String ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_NETWORK_LATENCY_KEY;
     public static final String ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_BITRATE_KEY;
+    public static final String ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_SUPPORTED_METADATA_VERSION_KEY;
     public static final String ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_PARAMETER_SETS_KEY;
     public static final String ARDISCOVERY_CONNECTION_JSON_AUDIO_CODEC_VERSION_KEY;
 
@@ -100,6 +101,7 @@ public abstract class ARDiscoveryConnection
     private static native String nativeGetDefineJsonARStream2MaxLatencyKey();
     private static native String nativeGetDefineJsonARStream2MaxNetworkLatencyKey();
     private static native String nativeGetDefineJsonARStream2MaxBitrateKey();
+    private static native String nativeGetDefineJsonARStream2SupportedMetadataVersionKey();
     private static native String nativeGetDefineJsonARStream2ParameterSetsKey();
     private static native String nativeGetDefineJsonAudioCodecVersionKey();
 
@@ -142,6 +144,7 @@ public abstract class ARDiscoveryConnection
         ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_LATENCY_KEY = nativeGetDefineJsonARStream2MaxLatencyKey();
         ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_NETWORK_LATENCY_KEY = nativeGetDefineJsonARStream2MaxNetworkLatencyKey();
         ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_BITRATE_KEY = nativeGetDefineJsonARStream2MaxBitrateKey();
+        ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_SUPPORTED_METADATA_VERSION_KEY = nativeGetDefineJsonARStream2SupportedMetadataVersionKey();
         ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_PARAMETER_SETS_KEY = nativeGetDefineJsonARStream2ParameterSetsKey();
         ARDISCOVERY_CONNECTION_JSON_AUDIO_CODEC_VERSION_KEY = nativeGetDefineJsonAudioCodecVersionKey();
         ARDISCOVERY_CONNECTION_SEND_JSON_SIZE = nativeGetDefineTxBufferSize() -1; /* -1 for the null character of the native json */
