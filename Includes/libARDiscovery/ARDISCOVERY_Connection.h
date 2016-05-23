@@ -53,15 +53,16 @@
 /**
  * ARStream2 specific keys
  */
-#define ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_CLIENT_STREAM_PORT_KEY        "arstream2_client_stream_port"
-#define ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_CLIENT_CONTROL_PORT_KEY       "arstream2_client_control_port"
-#define ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_SERVER_STREAM_PORT_KEY        "arstream2_server_stream_port"
-#define ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_SERVER_CONTROL_PORT_KEY       "arstream2_server_control_port"
-#define ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_PACKET_SIZE_KEY           "arstream2_max_packet_size"
-#define ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_LATENCY_KEY               "arstream2_max_latency"
-#define ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_NETWORK_LATENCY_KEY       "arstream2_max_network_latency"
-#define ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_BITRATE_KEY               "arstream2_max_bitrate"
-#define ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_PARAMETER_SETS_KEY            "arstream2_parameter_sets"
+#define ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_CLIENT_STREAM_PORT_KEY          "arstream2_client_stream_port"
+#define ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_CLIENT_CONTROL_PORT_KEY         "arstream2_client_control_port"
+#define ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_SERVER_STREAM_PORT_KEY          "arstream2_server_stream_port"
+#define ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_SERVER_CONTROL_PORT_KEY         "arstream2_server_control_port"
+#define ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_PACKET_SIZE_KEY             "arstream2_max_packet_size"
+#define ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_LATENCY_KEY                 "arstream2_max_latency"
+#define ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_NETWORK_LATENCY_KEY         "arstream2_max_network_latency"
+#define ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_MAX_BITRATE_KEY                 "arstream2_max_bitrate"
+#define ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_SUPPORTED_METADATA_VERSION_KEY  "arstream2_supported_metadata_version"
+#define ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_PARAMETER_SETS_KEY              "arstream2_parameter_sets"
 
 /**
  * Audio specific keys
