@@ -70,6 +70,8 @@ NSString *const UISupportedExternalAccessoryProtocols = @"UISupportedExternalAcc
     {
         [self performSelector:@selector(closeSession) onThread:self.sessionThread withObject:nil waitUntilDone:YES];
         [self.sessionThread cancel];
+        // Wake up the run loop to evaluate the cancel
+        [self performSelector:@selector(emptyMessage) onThread:self.sessionThread withObject:nil waitUntilDone:NO];
         self.sessionThread = nil;
     }
     if(self.muxDiscovery != NULL)
@@ -78,6 +80,7 @@ NSString *const UISupportedExternalAccessoryProtocols = @"UISupportedExternalAcc
         {
             dispatch_semaphore_signal(self.connectSemaphore);
         }
+
         ARDiscovery_MuxDiscovery_dispose(self.muxDiscovery);
         self.muxDiscovery = NULL;
     }
@@ -90,13 +93,17 @@ NSString *const UISupportedExternalAccessoryProtocols = @"UISupportedExternalAcc
     self.accessory = nil;
 }
 
+- (void)emptyMessage
+{
+}
+
 #pragma mark - EAAccessory
 #pragma mark EAAccessory Notifications
 - (void)accessoryDidConnect:(NSNotification*)notification
 {
     EAAccessory *connectedAccessory = [[notification userInfo] objectForKey:EAAccessoryKey];
 
-    if(self.usbMux == nil)
+    if(self.usbMux == NULL)
     {
         [self tryToOpenSessionForAccessory:connectedAccessory];
     }
@@ -187,7 +194,10 @@ NSString *const UISupportedExternalAccessoryProtocols = @"UISupportedExternalAcc
     NSTimer *keepAliveTimer = [[NSTimer alloc] initWithFireDate:futureDate interval:0.1 target:nil selector:nil userInfo:nil repeats:YES];
     [runLoop addTimer:keepAliveTimer forMode:NSDefaultRunLoopMode];
 
-    while (![NSThread currentThread].isCancelled && [runLoop runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]]);
+    while (![NSThread currentThread].isCancelled && [runLoop runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]])
+    {
+    }
+    NSLog(@"%s Thread Exit", __FUNCTION__);
 
     //clean up
     [keepAliveTimer invalidate];
