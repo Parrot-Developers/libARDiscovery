@@ -191,7 +191,7 @@ NSString *const UISupportedExternalAccessoryProtocols = @"UISupportedExternalAcc
 {
     NSRunLoop *runLoop = [NSRunLoop currentRunLoop];
     NSDate* futureDate = [NSDate dateWithTimeIntervalSinceNow:1.0];
-    NSTimer *keepAliveTimer = [[NSTimer alloc] initWithFireDate:futureDate interval:0.1 target:nil selector:nil userInfo:nil repeats:YES];
+    NSTimer *keepAliveTimer = [[NSTimer alloc] initWithFireDate:futureDate interval:0.1 target:self selector:@selector(emptyMessage) userInfo:nil repeats:YES];
     [runLoop addTimer:keepAliveTimer forMode:NSDefaultRunLoopMode];
 
     while (![NSThread currentThread].isCancelled && [runLoop runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]])
@@ -246,7 +246,7 @@ NSString *const UISupportedExternalAccessoryProtocols = @"UISupportedExternalAcc
         while (([[self.session outputStream] hasSpaceAvailable]) && ([self.dataToWrite length] > 0))
         {
             NSInteger bytesWritten = [[self.session outputStream] write:[self.dataToWrite bytes] maxLength:[self.dataToWrite length]];
-            //NSLog(@"%s Write to accessory. bytesWritten: %ld", __FUNCTION__, (long)bytesWritten);
+            //NSLog(@"%s Write to accessory. bytesWritten: %ld / %ld", __FUNCTION__, (long)bytesWritten, (long)_dataToWrite.length);
             if (bytesWritten == -1)
             {
                 NSLog(@"%s write error", __FUNCTION__);
@@ -347,7 +347,7 @@ static void* runMuxThread(void* arg)
     if (retval == 0)
     {
         //NSLog(@"%s read data from mux. Lenght : %d", __FUNCTION__, (int)len);
-        NSData *nsdata = [NSData dataWithBytes:data length:len];
+        NSData *nsdata = [NSData dataWithBytesNoCopy:data length:len freeWhenDone:NO];
 
         @synchronized(self.dataToWrite)
         {
