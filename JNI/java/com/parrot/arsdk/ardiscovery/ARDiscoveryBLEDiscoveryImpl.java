@@ -109,6 +109,7 @@ public class ARDiscoveryBLEDiscoveryImpl implements ARDiscoveryBLEDiscovery
                             if (askForLeDiscovering)
                             {
                                 bleConnect();
+                                isLeDiscovering = true;
                                 askForLeDiscovering = false;
                             }
                             break;
@@ -237,6 +238,7 @@ public class ARDiscoveryBLEDiscoveryImpl implements ARDiscoveryBLEDiscovery
             bleDisconnect();
             isLeDiscovering = false;
         }
+        askForLeDiscovering = false;
     }
 
 
