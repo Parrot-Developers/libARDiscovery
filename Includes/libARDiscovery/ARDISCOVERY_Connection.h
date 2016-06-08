@@ -77,6 +77,21 @@
 #define ARDISCOVERY_CONNECTION_RX_BUFFER_SIZE 512
 
 /**
+ * @brief State of a connection
+ * This is used for BLE products
+ */
+typedef enum {
+    ARDISCOVERY_CONNECTION_STATE_UNKNOWN,               /**< Connection state unknown */
+    // ARDISCOVERY_CONNECTION_STATE_AVAILABLE value should stay 1
+    // because old products are sending 1 in their advertisement data
+    ARDISCOVERY_CONNECTION_STATE_AVAILABLE,             /**< Connection is available, product is theoretically connectable */
+    ARDISCOVERY_CONNECTION_STATE_CONNECTED_TO_OTHER,    /**< Product is connected to a controller. This controller is not one of the listed in the following enum values */
+    ARDISCOVERY_CONNECTION_STATE_CONNECTED_TO_TINOS,    /**< Product is connected to a Tinos controller */
+    ARDISCOVERY_CONNECTION_STATE_MAX                    /**< Max value, no meaning, should be considered like Unknown */
+
+}eARDISCOVERY_CONNECTION_STATE;
+
+/**
  * @brief callback use to send json information of the connection
  * @warning dataTx must not exceed ARDISCOVERY_CONNECTION_TX_BUFFER_SIZE and must ending by a NULL character
  * @param[out] dataTx Transmission buffer ; must be filled with the json information of the connection

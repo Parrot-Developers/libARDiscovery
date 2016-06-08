@@ -831,6 +831,7 @@
                         ARBLEService *bleService = [[ARBLEService alloc] init];
                         bleService.centralManager = self.centralManager;
                         bleService.peripheral = peripheral;
+                        bleService.connectionState = [self connectionStateForValue:ids[3]];
 
                         aService = [[ARService alloc] init];
                         aService.service = bleService;
@@ -928,6 +929,17 @@
     }
 
     return res;
+}
+
+
+/**
+ * Get the connection state of the product from the scan record
+ * @param value: the value
+ * @return the connection state related to the given value.
+ *         return ARDISCOVERY_CONNECTION_STATE_UNKNOWN if a value is given but unknown (forward compatibility)
+ */
+- (eARDISCOVERY_CONNECTION_STATE)connectionStateForValue:(uint16_t)value {
+    return (value < ARDISCOVERY_CONNECTION_STATE_MAX) ? value : ARDISCOVERY_CONNECTION_STATE_UNKNOWN;
 }
 
 #ifdef USE_USB_ACCESSORY

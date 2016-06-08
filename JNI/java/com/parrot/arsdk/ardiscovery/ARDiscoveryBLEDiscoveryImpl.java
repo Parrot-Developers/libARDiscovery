@@ -384,6 +384,7 @@ public class ARDiscoveryBLEDiscoveryImpl implements ARDiscoveryBLEDiscovery
                 ARDiscoveryDeviceBLEService deviceBLEService = new ARDiscoveryDeviceBLEService(bleService);
                 
                 deviceBLEService.setSignal(rssi);
+                deviceBLEService.setConnectionState(getBLEProductConnectionState(scanRecord));
                 
                 /* add the service in the array*/
                 ARDiscoveryDeviceService deviceService = new ARDiscoveryDeviceService (bleService.getName(), deviceBLEService, productID);
@@ -418,7 +419,7 @@ public class ARDiscoveryBLEDiscoveryImpl implements ARDiscoveryBLEDiscovery
              * AD Struct 2 : (manufacturerData)
              * - length = 0x09
              * - AD Type = 0xFF
-             * - AD data : | BTVendorID (2 oct) | USBVendorID (2 oct) | USBProductID (2 oct) | VersionID (2 oct) |
+             * - AD data : | BTVendorID (2 oct) | USBVendorID (2 oct) | USBProductID (2 oct) | ConnectionState (2 oct) |
              */
 
             int parrotProductID = 0;
@@ -456,6 +457,51 @@ public class ARDiscoveryBLEDiscoveryImpl implements ARDiscoveryBLEDiscovery
             }
 
             return parrotProductID;
+        }
+
+        /**
+         * Get the connection state of the product from the scan record
+         * @param scanRecord BLE scanRecord
+         * @return the connection state of the parrot BLE device.
+         *         return eARDISCOVERY_CONNECTION_STATE_UNKNOWN_ENUM_VALUE if it is not a parrot device
+         *         return ARDISCOVERY_CONNECTION_STATE_UNKNOWN if a value is given but unknown (forward compatibility)
+         */
+        private ARDISCOVERY_CONNECTION_STATE_ENUM getBLEProductConnectionState (byte[] scanRecord)
+        {
+            /* see getParrotProductID(byte[] scanRecord) to get scanRecord structure */
+
+            ARDISCOVERY_CONNECTION_STATE_ENUM connectionState =
+                ARDISCOVERY_CONNECTION_STATE_ENUM.eARDISCOVERY_CONNECTION_STATE_UNKNOWN_ENUM_VALUE;
+
+            final int MASK = 0xFF;
+
+            /* get the length of the manufacturerData */
+            byte[] data = (byte[]) Arrays.copyOfRange(scanRecord, ARDISCOVERY_BLE_MANUFACTURER_DATA_LENGTH_OFFSET, ARDISCOVERY_BLE_MANUFACTURER_DATA_LENGTH_OFFSET + 1);
+            int manufacturerDataLenght = (MASK & data[0]);
+
+            /* check if it is the length expected */
+            if (manufacturerDataLenght == ARDISCOVERY_BLE_MANUFACTURER_DATA_LENGTH_WITH_ADTYPE)
+            {
+                /* get the manufacturerData */
+                data = (byte[]) Arrays.copyOfRange(scanRecord, ARDISCOVERY_BLE_MANUFACTURER_DATA_ADTYPE_OFFSET , ARDISCOVERY_BLE_MANUFACTURER_DATA_ADTYPE_OFFSET + manufacturerDataLenght);
+                int adType = (MASK & data[0]);
+
+                /* check if it is the AD Type expected */
+                if (adType == ARDISCOVERY_BLE_MANUFACTURER_DATA_ADTYPE)
+                {
+                    // connection state is taken from the bit 7 and 8
+                    int connectionStateID = (data[7] & MASK) + ((data[8] & MASK) << 8);
+                    connectionState = ARDISCOVERY_CONNECTION_STATE_ENUM.getFromValue(connectionStateID);
+
+                    // unknown value can happen in a forward compatibility issue
+                    if (connectionState.equals(ARDISCOVERY_CONNECTION_STATE_ENUM.eARDISCOVERY_CONNECTION_STATE_UNKNOWN_ENUM_VALUE))
+                    {
+                        connectionState = ARDISCOVERY_CONNECTION_STATE_ENUM.ARDISCOVERY_CONNECTION_STATE_UNKNOWN;
+                    }
+                }
+            }
+
+            return connectionState;
         }
 
         private void periodScanLeDeviceEnd()

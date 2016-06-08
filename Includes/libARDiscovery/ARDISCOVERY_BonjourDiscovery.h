@@ -40,6 +40,7 @@
 #include <libARSAL/ARSAL_CentralManager.h>
 #import <libARDiscovery/ARDISCOVERY_Discovery.h>
 #import <libARDiscovery/ARDISCOVERY_MuxDiscovery.h>
+#import <libARDiscovery/ARDISCOVERY_Connection.h>
 
 #pragma mark Notifications
 
@@ -89,6 +90,12 @@
 @interface ARBLEService : NSObject
 @property (nonatomic, strong) ARSAL_CentralManager *centralManager;
 @property (nonatomic, strong) CBPeripheral *peripheral;
+
+/**
+ * Connection state of the product
+ * If Connected, this device will probably refuse any new connection.
+ */
+@property (nonatomic, assign) eARDISCOVERY_CONNECTION_STATE connectionState;
 @end
 
 @interface ARUSBService : NSObject
