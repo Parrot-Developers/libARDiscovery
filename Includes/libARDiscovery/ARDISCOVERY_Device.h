@@ -176,6 +176,16 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_WifiAddConnectionCallbacks (ARDISCOVERY_De
  */
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_WifiGetIpAddress (ARDISCOVERY_Device_t *device, char *ipAddress, int length);
 
+/**
+ * @brief Set requested QoS level.
+ * 0: No QoS, 1: QoS enabled (default)
+ * @param device The Discovery Device.
+ * @param [in] level The requested QoS level
+ * @note Must be called before "NewARNetworkAL" to have any effect.
+ * @return executing error.
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_WifiSetQoSLevel (ARDISCOVERY_Device_t *device, int level);
+
 /***********************
  * -- BLE part --
  ***********************/
