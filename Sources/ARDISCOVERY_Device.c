@@ -428,6 +428,12 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_WifiGetIpAddress (ARDISCOVERY_Device_t *de
     return ARDISCOVERY_DEVICE_Wifi_GetIpAddress (device, ipAddress, length);
 }
 
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_WifiSetQoSLevel (ARDISCOVERY_Device_t *device, int level)
+{
+    return ARDISCOVERY_DEVICE_Wifi_SetQoSLevel(device, level);
+}
+
+
 /***********************
  * -- BLE part --
  ***********************/

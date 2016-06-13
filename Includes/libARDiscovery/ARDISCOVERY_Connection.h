@@ -49,6 +49,7 @@
 #define ARDISCOVERY_CONNECTION_JSON_C2D_USER_PORT_KEY                       "c2d_user_port"
 #define ARDISCOVERY_CONNECTION_JSON_SKYCONTROLLER_VERSION                   "skycontroller_version"
 #define ARDISCOVERY_CONNECTION_JSON_FEATURES_KEY                            "features"
+#define ARDISCOVERY_CONNECTION_JSON_QOS_MODE_KEY                            "qos_mode"
 
 /**
  * ARStream2 specific keys
