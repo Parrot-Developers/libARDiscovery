@@ -63,6 +63,8 @@ typedef struct
     // Parameters received by discovery Json :
     int controllerToDevicePort;
     eARDISCOVERY_ERROR connectionStatus;
+    int requested_qos_level;
+    int qos_level;
     
 }ARDISCOVERY_DEVICE_WIFI_t;
 
@@ -121,6 +123,16 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_DeleteARNetworkAL (ARDISCOVERY_Device
  * @return executing error.
  */
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_GetIpAddress (ARDISCOVERY_Device_t *device, char *ipAddress, int length);
+
+/**
+ * @brief Set requested QoS level.
+ * 0: No QoS, 1: QoS enabled (default)
+ * @param device The Discovery Device.
+ * @param [in] level The requested QoS level
+ * @note Must be called before "NewARNetworkAL" to have any effect.
+ * @return executing error.
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_SetQoSLevel (ARDISCOVERY_Device_t *device, int level);
 
 /**
  * @brief Initilize network Configuration adapted to a BebopDrone.

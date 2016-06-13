@@ -65,6 +65,7 @@ public abstract class ARDiscoveryConnection
     public static final String ARDISCOVERY_CONNECTION_JSON_C2D_USER_PORT_KEY;
     public static final String ARDISCOVERY_CONNECTION_JSON_SKYCONTROLLER_VERSION;
     public static final String ARDISCOVERY_CONNECTION_JSON_FEATURES_KEY;
+    public static final String ARDISCOVERY_CONNECTION_JSON_QOS_MODE_KEY;
     public static final String ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_CLIENT_STREAM_PORT_KEY;
     public static final String ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_CLIENT_CONTROL_PORT_KEY;
     public static final String ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_SERVER_STREAM_PORT_KEY;
@@ -93,6 +94,7 @@ public abstract class ARDiscoveryConnection
     private static native String nativeGetDefineJsonC2DUserPortKey ();
     private static native String nativeGetDefineJsonSkyControllerVersionKey ();
     private static native String nativeGetDefineJsonFeaturesKey ();
+    private static native String nativeGetDefineJsonQosModeKey ();
     private static native String nativeGetDefineJsonARStream2ClientStreamPortKey();
     private static native String nativeGetDefineJsonARStream2ClientControlPortKey();
     private static native String nativeGetDefineJsonARStream2ServerStreamPortKey();
@@ -136,6 +138,7 @@ public abstract class ARDiscoveryConnection
         ARDISCOVERY_CONNECTION_JSON_C2D_USER_PORT_KEY = nativeGetDefineJsonC2DUserPortKey();
         ARDISCOVERY_CONNECTION_JSON_SKYCONTROLLER_VERSION = nativeGetDefineJsonSkyControllerVersionKey();
         ARDISCOVERY_CONNECTION_JSON_FEATURES_KEY = nativeGetDefineJsonFeaturesKey();
+        ARDISCOVERY_CONNECTION_JSON_QOS_MODE_KEY = nativeGetDefineJsonQosModeKey();
         ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_CLIENT_STREAM_PORT_KEY = nativeGetDefineJsonARStream2ClientStreamPortKey();
         ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_CLIENT_CONTROL_PORT_KEY = nativeGetDefineJsonARStream2ClientControlPortKey();
         ARDISCOVERY_CONNECTION_JSON_ARSTREAM2_SERVER_STREAM_PORT_KEY = nativeGetDefineJsonARStream2ServerStreamPortKey();
