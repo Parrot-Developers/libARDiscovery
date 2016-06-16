@@ -351,6 +351,9 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitWifi (ARDISCOVERY_Device_t *device, eA
         case ARDISCOVERY_PRODUCT_BEBOP_2:
             device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Wifi_InitBebop2NetworkConfiguration;
             break;
+        case ARDISCOVERY_PRODUCT_PAROS:
+            device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Wifi_InitUnknownproduct_4NetworkConfiguration;
+            break;
         case ARDISCOVERY_PRODUCT_JS:
             device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Wifi_InitJumpingSumoNetworkConfiguration;
             break;
@@ -469,6 +472,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitBLE (ARDISCOVERY_Device_t *device, eAR
         case ARDISCOVERY_PRODUCT_JS_EVO_RACE:
         case ARDISCOVERY_PRODUCT_POWER_UP:
         case ARDISCOVERY_PRODUCT_EVINRUDE:
+        case ARDISCOVERY_PRODUCT_PAROS:
         case ARDISCOVERY_PRODUCT_MAX:
             error = ARDISCOVERY_ERROR_BAD_PARAMETER;
             break;
@@ -524,6 +528,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitUSB (ARDISCOVERY_Device_t *device, eAR
     case ARDISCOVERY_PRODUCT_JS_EVO_RACE:
     case ARDISCOVERY_PRODUCT_POWER_UP:
     case ARDISCOVERY_PRODUCT_EVINRUDE:
+    case ARDISCOVERY_PRODUCT_PAROS:
     case ARDISCOVERY_PRODUCT_SKYCONTROLLER:
     case ARDISCOVERY_PRODUCT_MINIDRONE:
     case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT:
