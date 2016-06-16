@@ -452,7 +452,8 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration (ARDISC
         ((device->productID != ARDISCOVERY_PRODUCT_ARDRONE) &&
          (device->productID != ARDISCOVERY_PRODUCT_SKYCONTROLLER) &&
          (device->productID != ARDISCOVERY_PRODUCT_BEBOP_2) &&
-         (device->productID != ARDISCOVERY_PRODUCT_EVINRUDE))
+         (device->productID != ARDISCOVERY_PRODUCT_EVINRUDE) &&
+         (device->productID != ARDISCOVERY_PRODUCT_PAROS))
         )
     {
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;
@@ -591,7 +592,14 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitSkyControllerNetworkConfiguration
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitBebop2NetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration)
 {
     // -- Initilize network Configuration adapted to a Bebop 2. --
-    // This should be the same as the SkyController to be able to route the packets
+    // This should be the same as the Bebop to be able to be used by the SkyController
+    return ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration(device, networkConfiguration);
+}
+
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitParosNetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration)
+{
+    // -- Initilize network Configuration adapted to a Paros. --
+    // This should be the same as the Bebop to be able to be used by the SkyController
     return ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration(device, networkConfiguration);
 }
 
