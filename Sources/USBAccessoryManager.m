@@ -26,8 +26,9 @@ NSString *const UISupportedExternalAccessoryProtocols = @"UISupportedExternalAcc
 @property (nonatomic, assign) struct mux_ctx *usbMux;
 @property (nonatomic, assign) struct MuxDiscoveryCtx *muxDiscovery;
 @property (nonatomic, strong) dispatch_semaphore_t connectSemaphore;
+@property (nonatomic, strong) dispatch_semaphore_t sessionEndSemaphore;
 @property (nonatomic, copy) void (^connectionCbBlock)(uint32_t status, const char* json);
-
+@property (nonatomic, strong) NSObject *dataToWriteLock;
 @property (nonatomic, strong) NSMutableData *dataToWrite;
 @end
 
@@ -45,6 +46,7 @@ NSString *const UISupportedExternalAccessoryProtocols = @"UISupportedExternalAcc
         if(_sharedInstance.usbMux == nil)
         {
             _sharedInstance.dataToWrite = [[NSMutableData alloc] init];
+            _sharedInstance.dataToWriteLock = [[NSObject alloc] init];
             NSMutableArray *accessoryList = [[NSMutableArray alloc] initWithArray:[[EAAccessoryManager sharedAccessoryManager] connectedAccessories]];
             for(EAAccessory *connectedAccessory in accessoryList)
             {
@@ -66,31 +68,44 @@ NSString *const UISupportedExternalAccessoryProtocols = @"UISupportedExternalAcc
 - (void)cleanUp
 {
     NSLog(@"%s clean up", __FUNCTION__);
-    if(self.session != nil)
-    {
-        [self performSelector:@selector(closeSession) onThread:self.sessionThread withObject:nil waitUntilDone:YES];
-        [self.sessionThread cancel];
-        // Wake up the run loop to evaluate the cancel
-        [self performSelector:@selector(emptyMessage) onThread:self.sessionThread withObject:nil waitUntilDone:NO];
-        self.sessionThread = nil;
-    }
-    if(self.muxDiscovery != NULL)
-    {
-        if(self.connectSemaphore != NULL)
+    @synchronized (self) {
+        if(self.session != nil)
         {
-            dispatch_semaphore_signal(self.connectSemaphore);
+            [self performSelector:@selector(closeSession) onThread:self.sessionThread withObject:nil waitUntilDone:YES];
+            [self.sessionThread cancel];
+            // Wake up the run loop to evaluate the cancel
+            [self performSelector:@selector(emptyMessage) onThread:self.sessionThread withObject:nil waitUntilDone:NO];
+            if(self.sessionEndSemaphore)
+            {
+                dispatch_semaphore_wait(self.sessionEndSemaphore, DISPATCH_TIME_FOREVER);
+                self.sessionEndSemaphore = nil;
+            }
+            self.sessionThread = nil;
         }
+        if(self.muxDiscovery != NULL)
+        {
+            if(self.connectSemaphore != NULL)
+            {
+                dispatch_semaphore_signal(self.connectSemaphore);
+            }
 
-        ARDiscovery_MuxDiscovery_dispose(self.muxDiscovery);
-        self.muxDiscovery = NULL;
+            ARDiscovery_MuxDiscovery_dispose(self.muxDiscovery);
+            self.muxDiscovery = NULL;
+            self.connectionCbBlock = NULL;
+        }
+        if(self.usbMux != NULL)
+        {
+            mux_stop(self.usbMux);
+            if (self.muxThread)
+            {
+                ARSAL_Thread_Join(self.muxThread, NULL);
+                ARSAL_Thread_Destroy(&_muxThread);
+            }
+            mux_unref(self.usbMux);
+            self.usbMux = NULL;
+        }
+        self.accessory = nil;
     }
-    if(self.usbMux != NULL)
-    {
-        mux_stop(self.usbMux);
-        mux_unref(self.usbMux);
-        self.usbMux = NULL;
-    }
-    self.accessory = nil;
 }
 
 - (void)emptyMessage
@@ -136,7 +151,9 @@ NSString *const UISupportedExternalAccessoryProtocols = @"UISupportedExternalAcc
         [[self.session outputStream] scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
         [[self.session outputStream] open];
 
-        [self createMux];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self createMux];
+        });
     }
     else
     {
@@ -176,6 +193,7 @@ NSString *const UISupportedExternalAccessoryProtocols = @"UISupportedExternalAcc
 
                 if(self.sessionThread == nil)
                 {
+                    self.sessionEndSemaphore = dispatch_semaphore_create(0);
                     self.sessionThread = [[NSThread alloc] initWithTarget:self selector:@selector(sessionThreadMain) object:nil];
                     [self.sessionThread start];
                 }
@@ -201,6 +219,10 @@ NSString *const UISupportedExternalAccessoryProtocols = @"UISupportedExternalAcc
 
     //clean up
     [keepAliveTimer invalidate];
+    if (self.sessionEndSemaphore)
+    {
+        dispatch_semaphore_signal(self.sessionEndSemaphore);
+    }
     [NSThread exit];
 }
 
@@ -241,7 +263,7 @@ NSString *const UISupportedExternalAccessoryProtocols = @"UISupportedExternalAcc
 // low level write method - write data to the accessory while there is space available and data to write
 - (void)writeDataToAccessory
 {
-    @synchronized(self.dataToWrite) {
+    @synchronized(self.dataToWriteLock) {
 
         while (([[self.session outputStream] hasSpaceAvailable]) && ([self.dataToWrite length] > 0))
         {
@@ -284,23 +306,25 @@ NSString *const UISupportedExternalAccessoryProtocols = @"UISupportedExternalAcc
 // create a new mux with no file descriptor and a tx callback
 - (void)createMux
 {
-    if(self.usbMux == NULL)
-    {
-        struct mux_ops ops;
-        ops.tx = libmux_mux_ops_tx_callback;
-        ops.chan_cb = libmux_mux_ops_channel_cb;
-        ops.fdeof = NULL;
-        ops.userdata = (__bridge void *)self;
-        self.usbMux = mux_new(-1, NULL, &ops, 0);
+    @synchronized (self) {
+        if(self.usbMux == NULL)
+        {
+            struct mux_ops ops;
+            ops.tx = libmux_mux_ops_tx_callback;
+            ops.chan_cb = libmux_mux_ops_channel_cb;
+            ops.fdeof = NULL;
+            ops.userdata = (__bridge void *)self;
+            self.usbMux = mux_new(-1, NULL, &ops, 0);
 
-        if(self.usbMux != NULL)
-        {
-            ARSAL_Thread_Create(&_muxThread, runMuxThread, (__bridge void *)self);
-            [self createMuxDiscovery];
-        }
-        else
-        {
-            NSLog(@"%s Failed to create Mux", __FUNCTION__);
+            if(self.usbMux != NULL)
+            {
+                ARSAL_Thread_Create(&_muxThread, runMuxThread, (__bridge void *)self);
+                [self createMuxDiscovery];
+            }
+            else
+            {
+                NSLog(@"%s Failed to create Mux", __FUNCTION__);
+            }
         }
     }
 }
@@ -347,9 +371,9 @@ static void* runMuxThread(void* arg)
     if (retval == 0)
     {
         //NSLog(@"%s read data from mux. Lenght : %d", __FUNCTION__, (int)len);
-        NSData *nsdata = [NSData dataWithBytesNoCopy:data length:len freeWhenDone:NO];
+        NSData *nsdata = [NSData dataWithBytesNoCopy:(uint8_t*)data length:len freeWhenDone:NO];
 
-        @synchronized(self.dataToWrite)
+        @synchronized(self.dataToWriteLock)
         {
             if (self.dataToWrite == nil)
             {
@@ -434,9 +458,30 @@ static void libmux_mux_ops_channel_cb(struct mux_ctx *ctx, uint32_t chanid, enum
     {
         dispatch_semaphore_signal(self.connectSemaphore);
     }
-    if(_muxDiscovery != NULL)
+    if(self.muxDiscovery != NULL)
     {
-        ARDiscovery_MuxDiscovery_dispose(_muxDiscovery);
+        ARDiscovery_MuxDiscovery_dispose(self.muxDiscovery);
+        self.muxDiscovery = NULL;
+    }
+}
+
+- (void)restartMuxDiscovery
+{
+    [self.delegate USBAccessoryManager:self didRemoveDeviceWithConnectionId:self.accessory.connectionID];
+
+    @synchronized (self) {
+        if(self.connectSemaphore != NULL)
+        {
+            dispatch_semaphore_signal(self.connectSemaphore);
+        }
+
+        if(self.muxDiscovery != NULL)
+        {
+            ARDiscovery_MuxDiscovery_dispose(self.muxDiscovery);
+            self.muxDiscovery = NULL;
+        }
+
+        [self createMuxDiscovery];
     }
 }
 
@@ -487,18 +532,10 @@ static void eof_cb(void *userdata)
     if(this)
     {
         //NSLog(@"USBAccessoryManager %s EOF cb", __FUNCTION__);
-        if(this.connectSemaphore != NULL)
-        {
-            dispatch_semaphore_signal(this.connectSemaphore);
-        }
 
-        if(this.muxDiscovery != NULL)
-        {
-            ARDiscovery_MuxDiscovery_dispose(this.muxDiscovery);
-            this.muxDiscovery = nil;
-        }
-
-        [this createMuxDiscovery];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [this restartMuxDiscovery];
+        });
     }
 }
 
