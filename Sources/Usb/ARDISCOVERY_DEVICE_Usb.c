@@ -472,9 +472,13 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Usb_InitSkyController2NetworkConfiguration
         networkConfiguration->controllerToDeviceAckId = MPP_CONTROLLER_TO_DEVICE_ACK_ID;
         networkConfiguration->controllerToDeviceHightPriority = MPP_CONTROLLER_TO_DEVICE_EMERGENCY_ID;
         networkConfiguration->controllerToDeviceARStreamAck = MPP_CONTROLLER_TO_DEVICE_VIDEO_ACK_ID;
+        networkConfiguration->controllerToDeviceARStreamAudioAck = -1;
+        networkConfiguration->controllerToDeviceARStreamAudioData = -1;
         networkConfiguration->deviceToControllerNotAckId = MPP_DEVICE_TO_CONTROLLER_NAVDATA_ID;
         networkConfiguration->deviceToControllerAckId = MPP_DEVICE_TO_CONTROLLER_NAVDATA_ID;
         networkConfiguration->deviceToControllerARStreamData = MPP_DEVICE_TO_CONTROLLER_VIDEO_DATA_ID;
+        networkConfiguration->deviceToControllerARStreamAudioData = -1;
+        networkConfiguration->deviceToControllerARStreamAudioAck = -1;
 
         networkConfiguration->controllerToDeviceParams = c2dParams;
         networkConfiguration->numberOfControllerToDeviceParam = numC2dParams;

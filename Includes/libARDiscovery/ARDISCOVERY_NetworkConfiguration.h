@@ -52,10 +52,14 @@ typedef struct
     int controllerToDeviceAckId;
     int controllerToDeviceHightPriority;
     int controllerToDeviceARStreamAck;
+    int controllerToDeviceARStreamAudioAck;
+    int controllerToDeviceARStreamAudioData;
     int deviceToControllerNotAckId;
     int deviceToControllerAckId;
     //int deviceToControllerHightPriority;
     int deviceToControllerARStreamData;
+    int deviceToControllerARStreamAudioData;
+    int deviceToControllerARStreamAudioAck;
     
     int numberOfControllerToDeviceParam;
     ARNETWORK_IOBufferParam_t *controllerToDeviceParams;
