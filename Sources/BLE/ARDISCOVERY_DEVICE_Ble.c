@@ -373,10 +373,14 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Ble_InitRollingSpiderNetworkConfiguration 
         networkConfiguration->controllerToDeviceAckId = ROLLINGSPIDER_CONTROLLER_TO_DEVICE_ACK_ID;
         networkConfiguration->controllerToDeviceHightPriority = ROLLINGSPIDER_CONTROLLER_TO_DEVICE_EMERGENCY_ID;
         networkConfiguration->controllerToDeviceARStreamAck = -1;
+        networkConfiguration->controllerToDeviceARStreamAudioAck = -1;
+        networkConfiguration->controllerToDeviceARStreamAudioData = -1;
         networkConfiguration->deviceToControllerNotAckId = ROLLINGSPIDER_DEVICE_TO_CONTROLLER_NAVDATA_ID;
         networkConfiguration->deviceToControllerAckId = ROLLINGSPIDER_DEVICE_TO_CONTROLLER_NAVDATA_ID;
         //int deviceToControllerHightPriority = -1;
         networkConfiguration->deviceToControllerARStreamData = -1;
+        networkConfiguration->deviceToControllerARStreamAudioData = -1;
+        networkConfiguration->deviceToControllerARStreamAudioAck = -1;
         
         networkConfiguration->controllerToDeviceParams = c2dParams;
         networkConfiguration->numberOfControllerToDeviceParam = numC2dParams;

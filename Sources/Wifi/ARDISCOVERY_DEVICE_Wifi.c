@@ -70,19 +70,25 @@
 #define JUMPINGSUMO_CONTROLLER_TO_DEVICE_NONACK_ID 10
 #define JUMPINGSUMO_CONTROLLER_TO_DEVICE_ACK_ID 11
 #define JUMPINGSUMO_CONTROLLER_TO_DEVICE_VIDEO_ACK_ID 13
+#define JUMPINGSUMO_CONTROLLER_TO_DEVICE_AUDIO_ACK_ID 14
+#define JUMPINGSUMO_CONTROLLER_TO_DEVICE_AUDIO_DATA_ID 15
 #define JUMPINGSUMO_DEVICE_TO_CONTROLLER_NAVDATA_ID ((ARNETWORKAL_MANAGER_WIFI_ID_MAX /2) - 1)
 #define JUMPINGSUMO_DEVICE_TO_CONTROLLER_EVENT_ID ((ARNETWORKAL_MANAGER_WIFI_ID_MAX /2) - 2)
 #define JUMPINGSUMO_DEVICE_TO_CONTROLLER_VIDEO_DATA_ID ((ARNETWORKAL_MANAGER_WIFI_ID_MAX /2) - 3)
+#define JUMPINGSUMO_DEVICE_TO_CONTROLLER_AUDIO_DATA_ID ((ARNETWORKAL_MANAGER_WIFI_ID_MAX /2) - 4)
+#define JUMPINGSUMO_DEVICE_TO_CONTROLLER_AUDIO_ACK_ID ((ARNETWORKAL_MANAGER_WIFI_ID_MAX /2) - 5)
 
 // Unknown Product 1
-#define POWERUP_DEVICE_TO_CONTROLLER_PORT 43210
+#define UNKNOWNPRODUCT1_DEVICE_TO_CONTROLLER_PORT 43210
 
-#define POWERUP_CONTROLLER_TO_DEVICE_NONACK_ID 10
-#define POWERUP_CONTROLLER_TO_DEVICE_ACK_ID 11
-#define POWERUP_CONTROLLER_TO_DEVICE_VIDEO_ACK_ID 13
-#define POWERUP_DEVICE_TO_CONTROLLER_NAVDATA_ID ((ARNETWORKAL_MANAGER_WIFI_ID_MAX /2) - 1)
-#define POWERUP_DEVICE_TO_CONTROLLER_EVENT_ID ((ARNETWORKAL_MANAGER_WIFI_ID_MAX /2) - 2)
-#define POWERUP_DEVICE_TO_CONTROLLER_VIDEO_DATA_ID ((ARNETWORKAL_MANAGER_WIFI_ID_MAX /2) - 3)
+#define UNKNOWNPRODUCT1_CONTROLLER_TO_DEVICE_NONACK_ID 10
+#define UNKNOWNPRODUCT1_CONTROLLER_TO_DEVICE_ACK_ID 11
+#define UNKNOWNPRODUCT1_CONTROLLER_TO_DEVICE_VIDEO_ACK_ID 13
+#define UNKNOWNPRODUCT1_CONTROLLER_TO_DEVICE_AUDIO_ACK_ID 14
+#define UNKNOWNPRODUCT1_DEVICE_TO_CONTROLLER_NAVDATA_ID ((ARNETWORKAL_MANAGER_WIFI_ID_MAX /2) - 1)
+#define UNKNOWNPRODUCT1_DEVICE_TO_CONTROLLER_EVENT_ID ((ARNETWORKAL_MANAGER_WIFI_ID_MAX /2) - 2)
+#define UNKNOWNPRODUCT1_DEVICE_TO_CONTROLLER_VIDEO_DATA_ID ((ARNETWORKAL_MANAGER_WIFI_ID_MAX /2) - 3)
+#define UNKNOWNPRODUCT1_DEVICE_TO_CONTROLLER_AUDIO_DATA_ID ((ARNETWORKAL_MANAGER_WIFI_ID_MAX /2) - 4)
 
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_DiscoveryConnect (ARDISCOVERY_Device_t *device);
 
@@ -551,10 +557,14 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration (ARDISC
         networkConfiguration->controllerToDeviceAckId = BEBOP_CONTROLLER_TO_DEVICE_ACK_ID;
         networkConfiguration->controllerToDeviceHightPriority = BEBOP_CONTROLLER_TO_DEVICE_EMERGENCY_ID;
         networkConfiguration->controllerToDeviceARStreamAck = BEBOP_CONTROLLER_TO_DEVICE_VIDEO_ACK_ID;
+        networkConfiguration->controllerToDeviceARStreamAudioAck = -1;
+        networkConfiguration->controllerToDeviceARStreamAudioData = -1;
         networkConfiguration->deviceToControllerNotAckId = BEBOP_DEVICE_TO_CONTROLLER_NAVDATA_ID;
         networkConfiguration->deviceToControllerAckId = BEBOP_DEVICE_TO_CONTROLLER_NAVDATA_ID;
         //int deviceToControllerHightPriority = -1;
         networkConfiguration->deviceToControllerARStreamData = BEBOP_DEVICE_TO_CONTROLLER_VIDEO_DATA_ID;
+        networkConfiguration->deviceToControllerARStreamAudioData = -1;
+        networkConfiguration->deviceToControllerARStreamAudioAck = -1;
         
         networkConfiguration->controllerToDeviceParams = c2dParams;
         networkConfiguration->numberOfControllerToDeviceParam = numC2dParams;
@@ -593,7 +603,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitJumpingSumoNetworkConfiguration (
     
     // check parameters
     if ((device == NULL) || 
-        (ARDISCOVERY_getProductFamily(device->productID) != ARDISCOVERY_PRODUCT_FAMILY_JS) ||
+        (device->productID != ARDISCOVERY_PRODUCT_JS) ||
         (networkConfiguration == NULL))
     {
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;
@@ -687,10 +697,14 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitJumpingSumoNetworkConfiguration (
         networkConfiguration->controllerToDeviceAckId = JUMPINGSUMO_CONTROLLER_TO_DEVICE_ACK_ID;
         networkConfiguration->controllerToDeviceHightPriority = -1;
         networkConfiguration->controllerToDeviceARStreamAck = JUMPINGSUMO_CONTROLLER_TO_DEVICE_VIDEO_ACK_ID;
+        networkConfiguration->controllerToDeviceARStreamAudioAck = -1;
+        networkConfiguration->controllerToDeviceARStreamAudioData = -1;
         networkConfiguration->deviceToControllerNotAckId = JUMPINGSUMO_DEVICE_TO_CONTROLLER_NAVDATA_ID;
         networkConfiguration->deviceToControllerAckId = JUMPINGSUMO_DEVICE_TO_CONTROLLER_NAVDATA_ID;
         //int deviceToControllerHightPriority = -1;
         networkConfiguration->deviceToControllerARStreamData = JUMPINGSUMO_DEVICE_TO_CONTROLLER_VIDEO_DATA_ID;
+        networkConfiguration->deviceToControllerARStreamAudioData = -1;
+        networkConfiguration->deviceToControllerARStreamAudioAck = -1;
         
         networkConfiguration->controllerToDeviceParams = c2dParams;
         networkConfiguration->numberOfControllerToDeviceParam = numC2dParams;
@@ -704,6 +718,177 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitJumpingSumoNetworkConfiguration (
         networkConfiguration->deviceToControllerCommandsBufferIds = commandBufferIds;
     }
     
+    return error;
+}
+
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitJumpingSumoEvoNetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration)
+{
+    // -- Initilize network Configuration adapted to a Jumping Sumo. --
+
+    eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
+
+    // check parameters
+    if ((device == NULL) ||
+        ((device->productID != ARDISCOVERY_PRODUCT_JS_EVO_LIGHT) &&
+         (device->productID != ARDISCOVERY_PRODUCT_JS_EVO_RACE)) ||
+        (networkConfiguration == NULL))
+    {
+        error = ARDISCOVERY_ERROR_BAD_PARAMETER;
+    }
+    // No Else: the checking parameters sets error to ARNETWORK_ERROR_BAD_PARAMETER and stop the processing
+
+    static ARNETWORK_IOBufferParam_t c2dParams[] = {
+        /* Non-acknowledged commands. */
+        {
+            .ID = JUMPINGSUMO_CONTROLLER_TO_DEVICE_NONACK_ID,
+            .dataType = ARNETWORKAL_FRAME_TYPE_DATA,
+            .sendingWaitTimeMs = 5,
+            .ackTimeoutMs = ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
+            .numberOfRetry = ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
+            .numberOfCell = 10,
+            .dataCopyMaxSize = 128,
+            .isOverwriting = 0,
+        },
+        /* Acknowledged commands. */
+        {
+            .ID = JUMPINGSUMO_CONTROLLER_TO_DEVICE_ACK_ID,
+            .dataType = ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK,
+                .sendingWaitTimeMs = 20,
+            .ackTimeoutMs = 500,
+            .numberOfRetry = 3,
+            .numberOfCell = 20,
+            .dataCopyMaxSize = 128,
+            .isOverwriting = 0,
+        },
+        /* Video ACK (Initialized later) */
+        {
+            .ID = JUMPINGSUMO_CONTROLLER_TO_DEVICE_VIDEO_ACK_ID,
+            .dataType = ARNETWORKAL_FRAME_TYPE_UNINITIALIZED,
+            .sendingWaitTimeMs = 0,
+            .ackTimeoutMs = 0,
+            .numberOfRetry = 0,
+            .numberOfCell = 0,
+            .dataCopyMaxSize = 0,
+            .isOverwriting = 0,
+        },
+        /* Audio ACK (Initialized later) */
+        {
+            .ID = JUMPINGSUMO_CONTROLLER_TO_DEVICE_AUDIO_ACK_ID,
+            .dataType = ARNETWORKAL_FRAME_TYPE_UNINITIALIZED,
+            .sendingWaitTimeMs = 0,
+            .ackTimeoutMs = 0,
+            .numberOfRetry = 0,
+            .numberOfCell = 0,
+            .dataCopyMaxSize = 0,
+            .isOverwriting = 0,
+        },
+        /* Audio Data (Initialized later) */
+        {
+            .ID = JUMPINGSUMO_CONTROLLER_TO_DEVICE_AUDIO_DATA_ID,
+            .dataType = ARNETWORKAL_FRAME_TYPE_UNINITIALIZED,
+            .sendingWaitTimeMs = 0,
+            .ackTimeoutMs = 0,
+            .numberOfRetry = 0,
+            .numberOfCell = 0,
+            .dataCopyMaxSize = 0,
+            .isOverwriting = 0,
+        },
+    };
+    size_t numC2dParams = sizeof(c2dParams) / sizeof(ARNETWORK_IOBufferParam_t);
+
+    static ARNETWORK_IOBufferParam_t d2cParams[] = {
+        {
+            .ID = JUMPINGSUMO_DEVICE_TO_CONTROLLER_NAVDATA_ID,
+            .dataType = ARNETWORKAL_FRAME_TYPE_DATA,
+            .sendingWaitTimeMs = 20,
+            .ackTimeoutMs = ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
+            .numberOfRetry = ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
+            .numberOfCell = 10,
+           .dataCopyMaxSize = 128,
+           .isOverwriting = 0,
+        },
+        {
+            .ID = JUMPINGSUMO_DEVICE_TO_CONTROLLER_EVENT_ID,
+            .dataType = ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK,
+            .sendingWaitTimeMs = 20,
+            .ackTimeoutMs = 500,
+            .numberOfRetry = 3,
+            .numberOfCell = 20,
+            .dataCopyMaxSize = 128,
+            .isOverwriting = 0,
+        },
+        /* Video data (Initialized later) */
+        {
+            .ID = JUMPINGSUMO_DEVICE_TO_CONTROLLER_VIDEO_DATA_ID,
+            .dataType = ARNETWORKAL_FRAME_TYPE_UNINITIALIZED,
+            .sendingWaitTimeMs = 0,
+            .ackTimeoutMs = 0,
+            .numberOfRetry = 0,
+            .numberOfCell = 0,
+            .dataCopyMaxSize = 0,
+            .isOverwriting = 0,
+        },
+        /* Audio data (Initialized later) */
+        {
+            .ID = JUMPINGSUMO_DEVICE_TO_CONTROLLER_AUDIO_DATA_ID,
+            .dataType = ARNETWORKAL_FRAME_TYPE_UNINITIALIZED,
+            .sendingWaitTimeMs = 0,
+            .ackTimeoutMs = 0,
+            .numberOfRetry = 0,
+            .numberOfCell = 0,
+            .dataCopyMaxSize = 0,
+            .isOverwriting = 0,
+        },
+        /* Audio ACK (Initialized later) */
+        {
+            .ID = JUMPINGSUMO_DEVICE_TO_CONTROLLER_AUDIO_ACK_ID,
+            .dataType = ARNETWORKAL_FRAME_TYPE_UNINITIALIZED,
+            .sendingWaitTimeMs = 0,
+            .ackTimeoutMs = 0,
+            .numberOfRetry = 0,
+            .numberOfCell = 0,
+            .dataCopyMaxSize = 0,
+            .isOverwriting = 0,
+        },
+    };
+    size_t numD2cParams = sizeof(d2cParams) / sizeof(ARNETWORK_IOBufferParam_t);
+
+    static int commandBufferIds[] = {
+        JUMPINGSUMO_DEVICE_TO_CONTROLLER_NAVDATA_ID,
+        JUMPINGSUMO_DEVICE_TO_CONTROLLER_EVENT_ID,
+    };
+
+    size_t numOfCommandBufferIds = sizeof(commandBufferIds) / sizeof(int);
+
+    if (error == ARDISCOVERY_OK)
+    {
+        networkConfiguration->controllerLoopIntervalMs = 50;
+
+        networkConfiguration->controllerToDeviceNotAckId = JUMPINGSUMO_CONTROLLER_TO_DEVICE_NONACK_ID;
+        networkConfiguration->controllerToDeviceAckId = JUMPINGSUMO_CONTROLLER_TO_DEVICE_ACK_ID;
+        networkConfiguration->controllerToDeviceHightPriority = -1;
+        networkConfiguration->controllerToDeviceARStreamAck = JUMPINGSUMO_CONTROLLER_TO_DEVICE_VIDEO_ACK_ID;
+        networkConfiguration->controllerToDeviceARStreamAudioAck = JUMPINGSUMO_CONTROLLER_TO_DEVICE_AUDIO_ACK_ID;
+        networkConfiguration->controllerToDeviceARStreamAudioData = JUMPINGSUMO_CONTROLLER_TO_DEVICE_AUDIO_DATA_ID;
+        networkConfiguration->deviceToControllerNotAckId = JUMPINGSUMO_DEVICE_TO_CONTROLLER_NAVDATA_ID;
+        networkConfiguration->deviceToControllerAckId = JUMPINGSUMO_DEVICE_TO_CONTROLLER_NAVDATA_ID;
+        //int deviceToControllerHightPriority = -1;
+        networkConfiguration->deviceToControllerARStreamData = JUMPINGSUMO_DEVICE_TO_CONTROLLER_VIDEO_DATA_ID;
+        networkConfiguration->deviceToControllerARStreamAudioData = JUMPINGSUMO_DEVICE_TO_CONTROLLER_AUDIO_DATA_ID;
+        networkConfiguration->deviceToControllerARStreamAudioAck = JUMPINGSUMO_DEVICE_TO_CONTROLLER_AUDIO_ACK_ID;
+
+        networkConfiguration->controllerToDeviceParams = c2dParams;
+        networkConfiguration->numberOfControllerToDeviceParam = numC2dParams;
+
+        networkConfiguration->deviceToControllerParams = d2cParams;
+        networkConfiguration->numberOfDeviceToControllerParam = numD2cParams;
+
+        networkConfiguration->pingDelayMs = 0;
+
+        networkConfiguration->numberOfDeviceToControllerCommandsBufferIds = numOfCommandBufferIds;
+        networkConfiguration->deviceToControllerCommandsBufferIds = commandBufferIds;
+    }
+
     return error;
 }
 
@@ -725,7 +910,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitUnknown_Product_1NetworkConfigura
     static ARNETWORK_IOBufferParam_t c2dParams[] = {
         /* Non-acknowledged commands. */
         {
-            .ID = POWERUP_CONTROLLER_TO_DEVICE_NONACK_ID,
+            .ID = UNKNOWNPRODUCT1_CONTROLLER_TO_DEVICE_NONACK_ID,
             .dataType = ARNETWORKAL_FRAME_TYPE_DATA,
             .sendingWaitTimeMs = 5,
             .ackTimeoutMs = ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
@@ -736,7 +921,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitUnknown_Product_1NetworkConfigura
         },
         /* Acknowledged commands. */
         {
-            .ID = POWERUP_CONTROLLER_TO_DEVICE_ACK_ID,
+            .ID = UNKNOWNPRODUCT1_CONTROLLER_TO_DEVICE_ACK_ID,
             .dataType = ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK,
             .sendingWaitTimeMs = 20,
             .ackTimeoutMs = 500,
@@ -747,7 +932,18 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitUnknown_Product_1NetworkConfigura
         },
         /* Video ACK (Initialized later) */
         {
-            .ID = POWERUP_CONTROLLER_TO_DEVICE_VIDEO_ACK_ID,
+            .ID = UNKNOWNPRODUCT1_CONTROLLER_TO_DEVICE_VIDEO_ACK_ID,
+            .dataType = ARNETWORKAL_FRAME_TYPE_UNINITIALIZED,
+            .sendingWaitTimeMs = 0,
+            .ackTimeoutMs = 0,
+            .numberOfRetry = 0,
+            .numberOfCell = 0,
+            .dataCopyMaxSize = 0,
+            .isOverwriting = 0,
+        },
+        /* Audio ACK (Initialized later) */
+        {
+            .ID = UNKNOWNPRODUCT1_CONTROLLER_TO_DEVICE_AUDIO_ACK_ID,
             .dataType = ARNETWORKAL_FRAME_TYPE_UNINITIALIZED,
             .sendingWaitTimeMs = 0,
             .ackTimeoutMs = 0,
@@ -761,7 +957,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitUnknown_Product_1NetworkConfigura
     
     static ARNETWORK_IOBufferParam_t d2cParams[] = {
         {
-            .ID = POWERUP_DEVICE_TO_CONTROLLER_NAVDATA_ID,
+            .ID = UNKNOWNPRODUCT1_DEVICE_TO_CONTROLLER_NAVDATA_ID,
             .dataType = ARNETWORKAL_FRAME_TYPE_DATA,
             .sendingWaitTimeMs = 20,
             .ackTimeoutMs = ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
@@ -771,7 +967,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitUnknown_Product_1NetworkConfigura
             .isOverwriting = 0,
         },
         {
-            .ID = POWERUP_DEVICE_TO_CONTROLLER_EVENT_ID,
+            .ID = UNKNOWNPRODUCT1_DEVICE_TO_CONTROLLER_EVENT_ID,
             .dataType = ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK,
             .sendingWaitTimeMs = 20,
             .ackTimeoutMs = 500,
@@ -782,7 +978,18 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitUnknown_Product_1NetworkConfigura
         },
         /* Video data (Initialized later) */
         {
-            .ID = POWERUP_DEVICE_TO_CONTROLLER_VIDEO_DATA_ID,
+            .ID = UNKNOWNPRODUCT1_DEVICE_TO_CONTROLLER_VIDEO_DATA_ID,
+            .dataType = ARNETWORKAL_FRAME_TYPE_UNINITIALIZED,
+            .sendingWaitTimeMs = 0,
+            .ackTimeoutMs = 0,
+            .numberOfRetry = 0,
+            .numberOfCell = 0,
+            .dataCopyMaxSize = 0,
+            .isOverwriting = 0,
+        },
+        /* Audio data (Initialized later) */
+        {
+            .ID = UNKNOWNPRODUCT1_DEVICE_TO_CONTROLLER_AUDIO_DATA_ID,
             .dataType = ARNETWORKAL_FRAME_TYPE_UNINITIALIZED,
             .sendingWaitTimeMs = 0,
             .ackTimeoutMs = 0,
@@ -795,8 +1002,8 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitUnknown_Product_1NetworkConfigura
     size_t numD2cParams = sizeof(d2cParams) / sizeof(ARNETWORK_IOBufferParam_t);
     
     static int commandBufferIds[] = {
-        POWERUP_DEVICE_TO_CONTROLLER_NAVDATA_ID,
-        POWERUP_DEVICE_TO_CONTROLLER_EVENT_ID,
+        UNKNOWNPRODUCT1_DEVICE_TO_CONTROLLER_NAVDATA_ID,
+        UNKNOWNPRODUCT1_DEVICE_TO_CONTROLLER_EVENT_ID,
     };
     
     size_t numOfCommandBufferIds = sizeof(commandBufferIds) / sizeof(int);
@@ -805,14 +1012,18 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitUnknown_Product_1NetworkConfigura
     {
         networkConfiguration->controllerLoopIntervalMs = 50;
         
-        networkConfiguration->controllerToDeviceNotAckId = POWERUP_CONTROLLER_TO_DEVICE_NONACK_ID;
-        networkConfiguration->controllerToDeviceAckId = POWERUP_CONTROLLER_TO_DEVICE_ACK_ID;
+        networkConfiguration->controllerToDeviceNotAckId = UNKNOWNPRODUCT1_CONTROLLER_TO_DEVICE_NONACK_ID;
+        networkConfiguration->controllerToDeviceAckId = UNKNOWNPRODUCT1_CONTROLLER_TO_DEVICE_ACK_ID;
         networkConfiguration->controllerToDeviceHightPriority = -1;
-        networkConfiguration->controllerToDeviceARStreamAck = POWERUP_CONTROLLER_TO_DEVICE_VIDEO_ACK_ID;
-        networkConfiguration->deviceToControllerNotAckId = POWERUP_DEVICE_TO_CONTROLLER_NAVDATA_ID;
-        networkConfiguration->deviceToControllerAckId = POWERUP_DEVICE_TO_CONTROLLER_NAVDATA_ID;
+        networkConfiguration->controllerToDeviceARStreamAck = UNKNOWNPRODUCT1_CONTROLLER_TO_DEVICE_VIDEO_ACK_ID;
+        networkConfiguration->controllerToDeviceARStreamAudioAck = UNKNOWNPRODUCT1_CONTROLLER_TO_DEVICE_AUDIO_ACK_ID;
+        networkConfiguration->controllerToDeviceARStreamAudioData = -1;
+        networkConfiguration->deviceToControllerNotAckId = UNKNOWNPRODUCT1_DEVICE_TO_CONTROLLER_NAVDATA_ID;
+        networkConfiguration->deviceToControllerAckId = UNKNOWNPRODUCT1_DEVICE_TO_CONTROLLER_NAVDATA_ID;
         //int deviceToControllerHightPriority = -1;
-        networkConfiguration->deviceToControllerARStreamData = POWERUP_DEVICE_TO_CONTROLLER_VIDEO_DATA_ID;
+        networkConfiguration->deviceToControllerARStreamData = UNKNOWNPRODUCT1_DEVICE_TO_CONTROLLER_VIDEO_DATA_ID;
+        networkConfiguration->deviceToControllerARStreamAudioData = UNKNOWNPRODUCT1_DEVICE_TO_CONTROLLER_AUDIO_DATA_ID;
+        networkConfiguration->deviceToControllerARStreamAudioAck = -1;
         
         networkConfiguration->controllerToDeviceParams = c2dParams;
         networkConfiguration->numberOfControllerToDeviceParam = numC2dParams;

@@ -155,6 +155,14 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitBebop2NetworkConfiguration (ARDIS
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitJumpingSumoNetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration);
 
 /**
+ * @brief Initilize network Configuration adapted to a Jumping Sumo Evo.
+ * @param device The Discovery Device. Must be a Jumping Sumo Evo Device
+ * @param[out] networkConfiguration The networkConfiguration to Initilize.
+ * @return executing error.
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitJumpingSumoEvoNetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration);
+
+/**
  * @brief Initilize network Configuration adapted to a Unknown Product 1.
  * @param device The Discovery Device. Must be a Unknown Product 1 Device
  * @param[out] networkConfiguration The networkConfiguration to Initilize.
