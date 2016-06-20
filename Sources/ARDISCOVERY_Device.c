@@ -349,9 +349,11 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitWifi (ARDISCOVERY_Device_t *device, eA
                 device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Wifi_InitBebop2NetworkConfiguration;
                 break;
             case ARDISCOVERY_PRODUCT_JS:
+                device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Wifi_InitJumpingSumoNetworkConfiguration;
+                break;
             case ARDISCOVERY_PRODUCT_JS_EVO_LIGHT:
             case ARDISCOVERY_PRODUCT_JS_EVO_RACE:
-                device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Wifi_InitJumpingSumoNetworkConfiguration;
+                device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Wifi_InitJumpingSumoEvoNetworkConfiguration;
                 break;
             case ARDISCOVERY_PRODUCT_POWER_UP:
                 device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Wifi_InitPowerUpNetworkConfiguration;
