@@ -813,11 +813,12 @@
         {
             if ( [self isParrotBLEDevice:advertisementData] )
             {
+                NSData *manufacturerData = [advertisementData valueForKey:CBAdvertisementDataManufacturerDataKey];
+                uint16_t *ids = (uint16_t *) manufacturerData.bytes;
+
                 ARService *aService = [self.devicesServicesList objectForKey:[peripheral.identifier UUIDString]];
                 if(aService == nil)
                 {
-                    NSData *manufacturerData = [advertisementData valueForKey:CBAdvertisementDataManufacturerDataKey];
-                    uint16_t *ids = (uint16_t *) manufacturerData.bytes;
                     eARDISCOVERY_PRODUCT product = ARDISCOVERY_PRODUCT_MAX;
                     for (int i = ARDISCOVERY_PRODUCT_BLESERVICE ; (product == ARDISCOVERY_PRODUCT_MAX) && (i < ARDISCOVERY_PRODUCT_MAX) ; i++)
                     {
@@ -846,15 +847,23 @@
                 else
                 {
                     BOOL sendNotification = NO;
-                    if(![aService.name isEqualToString:[advertisementData objectForKey:CBAdvertisementDataLocalNameKey]])
+                    NSString *name = [advertisementData objectForKey:CBAdvertisementDataLocalNameKey];
+                    if(![aService.name isEqualToString:name])
                     {
-                        aService.name = [advertisementData objectForKey:CBAdvertisementDataLocalNameKey];
+                        aService.name = name;
                         sendNotification = YES;
                     }
 
                     if([aService.signal compare:RSSI] != NSOrderedSame)
                     {
                         aService.signal = RSSI;
+                        sendNotification = YES;
+                    }
+
+                    eARDISCOVERY_CONNECTION_STATE connectionState = [self connectionStateForValue:ids[3]];
+                    ARBLEService *bleService = aService.service;
+                    if (bleService.connectionState != connectionState) {
+                        bleService.connectionState = connectionState;
                         sendNotification = YES;
                     }
 
