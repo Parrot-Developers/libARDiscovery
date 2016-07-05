@@ -6,6 +6,7 @@
 //  Copyright © 2016 Parrot SA. All rights reserved.
 //
 
+#if defined BUILD_LIBMUX
 #import <libARDiscovery/USBAccessoryManager.h>
 #import <libARDiscovery/ARDISCOVERY_MuxDiscovery.h>
 #import <libARSAL/ARSAL_Thread.h>
@@ -540,3 +541,27 @@ static void eof_cb(void *userdata)
 }
 
 @end
+
+#else
+
+/* No libmux, generate a dummy class */
+#import <libARDiscovery/USBAccessoryManager.h>
+
+@implementation USBAccessoryManager
+
++ (USBAccessoryManager *)sharedInstance
+{
+    return nil;
+}
+
+- (eARDISCOVERY_ERROR)muxDiscoveryConnect:(NSString*)name model:(NSString*)model deviceId:(NSString*)serial json:(NSString*)jsonStr callback:(void (^)(uint32_t status, const char* json))connectionCbBlock
+{
+    return ARDISCOVERY_ERROR_DEVICE_OPERATION_NOT_SUPPORTED;
+}
+- (void)muxDiscoveryCancelConnect
+{
+}
+
+@end
+
+#endif
