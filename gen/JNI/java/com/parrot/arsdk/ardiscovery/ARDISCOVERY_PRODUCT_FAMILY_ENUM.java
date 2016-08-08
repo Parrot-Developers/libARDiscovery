@@ -55,8 +55,10 @@ public enum ARDISCOVERY_PRODUCT_FAMILY_ENUM {
     ARDISCOVERY_PRODUCT_FAMILY_POWER_UP (4, "Power Up product family"),
    /** Fixed wing product family */
     ARDISCOVERY_PRODUCT_FAMILY_FIXED_WING (5, "Fixed wing product family"),
+   /** Gamepad product family */
+    ARDISCOVERY_PRODUCT_FAMILY_GAMEPAD (6, "Gamepad product family"),
    /** Max of product familys */
-    ARDISCOVERY_PRODUCT_FAMILY_MAX (6, "Max of product familys");
+    ARDISCOVERY_PRODUCT_FAMILY_MAX (7, "Max of product familys");
 
     private final int value;
     private final String comment;

@@ -81,8 +81,12 @@ public enum ARDISCOVERY_PRODUCT_ENUM {
     ARDISCOVERY_PRODUCT_USBSERVICE (15, "AOA/iAP usb product category"),
    /** Sky controller 2 product */
     ARDISCOVERY_PRODUCT_SKYCONTROLLER_2 (15, "Sky controller 2 product"),
+   /** Service is unsupported */
+    ARDISCOVERY_PRODUCT_UNSUPPORTED_SERVICE (16, "Service is unsupported"),
+   /** Tinos product */
+    ARDISCOVERY_PRODUCT_TINOS (16, "Tinos product"),
    /** Max of products */
-    ARDISCOVERY_PRODUCT_MAX (16, "Max of products");
+    ARDISCOVERY_PRODUCT_MAX (17, "Max of products");
 
     private final int value;
     private final String comment;
