@@ -53,7 +53,10 @@ static const uint16_t ARDISCOVERY_Discovery_ProductTable[ARDISCOVERY_PRODUCT_MAX
     [ARDISCOVERY_PRODUCT_PAROS]         = 0x0911,
 
     // USB Service
-    [ARDISCOVERY_PRODUCT_SKYCONTROLLER_2]=0x090f
+    [ARDISCOVERY_PRODUCT_SKYCONTROLLER_2] = 0x090f,
+
+    // Unsupported Service
+    [ARDISCOVERY_PRODUCT_TINOS] = 0x0912,
 };
 
 static const char* ARDISCOVERY_Discovery_ProductNameTable[ARDISCOVERY_PRODUCT_MAX] =
@@ -79,6 +82,9 @@ static const char* ARDISCOVERY_Discovery_ProductNameTable[ARDISCOVERY_PRODUCT_MA
 
     // USB service
     [ARDISCOVERY_PRODUCT_SKYCONTROLLER_2] = "SkyController 2",
+
+    // Unsupported Service
+    [ARDISCOVERY_PRODUCT_TINOS] = "Flypad"
 };
 
 eARDISCOVERY_PRODUCT ARDISCOVERY_getProductService(eARDISCOVERY_PRODUCT product)
@@ -93,9 +99,13 @@ eARDISCOVERY_PRODUCT ARDISCOVERY_getProductService(eARDISCOVERY_PRODUCT product)
     {
         retval = ARDISCOVERY_PRODUCT_BLESERVICE;
     }
-    else if(ARDISCOVERY_PRODUCT_USBSERVICE <= product && product < ARDISCOVERY_PRODUCT_MAX)
+    else if(ARDISCOVERY_PRODUCT_USBSERVICE <= product && product < ARDISCOVERY_PRODUCT_UNSUPPORTED_SERVICE)
     {
         retval = ARDISCOVERY_PRODUCT_USBSERVICE;
+    }
+    else if(ARDISCOVERY_PRODUCT_UNSUPPORTED_SERVICE <= product && product < ARDISCOVERY_PRODUCT_MAX)
+    {
+        retval = ARDISCOVERY_PRODUCT_UNSUPPORTED_SERVICE;
     }
 
     return retval;
@@ -236,6 +246,9 @@ eARDISCOVERY_PRODUCT_FAMILY ARDISCOVERY_getProductFamily(eARDISCOVERY_PRODUCT pr
         break;
     case ARDISCOVERY_PRODUCT_EVINRUDE:
         family = ARDISCOVERY_PRODUCT_FAMILY_FIXED_WING;
+        break;
+    case ARDISCOVERY_PRODUCT_TINOS:
+        family = ARDISCOVERY_PRODUCT_FAMILY_GAMEPAD;
         break;
     default:
         break;
