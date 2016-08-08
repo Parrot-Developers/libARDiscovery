@@ -62,6 +62,9 @@ typedef enum
 
     ARDISCOVERY_PRODUCT_USBSERVICE,                                      ///< AOA/iAP usb product category
     ARDISCOVERY_PRODUCT_SKYCONTROLLER_2 = ARDISCOVERY_PRODUCT_USBSERVICE,///< Sky controller 2 product
+
+    ARDISCOVERY_PRODUCT_UNSUPPORTED_SERVICE,                             ///< Service is unsupported
+    ARDISCOVERY_PRODUCT_TINOS = ARDISCOVERY_PRODUCT_UNSUPPORTED_SERVICE, ///< Tinos product
     ARDISCOVERY_PRODUCT_MAX                                              ///< Max of products
 } eARDISCOVERY_PRODUCT;
 
@@ -75,7 +78,8 @@ typedef enum
     ARDISCOVERY_PRODUCT_FAMILY_SKYCONTROLLER, ///< SKY CONTROLLER product family
     ARDISCOVERY_PRODUCT_FAMILY_MINIDRONE,     ///< DELOS product
     ARDISCOVERY_PRODUCT_FAMILY_POWER_UP,      ///< Power Up product family
-    ARDISCOVERY_PRODUCT_FAMILY_FIXED_WING,   ///< Fixed wing product family
+    ARDISCOVERY_PRODUCT_FAMILY_FIXED_WING,    ///< Fixed wing product family
+    ARDISCOVERY_PRODUCT_FAMILY_GAMEPAD,       ///< Gamepad product family
     ARDISCOVERY_PRODUCT_FAMILY_MAX            ///< Max of product familys
 } eARDISCOVERY_PRODUCT_FAMILY;
 
