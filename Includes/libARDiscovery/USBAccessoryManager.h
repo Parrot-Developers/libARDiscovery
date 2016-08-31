@@ -24,7 +24,7 @@
 
 - (eARDISCOVERY_ERROR)muxDiscoveryConnect:(NSString*)name model:(NSString*)model deviceId:(NSString*)serial json:(NSString*)jsonStr callback:(void (^)(uint32_t status, const char* json))connectionCbBlock;
 - (void)muxDiscoveryCancelConnect;
-
+- (void)restartMuxDiscovery;
 
 @property (nonatomic, weak) id<USBAccessoryManagerDelegate> delegate;
 
