@@ -363,6 +363,9 @@
             askForCBDiscovering = YES;
         }
     }
+#ifdef USE_USB_ACCESSORY
+    [[USBAccessoryManager sharedInstance] restartMuxDiscovery];
+#endif
 }
 
 - (void)pauseBLE
