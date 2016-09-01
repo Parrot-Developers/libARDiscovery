@@ -434,6 +434,11 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_WifiSetQoSLevel (ARDISCOVERY_Device_t *dev
     return ARDISCOVERY_DEVICE_Wifi_SetQoSLevel(device, level);
 }
 
+eARDISCOVERY_ERROR ARDISCOVERY_Device_WifiSetDeviceToControllerPort (ARDISCOVERY_Device_t *device, int d2c_port)
+{
+    return ARDISCOVERY_DEVICE_Wifi_SetDeviceToControllerPort (device, d2c_port);
+}
+
 
 /***********************
  * -- BLE part --
