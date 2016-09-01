@@ -77,6 +77,9 @@ typedef struct
  */
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_CreateSpecificParameters (ARDISCOVERY_Device_t *device, const char *name, const char *address, int port);
 
+
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_SetDeviceToControllerPort (ARDISCOVERY_Device_t *device, int d2c_port);
+
 /**
  * @brief Delete wifi SpecificParameters
  * @warning This function free memory.

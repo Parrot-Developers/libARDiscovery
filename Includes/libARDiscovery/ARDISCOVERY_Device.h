@@ -152,10 +152,18 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitNetworkConfiguration (ARDISCOVERY_Devi
  * @param[in] product Parrot's product to initialized
  * @param[in] name Device Name ; must be Null-terminated.
  * @param[in] address Device Address ; must be Null-terminated.
- * @param[in] port Device Port. 
+ * @param[in] discovery_port Device discovery Port.
  * @return executing error.
  */
-eARDISCOVERY_ERROR ARDISCOVERY_Device_InitWifi (ARDISCOVERY_Device_t *device, eARDISCOVERY_PRODUCT product, const char *name, const char *address, int port);
+eARDISCOVERY_ERROR ARDISCOVERY_Device_InitWifi (ARDISCOVERY_Device_t *device, eARDISCOVERY_PRODUCT product, const char *name, const char *address, int discovery_port);
+
+/**
+ * @brief Set the device to controller port.
+ * @param device The Discovery Device to Initialize.
+ * @param[in] d2c_port local udp port number for the incoming data.
+ * @return executing error.
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_Device_WifiSetDeviceToControllerPort (ARDISCOVERY_Device_t *device, int d2c_port);
 
 /**
  * @brief Add connection callbacks to a wifi device.

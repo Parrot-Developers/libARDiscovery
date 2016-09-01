@@ -53,9 +53,9 @@
  * Private header
  *************************/
 
-// Bebop
-#define BEBOP_DEVICE_TO_CONTROLLER_PORT 43210
+#define DEVICE_TO_CONTROLLER_PORT 43210
 
+// Bebop
 #define BEBOP_CONTROLLER_TO_DEVICE_NONACK_ID 10
 #define BEBOP_CONTROLLER_TO_DEVICE_ACK_ID 11
 #define BEBOP_CONTROLLER_TO_DEVICE_EMERGENCY_ID 12
@@ -65,8 +65,6 @@
 #define BEBOP_DEVICE_TO_CONTROLLER_VIDEO_DATA_ID ((ARNETWORKAL_MANAGER_WIFI_ID_MAX /2) - 3)
 
 // Jumping Sumo
-#define JUMPINGSUMO_DEVICE_TO_CONTROLLER_PORT 43210
-
 #define JUMPINGSUMO_CONTROLLER_TO_DEVICE_NONACK_ID 10
 #define JUMPINGSUMO_CONTROLLER_TO_DEVICE_ACK_ID 11
 #define JUMPINGSUMO_CONTROLLER_TO_DEVICE_VIDEO_ACK_ID 13
@@ -79,8 +77,6 @@
 #define JUMPINGSUMO_DEVICE_TO_CONTROLLER_AUDIO_ACK_ID ((ARNETWORKAL_MANAGER_WIFI_ID_MAX /2) - 5)
 
 // Power Up
-#define POWERUP_DEVICE_TO_CONTROLLER_PORT 43210
-
 #define POWERUP_CONTROLLER_TO_DEVICE_NONACK_ID 10
 #define POWERUP_CONTROLLER_TO_DEVICE_ACK_ID 11
 #define POWERUP_CONTROLLER_TO_DEVICE_VIDEO_ACK_ID 13
@@ -127,7 +123,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_CreateSpecificParameters (ARDISCOVERY
             specificWifiParam->jsonCallbacksCustomData = NULL;
             
             // Parameters sended by discovery Json :
-            specificWifiParam->deviceToControllerPort = BEBOP_DEVICE_TO_CONTROLLER_PORT;
+            specificWifiParam->deviceToControllerPort = DEVICE_TO_CONTROLLER_PORT;
 
             // Parameters received by discovery Json :
             specificWifiParam->controllerToDevicePort = -1;
@@ -158,6 +154,33 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_CreateSpecificParameters (ARDISCOVERY
     }
     // No else: skipped no error
     
+    return error;
+}
+
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_SetDeviceToControllerPort (ARDISCOVERY_Device_t *device, int d2c_port)
+{
+    eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
+    ARDISCOVERY_DEVICE_WIFI_t *specificWifiParam = NULL;
+
+    // check parameters
+    if ((device == NULL) ||
+        (ARDISCOVERY_getProductService (device->productID) != ARDISCOVERY_PRODUCT_NSNETSERVICE))
+    {
+        error = ARDISCOVERY_ERROR_BAD_PARAMETER;
+    }
+    // No Else: the checking parameters sets error to ARNETWORK_ERROR_BAD_PARAMETER and stop the processing
+
+    if (error == ARDISCOVERY_OK)
+    {
+        if (device->specificParameters != NULL)
+        {
+            specificWifiParam = (ARDISCOVERY_DEVICE_WIFI_t *)device->specificParameters;
+            specificWifiParam->deviceToControllerPort = d2c_port;
+        } else {
+            error = ARDISCOVERY_ERROR_BAD_PARAMETER;
+        }
+    }
+
     return error;
 }
 
