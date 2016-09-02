@@ -117,6 +117,7 @@ NSString *const UISupportedExternalAccessoryProtocols = @"UISupportedExternalAcc
 #pragma mark EAAccessory Notifications
 - (void)accessoryDidConnect:(NSNotification*)notification
 {
+    NSLog(@"%s Notification: %@", __FUNCTION__, notification.userInfo);
     EAAccessory *connectedAccessory = [[notification userInfo] objectForKey:EAAccessoryKey];
 
     if(self.usbMux == NULL)
@@ -128,6 +129,7 @@ NSString *const UISupportedExternalAccessoryProtocols = @"UISupportedExternalAcc
 #pragma mark EAAccessoryDelegate
 - (void)accessoryDidDisconnect:(EAAccessory *)disconnectedAccessory
 {
+    NSLog(@"%s Accessory: %@", __FUNCTION__, disconnectedAccessory);
     if ([disconnectedAccessory connectionID] == [self.accessory connectionID])
     {
         NSLog(@"%s Disconnect the current accessory", __FUNCTION__);
