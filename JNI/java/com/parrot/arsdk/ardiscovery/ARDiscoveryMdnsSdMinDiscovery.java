@@ -49,6 +49,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -197,7 +198,7 @@ public class ARDiscoveryMdnsSdMinDiscovery implements ARDiscoveryWifiDiscovery
                     if (wifiManager != null) {
                         WifiInfo wifiInfo = wifiManager.getConnectionInfo();
                         int ipAddressInt = wifiInfo.getIpAddress();
-                        String  ipAddress = String.format("%d.%d.%d.%d",
+                        String  ipAddress = String.format(Locale.US, "%d.%d.%d.%d",
                                 (ipAddressInt & 0xff), (ipAddressInt >> 8 & 0xff),
                                 (ipAddressInt >> 16 & 0xff), (ipAddressInt >> 24 & 0xff));
                         try
