@@ -42,9 +42,7 @@
 #import <netdb.h>
 #import <libARDiscovery/ARDISCOVERY_MuxDiscovery.h>
 
-#ifdef USE_USB_ACCESSORY
 #import <libARDiscovery/USBAccessoryManager.h>
-#endif
 
 #define ARDISCOVERY_BONJOURDISCOVERY_TAG            "ARDISCOVERY_BonjourDiscovery"
 
@@ -123,7 +121,7 @@
 
 @end
 
-@interface ARDiscovery () <NSNetServiceBrowserDelegate, NSNetServiceDelegate, CBCentralManagerDelegate>
+@interface ARDiscovery () <NSNetServiceBrowserDelegate, NSNetServiceDelegate, CBCentralManagerDelegate, USBAccessoryManagerDelegate>
 
 #pragma mark - Supported products list
 @property (strong, nonatomic) NSSet *supportedProducts;
@@ -155,14 +153,6 @@
 @property (nonatomic) BOOL isCBDiscovering;
 @property (nonatomic) BOOL askForCBDiscovering;
 @end
-
-
-#pragma mark Private part
-#ifdef USE_USB_ACCESSORY
-@interface ARDiscovery () <USBAccessoryManagerDelegate>
-@end
-#endif
-
 
 #pragma mark Implementation
 @implementation ARDiscovery
@@ -363,9 +353,7 @@
             askForCBDiscovering = YES;
         }
     }
-#ifdef USE_USB_ACCESSORY
     [[USBAccessoryManager sharedInstance] setDelegate:self];
-#endif
 }
 
 - (void)pauseBLE
@@ -410,9 +398,7 @@
         [centralManager stopScan];
     }
 
-#ifdef USE_USB_ACCESSORY
     [[USBAccessoryManager sharedInstance] setDelegate:nil];
-#endif
 }
 
 - (void)removeAllServices
@@ -958,7 +944,6 @@
     return (value < ARDISCOVERY_CONNECTION_STATE_MAX) ? value : ARDISCOVERY_CONNECTION_STATE_UNKNOWN;
 }
 
-#ifdef USE_USB_ACCESSORY
 #pragma mark - USBAccessoryManagerDelegate methods
 - (void)USBAccessoryManager:(USBAccessoryManager*)usbAccessoryManager didAddDeviceWithConnectionId:(NSUInteger)connectionId name:(NSString *)name mux:(struct mux_ctx *)mux serial:(NSString *)serial productType:(eARDISCOVERY_PRODUCT)productType
 {
@@ -1027,7 +1012,6 @@
         }
     }
 }
-#endif
 
 #pragma mark - Notification sender
 - (void)sendPublishNotification
