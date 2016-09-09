@@ -31,6 +31,11 @@ NSString *const UISupportedExternalAccessoryProtocols = @"UISupportedExternalAcc
 @property (nonatomic, copy) void (^connectionCbBlock)(uint32_t status, const char* json);
 @property (nonatomic, strong) NSObject *dataToWriteLock;
 @property (nonatomic, strong) NSMutableData *dataToWrite;
+
+// store information of latest discovered device
+@property (nonatomic, strong) NSString *deviceSerial;
+@property (nonatomic, strong) NSString *deviceName;
+@property (nonatomic, assign) eARDISCOVERY_PRODUCT productType;
 @end
 
 @implementation USBAccessoryManager
@@ -63,6 +68,14 @@ NSString *const UISupportedExternalAccessoryProtocols = @"UISupportedExternalAcc
 {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     [self cleanUp];
+}
+
+-(void)setDelegate:(id<USBAccessoryManagerDelegate>)newValue {
+    _delegate = newValue;
+    if (_delegate && _usbMux && _deviceSerial) {
+        // notify if a device was discovered
+        [_delegate USBAccessoryManager:self didAddDeviceWithConnectionId:_accessory.connectionID name:_deviceName mux:_usbMux serial:_deviceSerial productType:_productType];
+    }
 }
 
 #pragma mark - CleanUp
@@ -106,6 +119,8 @@ NSString *const UISupportedExternalAccessoryProtocols = @"UISupportedExternalAcc
             self.usbMux = NULL;
         }
         self.accessory = nil;
+        self.deviceName = nil;
+        self.deviceSerial = nil;
     }
 }
 
@@ -494,7 +509,10 @@ static void device_added_cb(const char *name, uint32_t type, const char *id, voi
     if(this)
     {
         //NSLog(@"USBAccessoryManager %s Device added cb. Notify delegate : %@. Device name : %@", __FUNCTION__, this.delegate, [NSString stringWithUTF8String:name]);
-        [this.delegate USBAccessoryManager:this didAddDeviceWithConnectionId:this.accessory.connectionID name:name mux:this.usbMux serial:id productType:type];
+        this.deviceName = [NSString stringWithUTF8String:name];
+        this.deviceSerial = [NSString stringWithUTF8String:id];
+        this.productType = ARDISCOVERY_getProductFromProductID((uint16_t)type);
+        [this.delegate USBAccessoryManager:this didAddDeviceWithConnectionId:this.accessory.connectionID name:this.deviceName mux:this.usbMux serial:this.deviceSerial productType:this.productType];
     }
 }
 
