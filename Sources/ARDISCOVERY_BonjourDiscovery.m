@@ -123,12 +123,7 @@
 
 @end
 
-#pragma mark Private part
-#ifdef USE_USB_ACCESSORY
-@interface ARDiscovery () <NSNetServiceBrowserDelegate, NSNetServiceDelegate, CBCentralManagerDelegate, USBAccessoryManagerDelegate>
-#else
 @interface ARDiscovery () <NSNetServiceBrowserDelegate, NSNetServiceDelegate, CBCentralManagerDelegate>
-#endif
 
 #pragma mark - Supported products list
 @property (strong, nonatomic) NSSet *supportedProducts;
@@ -160,6 +155,14 @@
 @property (nonatomic) BOOL isCBDiscovering;
 @property (nonatomic) BOOL askForCBDiscovering;
 @end
+
+
+#pragma mark Private part
+#ifdef USE_USB_ACCESSORY
+@interface ARDiscovery () <USBAccessoryManagerDelegate>
+@end
+#endif
+
 
 #pragma mark Implementation
 @implementation ARDiscovery
@@ -241,9 +244,6 @@
             _sharedInstance.isNSNetDiscovering = NO;
             _sharedInstance.isCBDiscovering = NO;
             _sharedInstance.askForCBDiscovering = NO;
-#ifdef USE_USB_ACCESSORY
-            [[USBAccessoryManager sharedInstance] setDelegate:_sharedInstance];
-#endif
         });
 
     return _sharedInstance;
@@ -364,7 +364,7 @@
         }
     }
 #ifdef USE_USB_ACCESSORY
-    [[USBAccessoryManager sharedInstance] restartMuxDiscovery];
+    [[USBAccessoryManager sharedInstance] setDelegate:self];
 #endif
 }
 
@@ -409,6 +409,10 @@
         isCBDiscovering = NO;
         [centralManager stopScan];
     }
+
+#ifdef USE_USB_ACCESSORY
+    [[USBAccessoryManager sharedInstance] setDelegate:nil];
+#endif
 }
 
 - (void)removeAllServices
@@ -956,8 +960,7 @@
 
 #ifdef USE_USB_ACCESSORY
 #pragma mark - USBAccessoryManagerDelegate methods
-
-- (void)USBAccessoryManager:(USBAccessoryManager*)usbAccessoryManager didAddDeviceWithConnectionId:(NSUInteger)connectionId name:(const char *)name mux:(struct mux_ctx *)mux serial:(const char *)serial productType:(uint32_t)productType
+- (void)USBAccessoryManager:(USBAccessoryManager*)usbAccessoryManager didAddDeviceWithConnectionId:(NSUInteger)connectionId name:(NSString *)name mux:(struct mux_ctx *)mux serial:(NSString *)serial productType:(eARDISCOVERY_PRODUCT)productType
 {
     @synchronized (self)
     {
@@ -966,17 +969,17 @@
             ARService *aService = [self.devicesServicesList objectForKey:[NSNumber numberWithUnsignedInteger:connectionId]];
             if(aService == nil)
             {
-                NSLog(@"%s New USB Service. Product name : %@. ConnectionId : %@",__FUNCTION__, [NSString stringWithUTF8String:name], [NSNumber numberWithUnsignedInteger:connectionId]);
+                NSLog(@"%s New USB Service. Product name : %@. ConnectionId : %@",__FUNCTION__, name, [NSNumber numberWithUnsignedInteger:connectionId]);
                 ARUSBService *usbService = [[ARUSBService alloc] init];
                 usbService.usbMux = mux;
-                usbService.serial = [NSString stringWithUTF8String:serial];
+                usbService.serial = serial;
                 usbService.connectionId = connectionId;
 
                 aService = [[ARService alloc] init];
                 aService.service = usbService;
-                aService.name = [NSString stringWithUTF8String:name];
+                aService.name = name;
                 aService.signal = [NSNumber numberWithInt:0];
-                aService.product = ARDISCOVERY_getProductFromProductID((uint16_t)productType);
+                aService.product = productType;
 
                 [self.devicesServicesList setObject:aService forKey:[NSNumber numberWithUnsignedInteger:connectionId]];
                 [self sendDevicesListUpdateNotification];
@@ -984,9 +987,9 @@
             else
             {
                 BOOL sendNotification = NO;
-                if(![aService.name isEqualToString:[NSString stringWithUTF8String:name]])
+                if(![aService.name isEqualToString:name])
                 {
-                    aService.name = [NSString stringWithUTF8String:name];
+                    aService.name = name;
                     sendNotification = YES;
                 }
 
@@ -996,9 +999,9 @@
                     sendNotification = YES;
                 }
 
-                if(aService.product != ARDISCOVERY_getProductFromProductID((uint16_t)productType))
+                if(aService.product != productType)
                 {
-                    aService.product = ARDISCOVERY_getProductFromProductID((uint16_t)productType);
+                    aService.product = productType;
                     sendNotification = YES;
                 }
 
