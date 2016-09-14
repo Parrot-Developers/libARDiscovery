@@ -521,7 +521,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration (ARDISC
          (device->productID != ARDISCOVERY_PRODUCT_SKYCONTROLLER) &&
          (device->productID != ARDISCOVERY_PRODUCT_BEBOP_2) &&
          (device->productID != ARDISCOVERY_PRODUCT_EVINRUDE) &&
-         (device->productID != ARDISCOVERY_PRODUCT_PAROS))
+         (device->productID != ARDISCOVERY_PRODUCT_UNKNOWNPRODUCT_4))
         )
     {
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;

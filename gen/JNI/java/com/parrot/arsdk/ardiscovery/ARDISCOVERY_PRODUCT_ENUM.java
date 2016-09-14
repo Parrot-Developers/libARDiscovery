@@ -62,7 +62,7 @@ public enum ARDISCOVERY_PRODUCT_ENUM {
    /** Evinrude product */
     ARDISCOVERY_PRODUCT_EVINRUDE (7, "Evinrude product"),
    /** Unknownproduct_4 product */
-    ARDISCOVERY_PRODUCT_PAROS (8, "Unknownproduct_4 product"),
+    ARDISCOVERY_PRODUCT_UNKNOWNPRODUCT_4 (8, "Unknownproduct_4 product"),
    /** BlueTooth products category */
     ARDISCOVERY_PRODUCT_BLESERVICE (9, "BlueTooth products category"),
    /** DELOS product */
