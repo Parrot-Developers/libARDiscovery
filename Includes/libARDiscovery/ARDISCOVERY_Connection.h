@@ -49,6 +49,7 @@
 #define ARDISCOVERY_CONNECTION_JSON_C2D_USER_PORT_KEY                       "c2d_user_port"
 #define ARDISCOVERY_CONNECTION_JSON_SKYCONTROLLER_VERSION                   "skycontroller_version"
 #define ARDISCOVERY_CONNECTION_JSON_FEATURES_KEY                            "features"
+#define ARDISCOVERY_CONNECTION_JSON_QOS_MODE_KEY                            "qos_mode"
 
 /**
  * ARStream2 specific keys
@@ -70,10 +71,30 @@
 #define ARDISCOVERY_CONNECTION_JSON_AUDIO_CODEC_VERSION_KEY                 "audio_codec"
 
 /**
+ * Audio specific keys
+ */
+#define ARDISCOVERY_CONNECTION_JSON_AUDIO_CODEC_VERSION_KEY                 "audio_codec"
+
+/**
  * @brief Read/Write buffers max size
  */
 #define ARDISCOVERY_CONNECTION_TX_BUFFER_SIZE 512
 #define ARDISCOVERY_CONNECTION_RX_BUFFER_SIZE 512
+
+/**
+ * @brief State of a connection
+ * This is used for BLE products
+ */
+typedef enum {
+    ARDISCOVERY_CONNECTION_STATE_UNKNOWN,               /**< Connection state unknown */
+    // ARDISCOVERY_CONNECTION_STATE_AVAILABLE value should stay 1
+    // because old products are sending 1 in their advertisement data
+    ARDISCOVERY_CONNECTION_STATE_AVAILABLE,             /**< Connection is available, product is theoretically connectable */
+    ARDISCOVERY_CONNECTION_STATE_CONNECTED_TO_OTHER,    /**< Product is connected to a controller. This controller is not one of the listed in the following enum values */
+    ARDISCOVERY_CONNECTION_STATE_CONNECTED_TO_TINOS,    /**< Product is connected to a Tinos controller */
+    ARDISCOVERY_CONNECTION_STATE_MAX                    /**< Max value, no meaning, should be considered like Unknown */
+
+}eARDISCOVERY_CONNECTION_STATE;
 
 /**
  * @brief callback use to send json information of the connection

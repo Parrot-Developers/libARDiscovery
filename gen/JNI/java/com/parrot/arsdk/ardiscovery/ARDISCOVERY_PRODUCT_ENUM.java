@@ -61,22 +61,32 @@ public enum ARDISCOVERY_PRODUCT_ENUM {
     ARDISCOVERY_PRODUCT_POWER_UP (6, "Power up product"),
    /** Evinrude product */
     ARDISCOVERY_PRODUCT_EVINRUDE (7, "Evinrude product"),
+   /** Unknownproduct_4 product */
+    ARDISCOVERY_PRODUCT_UNKNOWNPRODUCT_4 (8, "Unknownproduct_4 product"),
    /** BlueTooth products category */
-    ARDISCOVERY_PRODUCT_BLESERVICE (8, "BlueTooth products category"),
+    ARDISCOVERY_PRODUCT_BLESERVICE (9, "BlueTooth products category"),
    /** DELOS product */
-    ARDISCOVERY_PRODUCT_MINIDRONE (8, "DELOS product"),
+    ARDISCOVERY_PRODUCT_MINIDRONE (9, "DELOS product"),
    /** Delos EVO Light product */
-    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT (9, "Delos EVO Light product"),
+    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT (10, "Delos EVO Light product"),
    /** Delos EVO Brick product */
-    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK (10, "Delos EVO Brick product"),
+    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK (11, "Delos EVO Brick product"),
    /** Delos EVO Hydrofoil product */
-    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL (11, "Delos EVO Hydrofoil product"),
+    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL (12, "Delos EVO Hydrofoil product"),
+   /** Delos3 product */
+    ARDISCOVERY_PRODUCT_MINIDRONE_DELOS3 (13, "Delos3 product"),
+   /** WingX product */
+    ARDISCOVERY_PRODUCT_MINIDRONE_WINGX (14, "WingX product"),
    /** AOA/iAP usb product category */
-    ARDISCOVERY_PRODUCT_USBSERVICE (12, "AOA/iAP usb product category"),
+    ARDISCOVERY_PRODUCT_USBSERVICE (15, "AOA/iAP usb product category"),
    /** Sky controller 2 product */
-    ARDISCOVERY_PRODUCT_SKYCONTROLLER_2 (12, "Sky controller 2 product"),
+    ARDISCOVERY_PRODUCT_SKYCONTROLLER_2 (15, "Sky controller 2 product"),
+   /** Service is unsupported */
+    ARDISCOVERY_PRODUCT_UNSUPPORTED_SERVICE (16, "Service is unsupported"),
+   /** Tinos product */
+    ARDISCOVERY_PRODUCT_TINOS (16, "Tinos product"),
    /** Max of products */
-    ARDISCOVERY_PRODUCT_MAX (13, "Max of products");
+    ARDISCOVERY_PRODUCT_MAX (17, "Max of products");
 
     private final int value;
     private final String comment;

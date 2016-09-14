@@ -40,6 +40,11 @@
 #import <libARDiscovery/ARDISCOVERY_BonjourDiscovery.h>
 #import <libARDiscovery/ARDISCOVERY_Discovery.h>
 #import <netdb.h>
+#import <libARDiscovery/ARDISCOVERY_MuxDiscovery.h>
+
+#ifdef USE_USB_ACCESSORY
+#import <libARDiscovery/USBAccessoryManager.h>
+#endif
 
 #define ARDISCOVERY_BONJOURDISCOVERY_TAG            "ARDISCOVERY_BonjourDiscovery"
 
@@ -68,6 +73,9 @@
 @implementation ARBLEService
 @end
 
+@implementation ARUSBService
+@end
+
 @implementation ARService
 @synthesize signal;
 
@@ -75,22 +83,29 @@
 {
     BOOL result = YES;
     ARService *otherService = (ARService *)object;
-    
+
     if((otherService != nil) && ([[self.service class] isEqual: [otherService.service class]]))
     {
         if ([self.service isKindOfClass:[NSNetService class]])
         {
             NSNetService *netService = (NSNetService *) self.service;
             NSNetService *otherNETService = (NSNetService *) otherService.service;
-            
+
             result = ([netService.name isEqual:otherNETService.name]);
         }
         else if ([self.service isKindOfClass:[ARBLEService class]])
         {
             ARBLEService *bleService = (ARBLEService *) self.service;
             ARBLEService *otherBLEService = (ARBLEService *) otherService.service;
-            
+
             result = ([[bleService.peripheral.identifier UUIDString] isEqual: [otherBLEService.peripheral.identifier UUIDString]]);
+        }
+        else if ([self.service isKindOfClass:[ARUSBService class]])
+        {
+            ARUSBService *usbService = (ARUSBService *) self.service;
+            ARUSBService *otherUSBService = (ARUSBService *) otherService.service;
+
+            result = (usbService.connectionId == otherUSBService.connectionId);
         }
         else
         {
@@ -102,13 +117,12 @@
     {
         result = NO;
     }
-    
+
     return result;
 }
 
 @end
 
-#pragma mark Private part
 @interface ARDiscovery () <NSNetServiceBrowserDelegate, NSNetServiceDelegate, CBCentralManagerDelegate>
 
 #pragma mark - Supported products list
@@ -141,6 +155,14 @@
 @property (nonatomic) BOOL isCBDiscovering;
 @property (nonatomic) BOOL askForCBDiscovering;
 @end
+
+
+#pragma mark Private part
+#ifdef USE_USB_ACCESSORY
+@interface ARDiscovery () <USBAccessoryManagerDelegate>
+@end
+#endif
+
 
 #pragma mark Implementation
 @implementation ARDiscovery
@@ -300,7 +322,7 @@
         {
             [[self.currentResolutionService service] stop];
         }
-        
+
         self.currentResolutionService = aService;
         [((NSNetService*)[self.currentResolutionService service]) setDelegate:self];
         [[self.currentResolutionService service] resolveWithTimeout:kServiceResolutionTimeout];
@@ -310,22 +332,22 @@
 - (void)start
 {
     ARSAL_PRINT(ARSAL_PRINT_DEBUG, ARDISCOVERY_BONJOURDISCOVERY_TAG, "%s:%d", __FUNCTION__, __LINE__);
-    
+
     if (!isNSNetDiscovering)
     {
         /**
          * Start NSNetServiceBrowser
          */
         [controllersServiceBrowser searchForServicesOfType:kServiceNetControllerType inDomain:kServiceNetDomain];
-        for (int i = 0; i < [devicesServiceBrowsers count]; ++i)
+        for (NSUInteger i = 0; i < [devicesServiceBrowsers count]; ++i)
         {
             NSNetServiceBrowser *browser = [devicesServiceBrowsers objectAtIndex:i];
             [browser searchForServicesOfType:[NSString stringWithFormat:kServiceNetDeviceFormat, ARDISCOVERY_getProductID(ARDISCOVERY_PRODUCT_NSNETSERVICE + i)] inDomain:kServiceNetDomain];
         }
-        
+
         isNSNetDiscovering = YES;
     }
-    
+
     if(!isCBDiscovering)
     {
         if (centralManagerInitialized)
@@ -341,12 +363,15 @@
             askForCBDiscovering = YES;
         }
     }
+#ifdef USE_USB_ACCESSORY
+    [[USBAccessoryManager sharedInstance] setDelegate:self];
+#endif
 }
 
 - (void)pauseBLE
 {
     ARSAL_PRINT(ARSAL_PRINT_DEBUG, ARDISCOVERY_BONJOURDISCOVERY_TAG, "%s:%d", __FUNCTION__, __LINE__);
-    
+
     if (centralManagerInitialized && isCBDiscovering)
     {
         /**
@@ -360,9 +385,9 @@
 - (void)stop
 {
     ARSAL_PRINT(ARSAL_PRINT_DEBUG, ARDISCOVERY_BONJOURDISCOVERY_TAG, "%s:%d", __FUNCTION__, __LINE__);
-    
+
     [self removeAllServices];
-    
+
     if (isNSNetDiscovering)
     {
         /**
@@ -375,7 +400,7 @@
         }
         isNSNetDiscovering = NO;
     }
-    
+
     if (centralManagerInitialized && isCBDiscovering)
     {
         /**
@@ -384,6 +409,10 @@
         isCBDiscovering = NO;
         [centralManager stopScan];
     }
+
+#ifdef USE_USB_ACCESSORY
+    [[USBAccessoryManager sharedInstance] setDelegate:nil];
+#endif
 }
 
 - (void)removeAllServices
@@ -392,7 +421,7 @@
     {
         [self.devicesServicesList removeAllObjects];
         [self sendDevicesListUpdateNotification];
-        
+
         [self.controllersServicesList removeAllObjects];
         [self sendControllersListUpdateNotification];
     }
@@ -417,6 +446,25 @@
     }
 }
 
+- (void)removeAllUSBServices
+{
+    @synchronized (self)
+    {
+        NSMutableArray *usbDevices = [[NSMutableArray alloc] init];
+        for (NSString *key in devicesServicesList)
+        {
+            ARService *aService = [devicesServicesList objectForKey:key];
+            if([aService.service isKindOfClass:[ARUSBService class]])
+            {
+                [usbDevices addObject:key];
+            }
+        }
+
+        [devicesServicesList removeObjectsForKeys:usbDevices];
+        [self sendDevicesListUpdateNotification];
+    }
+}
+
 - (void)removeAllWifiServices
 {
     @synchronized (self)
@@ -430,7 +478,7 @@
                 [wifiDevices addObject:key];
             }
         }
-        
+
         [devicesServicesList removeObjectsForKeys:wifiDevices];
         [self sendDevicesListUpdateNotification];
     }
@@ -443,8 +491,8 @@
     struct sockaddr_in *socketAddress = nil;
     NSString *ipString = nil;
     int port;
-    int i;
-    
+    NSUInteger i;
+
     name = [[aService service] name];
     NSArray *adresses = ((NSNetService *)[aService service]).addresses;
     for (i = 0 ; i < [adresses count] ; i++)
@@ -459,7 +507,7 @@
             port = ntohs(socketAddress->sin_port);
         }
     }
-    
+
     // This will print the IP and port for you to connect to.
     NSLog(@"%@", [NSString stringWithFormat:@"Resolved:%@-->%@:%u\n", [[aService service] hostName], ipString, port]);
 
@@ -534,7 +582,7 @@
         NSLog (@"Service's TXTRecordData is nil. Updated controllers list notification is not sent");
         return;
     }
-    
+
     @synchronized (self)
     {
         if ([aNetService.type isEqualToString:kServiceNetControllerType])
@@ -553,7 +601,7 @@
                 aService.signal = [dict objectForKey:[NSString stringWithUTF8String:ARDISCOVERY_SERVICE_NET_RSSI_SIGNAL_KEY]];
             }
             aService.product = ARDISCOVERY_PRODUCT_MAX;
-            
+
             [self.controllersServicesList setObject:aService forKey:aService.name];
             if (!moreComing)
             {
@@ -563,7 +611,7 @@
         else
         {
             ARService *aService   = [self.devicesServicesList objectForKey:aNetService.name];
-            
+
             if (aService == nil)
             {
                 aService = [[ARService alloc] init];
@@ -578,7 +626,7 @@
                     aService.service = aNetService;
                 }
             }
-            
+
             aService.name = [aNetService name];
             aService.signal = [NSNumber numberWithInt:0];
             NSDictionary *dict = [NSNetService dictionaryFromTXTRecordData:aNetService.TXTRecordData];
@@ -587,7 +635,7 @@
                 aService.signal = [dict objectForKey:[NSString stringWithUTF8String:ARDISCOVERY_SERVICE_NET_RSSI_SIGNAL_KEY]];
             }
             aService.product = ARDISCOVERY_PRODUCT_MAX;
-            
+
             for (int i = ARDISCOVERY_PRODUCT_NSNETSERVICE; (aService.product == ARDISCOVERY_PRODUCT_MAX) && (i < ARDISCOVERY_PRODUCT_BLESERVICE); ++i)
             {
                 NSString *deviceType = [NSString stringWithFormat:kServiceNetDeviceFormat, ARDISCOVERY_getProductID(i)];
@@ -596,7 +644,7 @@
                     aService.product = i;
                 }
             }
-            
+
             if (aService.product != ARDISCOVERY_PRODUCT_MAX && [self.supportedProducts containsObject:[NSNumber numberWithInt:aService.product]])
             {
                 [self.devicesServicesList setObject:aService forKey:aService.name];
@@ -727,35 +775,35 @@
                 [self start];
             }
             break;
-            
+
         case CBCentralManagerStateResetting:
             NSLog(@"%@ CBCentralManagerStateResetting", sNewState);
             centralManagerInitialized = NO;
             isCBDiscovering = NO;
             askForCBDiscovering = YES;
-            
+
             break;
-            
+
         case CBCentralManagerStateUnsupported:
             NSLog(@"%@ CBCentralManagerStateUnsupported", sNewState);
             centralManagerInitialized = NO;
             break;
-            
+
         case CBCentralManagerStateUnauthorized:
             NSLog(@"%@ CBCentralManagerStateUnauthorized", sNewState);
             centralManagerInitialized = NO;
             break;
-            
+
         case CBCentralManagerStatePoweredOff:
             NSLog(@"%@ CBCentralManagerStatePoweredOff", sNewState);
             centralManagerInitialized = NO;
             isCBDiscovering = NO;
             askForCBDiscovering = YES;
-            
+
             [self removeAllBLEServices];
-            
+
             break;
-            
+
         default:
         case CBCentralManagerStateUnknown:
             NSLog(@"%@ CBCentralManagerStateUnknown", sNewState);
@@ -772,31 +820,33 @@
         {
             if ( [self isParrotBLEDevice:advertisementData] )
             {
+                NSData *manufacturerData = [advertisementData valueForKey:CBAdvertisementDataManufacturerDataKey];
+                uint16_t *ids = (uint16_t *) manufacturerData.bytes;
+
                 ARService *aService = [self.devicesServicesList objectForKey:[peripheral.identifier UUIDString]];
                 if(aService == nil)
                 {
-                    NSData *manufacturerData = [advertisementData valueForKey:CBAdvertisementDataManufacturerDataKey];
-                    uint16_t *ids = (uint16_t *) manufacturerData.bytes;
                     eARDISCOVERY_PRODUCT product = ARDISCOVERY_PRODUCT_MAX;
                     for (int i = ARDISCOVERY_PRODUCT_BLESERVICE ; (product == ARDISCOVERY_PRODUCT_MAX) && (i < ARDISCOVERY_PRODUCT_MAX) ; i++)
                     {
                         if (ids[2] == ARDISCOVERY_getProductID(i))
                             product = i;
                     }
-                    
+
                     if([self.supportedProducts containsObject:[NSNumber numberWithInt:product]])
                     {
                         NSLog(@"New device %@", [advertisementData objectForKey:CBAdvertisementDataLocalNameKey]);
                         ARBLEService *bleService = [[ARBLEService alloc] init];
                         bleService.centralManager = self.centralManager;
                         bleService.peripheral = peripheral;
-                        
+                        bleService.connectionState = [self connectionStateForValue:ids[3]];
+
                         aService = [[ARService alloc] init];
                         aService.service = bleService;
                         aService.name = [advertisementData objectForKey:CBAdvertisementDataLocalNameKey];
                         aService.signal = RSSI;
                         aService.product = product;
-                        
+
                         [self.devicesServicesList setObject:aService forKey:[peripheral.identifier UUIDString]];
                         [self sendDevicesListUpdateNotification];
                     }
@@ -804,15 +854,23 @@
                 else
                 {
                     BOOL sendNotification = NO;
-                    if(![aService.name isEqualToString:[advertisementData objectForKey:CBAdvertisementDataLocalNameKey]])
+                    NSString *name = [advertisementData objectForKey:CBAdvertisementDataLocalNameKey];
+                    if(![aService.name isEqualToString:name])
                     {
-                        aService.name = [advertisementData objectForKey:CBAdvertisementDataLocalNameKey];
+                        aService.name = name;
                         sendNotification = YES;
                     }
-                    
+
                     if([aService.signal compare:RSSI] != NSOrderedSame)
                     {
                         aService.signal = RSSI;
+                        sendNotification = YES;
+                    }
+
+                    eARDISCOVERY_CONNECTION_STATE connectionState = [self connectionStateForValue:ids[3]];
+                    ARBLEService *bleService = aService.service;
+                    if (bleService.connectionState != connectionState) {
+                        bleService.connectionState = connectionState;
                         sendNotification = YES;
                     }
 
@@ -846,16 +904,16 @@
 {
     NSLog(@"centralManager %@ didDisconnectPeripheral %@ error: %@", central, peripheral, error);
     NSTimer *timer = (NSTimer *)[self.devicesBLEServicesTimerList objectForKey:[peripheral.identifier UUIDString]];
-    
+
     if(timer != nil)
     {
         ARService *aService = [timer userInfo];
-        
+
         [timer invalidate];
         timer = nil;
         NSLog(@"Will remove BLE service: %@", aService);
         [self deviceBLERemoveServices:aService];
-        
+
     }
 }
 
@@ -869,11 +927,11 @@
     if ((manufacturerData != nil) && (manufacturerData.length == ARBLESERVICE_BLE_MANUFACTURER_DATA_LENGTH))
     {
         uint16_t *ids = (uint16_t*) manufacturerData.bytes;
-        
+
 #ifdef DEBUG
         NSLog(@"manufacturer Data: BTVendorID:0x%.4x USBVendorID:0x%.4x USBProduitID=0x%.4x versionID=0x%.4x", ids[0], ids[1], ids[2], ids[3]);
 #endif
-        
+
         if ((ids[0] == ARBLESERVICE_PARROT_BT_VENDOR_ID) &&
             (ids[1] == ARBLESERVICE_PARROT_USB_VENDOR_ID))
         {
@@ -888,6 +946,88 @@
 
     return res;
 }
+
+
+/**
+ * Get the connection state of the product from the scan record
+ * @param value: the value
+ * @return the connection state related to the given value.
+ *         return ARDISCOVERY_CONNECTION_STATE_UNKNOWN if a value is given but unknown (forward compatibility)
+ */
+- (eARDISCOVERY_CONNECTION_STATE)connectionStateForValue:(uint16_t)value {
+    return (value < ARDISCOVERY_CONNECTION_STATE_MAX) ? value : ARDISCOVERY_CONNECTION_STATE_UNKNOWN;
+}
+
+#ifdef USE_USB_ACCESSORY
+#pragma mark - USBAccessoryManagerDelegate methods
+- (void)USBAccessoryManager:(USBAccessoryManager*)usbAccessoryManager didAddDeviceWithConnectionId:(NSUInteger)connectionId name:(NSString *)name mux:(struct mux_ctx *)mux serial:(NSString *)serial productType:(eARDISCOVERY_PRODUCT)productType
+{
+    @synchronized (self)
+    {
+        if(mux != NULL)
+        {
+            ARService *aService = [self.devicesServicesList objectForKey:[NSNumber numberWithUnsignedInteger:connectionId]];
+            if(aService == nil)
+            {
+                NSLog(@"%s New USB Service. Product name : %@. ConnectionId : %@",__FUNCTION__, name, [NSNumber numberWithUnsignedInteger:connectionId]);
+                ARUSBService *usbService = [[ARUSBService alloc] init];
+                usbService.usbMux = mux;
+                usbService.serial = serial;
+                usbService.connectionId = connectionId;
+
+                aService = [[ARService alloc] init];
+                aService.service = usbService;
+                aService.name = name;
+                aService.signal = [NSNumber numberWithInt:0];
+                aService.product = productType;
+
+                [self.devicesServicesList setObject:aService forKey:[NSNumber numberWithUnsignedInteger:connectionId]];
+                [self sendDevicesListUpdateNotification];
+            }
+            else
+            {
+                BOOL sendNotification = NO;
+                if(![aService.name isEqualToString:name])
+                {
+                    aService.name = name;
+                    sendNotification = YES;
+                }
+
+                if(((ARUSBService*)aService.service).usbMux != mux)
+                {
+                    ((ARUSBService*)aService.service).usbMux = mux;
+                    sendNotification = YES;
+                }
+
+                if(aService.product != productType)
+                {
+                    aService.product = productType;
+                    sendNotification = YES;
+                }
+
+                if(sendNotification)
+                {
+                    [self sendDevicesListUpdateNotification];
+                }
+            }
+        }
+    }
+}
+
+- (void)USBAccessoryManager:(USBAccessoryManager*)usbAccessoryManager didRemoveDeviceWithConnectionId:(NSUInteger)connectionId
+{
+    @synchronized (self)
+    {
+        ARService *aService = [self.devicesServicesList objectForKey:[NSNumber numberWithUnsignedInteger:connectionId]];
+        if(aService != nil)
+        {
+            NSLog(@"Removed service %@ : %@", aService.name, NSStringFromClass([[aService service] class]));
+            [self.devicesServicesList removeObjectForKey:[NSNumber numberWithUnsignedInteger:connectionId]];
+            [self sendDevicesListUpdateNotification];
+        }
+    }
+}
+#endif
 
 #pragma mark - Notification sender
 - (void)sendPublishNotification

@@ -53,9 +53,9 @@
  * Private header
  *************************/
 
-// Bebop
-#define BEBOP_DEVICE_TO_CONTROLLER_PORT 43210
+#define DEVICE_TO_CONTROLLER_PORT 43210
 
+// Bebop
 #define BEBOP_CONTROLLER_TO_DEVICE_NONACK_ID 10
 #define BEBOP_CONTROLLER_TO_DEVICE_ACK_ID 11
 #define BEBOP_CONTROLLER_TO_DEVICE_EMERGENCY_ID 12
@@ -65,8 +65,6 @@
 #define BEBOP_DEVICE_TO_CONTROLLER_VIDEO_DATA_ID ((ARNETWORKAL_MANAGER_WIFI_ID_MAX /2) - 3)
 
 // Jumping Sumo
-#define JUMPINGSUMO_DEVICE_TO_CONTROLLER_PORT 43210
-
 #define JUMPINGSUMO_CONTROLLER_TO_DEVICE_NONACK_ID 10
 #define JUMPINGSUMO_CONTROLLER_TO_DEVICE_ACK_ID 11
 #define JUMPINGSUMO_CONTROLLER_TO_DEVICE_VIDEO_ACK_ID 13
@@ -79,8 +77,6 @@
 #define JUMPINGSUMO_DEVICE_TO_CONTROLLER_AUDIO_ACK_ID ((ARNETWORKAL_MANAGER_WIFI_ID_MAX /2) - 5)
 
 // Power Up
-#define POWERUP_DEVICE_TO_CONTROLLER_PORT 43210
-
 #define POWERUP_CONTROLLER_TO_DEVICE_NONACK_ID 10
 #define POWERUP_CONTROLLER_TO_DEVICE_ACK_ID 11
 #define POWERUP_CONTROLLER_TO_DEVICE_VIDEO_ACK_ID 13
@@ -127,10 +123,12 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_CreateSpecificParameters (ARDISCOVERY
             specificWifiParam->jsonCallbacksCustomData = NULL;
             
             // Parameters sended by discovery Json :
-            specificWifiParam->deviceToControllerPort = BEBOP_DEVICE_TO_CONTROLLER_PORT;
+            specificWifiParam->deviceToControllerPort = DEVICE_TO_CONTROLLER_PORT;
 
             // Parameters received by discovery Json :
             specificWifiParam->controllerToDevicePort = -1;
+            specificWifiParam->requested_qos_level = 1; /* request QoS by default */
+            specificWifiParam->qos_level = 0;
             specificWifiParam->connectionStatus = ARDISCOVERY_OK;
         }
         else
@@ -156,6 +154,33 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_CreateSpecificParameters (ARDISCOVERY
     }
     // No else: skipped no error
     
+    return error;
+}
+
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_SetDeviceToControllerPort (ARDISCOVERY_Device_t *device, int d2c_port)
+{
+    eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
+    ARDISCOVERY_DEVICE_WIFI_t *specificWifiParam = NULL;
+
+    // check parameters
+    if ((device == NULL) ||
+        (ARDISCOVERY_getProductService (device->productID) != ARDISCOVERY_PRODUCT_NSNETSERVICE))
+    {
+        error = ARDISCOVERY_ERROR_BAD_PARAMETER;
+    }
+    // No Else: the checking parameters sets error to ARNETWORK_ERROR_BAD_PARAMETER and stop the processing
+
+    if (error == ARDISCOVERY_OK)
+    {
+        if (device->specificParameters != NULL)
+        {
+            specificWifiParam = (ARDISCOVERY_DEVICE_WIFI_t *)device->specificParameters;
+            specificWifiParam->deviceToControllerPort = d2c_port;
+        } else {
+            error = ARDISCOVERY_ERROR_BAD_PARAMETER;
+        }
+    }
+
     return error;
 }
 
@@ -234,6 +259,8 @@ void *ARDISCOVERY_DEVICE_Wifi_GetCopyOfSpecificParameters (ARDISCOVERY_Device_t 
 
                 // Parameters received by discovery Json :
                 specificWifiParam->controllerToDevicePort = specificWifiParamToCopy->controllerToDevicePort;
+                specificWifiParam->requested_qos_level = specificWifiParamToCopy->requested_qos_level;
+                specificWifiParam->qos_level = specificWifiParamToCopy->qos_level;
                 specificWifiParam->connectionStatus = specificWifiParamToCopy->connectionStatus;
             }
             else
@@ -341,6 +368,24 @@ ARNETWORKAL_Manager_t *ARDISCOVERY_DEVICE_Wifi_NewARNetworkAL (ARDISCOVERY_Devic
         localErrorAL = ARNETWORKAL_Manager_InitWifiNetwork (networkAL, specificWifiParam->address, specificWifiParam->controllerToDevicePort, specificWifiParam->deviceToControllerPort, 1);
         
     }
+
+    if ((localError == ARDISCOVERY_OK) && (localErrorAL == ARNETWORKAL_OK))
+    {
+        // Set the send socket QoS (if needed)
+        if (specificWifiParam->qos_level == 1)
+        {
+            localErrorAL = ARNETWORKAL_Manager_SetSendClassSelector(networkAL, ARSAL_SOCKET_CLASS_SELECTOR_CS6);
+        }
+    }
+
+    if ((localError == ARDISCOVERY_OK) && (localErrorAL == ARNETWORKAL_OK))
+    {
+        // Set the recv socket QoS (if needed)
+        if (specificWifiParam->qos_level == 1)
+        {
+            localErrorAL = ARNETWORKAL_Manager_SetRecvClassSelector(networkAL, ARSAL_SOCKET_CLASS_SELECTOR_CS6);
+        }
+    }
     
     // set localError to ARDISCOVERY_ERROR is an error AL is occured
     if ((localError == ARDISCOVERY_OK) && (localErrorAL != ARNETWORKAL_OK))
@@ -440,6 +485,29 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_GetIpAddress (ARDISCOVERY_Device_t *d
     return error;
 }
 
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_SetQoSLevel (ARDISCOVERY_Device_t *device, int level)
+{
+    eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
+    ARDISCOVERY_DEVICE_WIFI_t *specificWifiParam = NULL;
+
+    if ((device == NULL) ||
+        (ARDISCOVERY_getProductService (device->productID) != ARDISCOVERY_PRODUCT_NSNETSERVICE) ||
+        (level < 0) ||
+        (level > 1))
+    {
+        error = ARDISCOVERY_ERROR_BAD_PARAMETER;
+    }
+
+    if (error == ARDISCOVERY_OK)
+    {
+        specificWifiParam = (ARDISCOVERY_DEVICE_WIFI_t *) device->specificParameters;
+        specificWifiParam->requested_qos_level = level;
+    }
+
+    return error;
+}
+
+
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration)
 {
     // -- Initilize network Configuration adapted to a Bebop, a Bebop 2 or linked product (as the SkyController). --
@@ -452,7 +520,8 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration (ARDISC
         ((device->productID != ARDISCOVERY_PRODUCT_ARDRONE) &&
          (device->productID != ARDISCOVERY_PRODUCT_SKYCONTROLLER) &&
          (device->productID != ARDISCOVERY_PRODUCT_BEBOP_2) &&
-         (device->productID != ARDISCOVERY_PRODUCT_EVINRUDE))
+         (device->productID != ARDISCOVERY_PRODUCT_EVINRUDE) &&
+         (device->productID != ARDISCOVERY_PRODUCT_UNKNOWNPRODUCT_4))
         )
     {
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;
@@ -591,7 +660,14 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitSkyControllerNetworkConfiguration
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitBebop2NetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration)
 {
     // -- Initilize network Configuration adapted to a Bebop 2. --
-    // This should be the same as the SkyController to be able to route the packets
+    // This should be the same as the Bebop to be able to be used by the SkyController
+    return ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration(device, networkConfiguration);
+}
+
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitUnknownproduct_4NetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration)
+{
+    // -- Initilize network Configuration adapted to a Unknownproduct_4. --
+    // This should be the same as the Bebop to be able to be used by the SkyController
     return ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration(device, networkConfiguration);
 }
 
@@ -1047,6 +1123,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitEvinrudeNetworkConfiguration (ARD
     return ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration(device, networkConfiguration);
 }
 
+
  /*************************
  * local Implementation
  *************************/
@@ -1115,6 +1192,10 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_SendJsonCallback (uint8_t *dataTx, ui
         
         jsonObj = json_object_new_object ();
         
+        // add ARDISCOVERY_CONNECTION_JSON_QOS_MODE_KEY
+        valueJsonObj = json_object_new_int (specificWifiParam->requested_qos_level);
+        json_object_object_add (jsonObj, ARDISCOVERY_CONNECTION_JSON_QOS_MODE_KEY, valueJsonObj);
+
         // add ARDISCOVERY_CONNECTION_JSON_D2CPORT_KEY
         valueJsonObj = json_object_new_int (specificWifiParam->deviceToControllerPort);
         json_object_object_add (jsonObj, ARDISCOVERY_CONNECTION_JSON_D2CPORT_KEY, valueJsonObj);
@@ -1134,7 +1215,6 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_SendJsonCallback (uint8_t *dataTx, ui
         {
             memcpy (dataTx, json_object_to_json_string (jsonObj), jsonSize);
             *dataTxSize = jsonSize;
-            
         }
         else
         {
@@ -1164,6 +1244,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_ReceiveJsonCallback (uint8_t *dataRx,
     
     json_object *jsonObj = NULL;
     json_object *valueJsonObj = NULL;
+
     
     if ((dataRx == NULL) ||
         (dataRxSize == 0) ||
@@ -1193,6 +1274,13 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_ReceiveJsonCallback (uint8_t *dataRx,
         if (valueJsonObj != NULL)
         {
             specificWifiParam->controllerToDevicePort = json_object_get_int(valueJsonObj);
+        }
+
+        // get ARDISCOVERY_CONNECTION_JSON_QOS_MODE_KEY
+        valueJsonObj = json_object_object_get (jsonObj, ARDISCOVERY_CONNECTION_JSON_QOS_MODE_KEY);
+        if (valueJsonObj != NULL)
+        {
+            specificWifiParam->qos_level = json_object_get_int(valueJsonObj);
         }
         
         // get ARDISCOVERY_CONNECTION_JSON_STATUS_KEY

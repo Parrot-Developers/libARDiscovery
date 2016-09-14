@@ -63,6 +63,8 @@ typedef struct
     // Parameters received by discovery Json :
     int controllerToDevicePort;
     eARDISCOVERY_ERROR connectionStatus;
+    int requested_qos_level;
+    int qos_level;
     
 }ARDISCOVERY_DEVICE_WIFI_t;
 
@@ -74,6 +76,9 @@ typedef struct
  * @see ARDISCOVERY_DEVICE_Wifi_DeleteSpecificParameters.
  */
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_CreateSpecificParameters (ARDISCOVERY_Device_t *device, const char *name, const char *address, int port);
+
+
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_SetDeviceToControllerPort (ARDISCOVERY_Device_t *device, int d2c_port);
 
 /**
  * @brief Delete wifi SpecificParameters
@@ -123,6 +128,16 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_DeleteARNetworkAL (ARDISCOVERY_Device
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_GetIpAddress (ARDISCOVERY_Device_t *device, char *ipAddress, int length);
 
 /**
+ * @brief Set requested QoS level.
+ * 0: No QoS, 1: QoS enabled (default)
+ * @param device The Discovery Device.
+ * @param [in] level The requested QoS level
+ * @note Must be called before "NewARNetworkAL" to have any effect.
+ * @return executing error.
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_SetQoSLevel (ARDISCOVERY_Device_t *device, int level);
+
+/**
  * @brief Initilize network Configuration adapted to a BebopDrone.
  * @param device The Discovery Device. Must be a Bebop Drone Device
  * @param[out] networkConfiguration The networkConfiguration to Initilize.
@@ -145,6 +160,14 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitSkyControllerNetworkConfiguration
  * @return executing error.
  */
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitBebop2NetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration);
+
+/**
+ * @brief Initilize network Configuration adapted to a Unknownproduct_4.
+ * @param device The Discovery Device. Must be a Unknownproduct_4 Device
+ * @param[out] networkConfiguration The networkConfiguration to Initilize.
+ * @return executing error.
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitUnknownproduct_4NetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration);
 
 /**
  * @brief Initilize network Configuration adapted to a Jumping Sumo.

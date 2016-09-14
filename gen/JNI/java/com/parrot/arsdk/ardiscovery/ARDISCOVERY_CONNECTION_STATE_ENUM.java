@@ -38,38 +38,32 @@ package com.parrot.arsdk.ardiscovery;
 import java.util.HashMap;
 
 /**
- * Java copy of the eARDISCOVERY_PRODUCT_FAMILY enum
+ * Java copy of the eARDISCOVERY_CONNECTION_STATE enum
  */
-public enum ARDISCOVERY_PRODUCT_FAMILY_ENUM {
+public enum ARDISCOVERY_CONNECTION_STATE_ENUM {
    /** Dummy value for all unknown cases */
-    eARDISCOVERY_PRODUCT_FAMILY_UNKNOWN_ENUM_VALUE (Integer.MIN_VALUE, "Dummy value for all unknown cases"),
-   /** AR DRONE product family */
-    ARDISCOVERY_PRODUCT_FAMILY_ARDRONE (0, "AR DRONE product family"),
-   /** JUMPING SUMO product family */
-    ARDISCOVERY_PRODUCT_FAMILY_JS (1, "JUMPING SUMO product family"),
-   /** SKY CONTROLLER product family */
-    ARDISCOVERY_PRODUCT_FAMILY_SKYCONTROLLER (2, "SKY CONTROLLER product family"),
-   /** DELOS product */
-    ARDISCOVERY_PRODUCT_FAMILY_MINIDRONE (3, "DELOS product"),
-   /** Power Up product family */
-    ARDISCOVERY_PRODUCT_FAMILY_POWER_UP (4, "Power Up product family"),
-   /** Fixed wing product family */
-    ARDISCOVERY_PRODUCT_FAMILY_FIXED_WING (5, "Fixed wing product family"),
-   /** Gamepad product family */
-    ARDISCOVERY_PRODUCT_FAMILY_GAMEPAD (6, "Gamepad product family"),
-   /** Max of product familys */
-    ARDISCOVERY_PRODUCT_FAMILY_MAX (7, "Max of product familys");
+    eARDISCOVERY_CONNECTION_STATE_UNKNOWN_ENUM_VALUE (Integer.MIN_VALUE, "Dummy value for all unknown cases"),
+   /** Connection state unknown */
+    ARDISCOVERY_CONNECTION_STATE_UNKNOWN (0, "Connection state unknown"),
+   /** Connection is available, product is theoretically connectable */
+    ARDISCOVERY_CONNECTION_STATE_AVAILABLE (1, "Connection is available, product is theoretically connectable"),
+   /** Product is connected to a controller. This controller is not one of the listed in the following enum values */
+    ARDISCOVERY_CONNECTION_STATE_CONNECTED_TO_OTHER (2, "Product is connected to a controller. This controller is not one of the listed in the following enum values"),
+   /** Product is connected to a Tinos controller */
+    ARDISCOVERY_CONNECTION_STATE_CONNECTED_TO_TINOS (3, "Product is connected to a Tinos controller"),
+   /** Max value, no meaning, should be considered like Unknown */
+    ARDISCOVERY_CONNECTION_STATE_MAX (4, "Max value, no meaning, should be considered like Unknown");
 
     private final int value;
     private final String comment;
-    static HashMap<Integer, ARDISCOVERY_PRODUCT_FAMILY_ENUM> valuesList;
+    static HashMap<Integer, ARDISCOVERY_CONNECTION_STATE_ENUM> valuesList;
 
-    ARDISCOVERY_PRODUCT_FAMILY_ENUM (int value) {
+    ARDISCOVERY_CONNECTION_STATE_ENUM (int value) {
         this.value = value;
         this.comment = null;
     }
 
-    ARDISCOVERY_PRODUCT_FAMILY_ENUM (int value, String comment) {
+    ARDISCOVERY_CONNECTION_STATE_ENUM (int value, String comment) {
         this.value = value;
         this.comment = comment;
     }
@@ -83,21 +77,21 @@ public enum ARDISCOVERY_PRODUCT_FAMILY_ENUM {
     }
 
     /**
-     * Gets the ARDISCOVERY_PRODUCT_FAMILY_ENUM instance from a C enum value
+     * Gets the ARDISCOVERY_CONNECTION_STATE_ENUM instance from a C enum value
      * @param value C value of the enum
-     * @return The ARDISCOVERY_PRODUCT_FAMILY_ENUM instance, or null if the C enum value was not valid
+     * @return The ARDISCOVERY_CONNECTION_STATE_ENUM instance, or null if the C enum value was not valid
      */
-    public static ARDISCOVERY_PRODUCT_FAMILY_ENUM getFromValue (int value) {
+    public static ARDISCOVERY_CONNECTION_STATE_ENUM getFromValue (int value) {
         if (null == valuesList) {
-            ARDISCOVERY_PRODUCT_FAMILY_ENUM [] valuesArray = ARDISCOVERY_PRODUCT_FAMILY_ENUM.values ();
-            valuesList = new HashMap<Integer, ARDISCOVERY_PRODUCT_FAMILY_ENUM> (valuesArray.length);
-            for (ARDISCOVERY_PRODUCT_FAMILY_ENUM entry : valuesArray) {
+            ARDISCOVERY_CONNECTION_STATE_ENUM [] valuesArray = ARDISCOVERY_CONNECTION_STATE_ENUM.values ();
+            valuesList = new HashMap<Integer, ARDISCOVERY_CONNECTION_STATE_ENUM> (valuesArray.length);
+            for (ARDISCOVERY_CONNECTION_STATE_ENUM entry : valuesArray) {
                 valuesList.put (entry.getValue (), entry);
             }
         }
-        ARDISCOVERY_PRODUCT_FAMILY_ENUM retVal = valuesList.get (value);
+        ARDISCOVERY_CONNECTION_STATE_ENUM retVal = valuesList.get (value);
         if (retVal == null) {
-            retVal = eARDISCOVERY_PRODUCT_FAMILY_UNKNOWN_ENUM_VALUE;
+            retVal = eARDISCOVERY_CONNECTION_STATE_UNKNOWN_ENUM_VALUE;
         }
         return retVal;    }
 

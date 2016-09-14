@@ -50,15 +50,21 @@ typedef enum
     ARDISCOVERY_PRODUCT_BEBOP_2,                                        ///< Bebop drone 2.0 product
     ARDISCOVERY_PRODUCT_POWER_UP,                                       ///< Power up product
     ARDISCOVERY_PRODUCT_EVINRUDE,                                       ///< Evinrude product
+    ARDISCOVERY_PRODUCT_UNKNOWNPRODUCT_4,                                          ///< Unknownproduct_4 product
 
     ARDISCOVERY_PRODUCT_BLESERVICE,                                     ///< BlueTooth products category
     ARDISCOVERY_PRODUCT_MINIDRONE = ARDISCOVERY_PRODUCT_BLESERVICE,     ///< DELOS product
     ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT,                            ///< Delos EVO Light product
     ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK,                            ///< Delos EVO Brick product
     ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL,                        ///< Delos EVO Hydrofoil product
+    ARDISCOVERY_PRODUCT_MINIDRONE_DELOS3,                               ///< Delos3 product
+    ARDISCOVERY_PRODUCT_MINIDRONE_WINGX,                                ///< WingX product
 
     ARDISCOVERY_PRODUCT_USBSERVICE,                                      ///< AOA/iAP usb product category
     ARDISCOVERY_PRODUCT_SKYCONTROLLER_2 = ARDISCOVERY_PRODUCT_USBSERVICE,///< Sky controller 2 product
+
+    ARDISCOVERY_PRODUCT_UNSUPPORTED_SERVICE,                             ///< Service is unsupported
+    ARDISCOVERY_PRODUCT_TINOS = ARDISCOVERY_PRODUCT_UNSUPPORTED_SERVICE, ///< Tinos product
     ARDISCOVERY_PRODUCT_MAX                                              ///< Max of products
 } eARDISCOVERY_PRODUCT;
 
@@ -72,22 +78,24 @@ typedef enum
     ARDISCOVERY_PRODUCT_FAMILY_SKYCONTROLLER, ///< SKY CONTROLLER product family
     ARDISCOVERY_PRODUCT_FAMILY_MINIDRONE,     ///< DELOS product
     ARDISCOVERY_PRODUCT_FAMILY_POWER_UP,      ///< Power Up product family
-    ARDISCOVERY_PRODUCT_FAMILY_FIXED_WING,   ///< Fixed wing product family
+    ARDISCOVERY_PRODUCT_FAMILY_FIXED_WING,    ///< Fixed wing product family
+    ARDISCOVERY_PRODUCT_FAMILY_GAMEPAD,       ///< Gamepad product family
     ARDISCOVERY_PRODUCT_FAMILY_MAX            ///< Max of product familys
 } eARDISCOVERY_PRODUCT_FAMILY;
 
 /**
- * @brief Get service of product
- * This function is the only one knowing the correspondance between product
+ * @brief Get product service type
+ * This function is the only one knowing the correspondence between product
  * and service.
- * @param product The product's enumerator
- * @return The corresponding product ID for the service
+ * @param product The product's to get the service from
+ * @return ARDISCOVERY_PRODUCT_NSNETSERVICE if the product is a WIFI product, ARDISCOVERY_PRODUCT_BLESERVICE if the product is a BLE product,
+ * ARDISCOVERY_PRODUCT_USB ofif the product is a USB product. Return ARDISCOVERY_PRODUCT_MAX if the product is invalid,
  */
 eARDISCOVERY_PRODUCT ARDISCOVERY_getProductService(eARDISCOVERY_PRODUCT product);
 
 /**
  * @brief Converts from product enumerator to product ID
- * This function is the only one knowing the correspondance
+ * This function is the only one knowing the correspondence
  * between the product enumerator and the products' IDs.
  * @param product The product's enumerator
  * @return The corresponding product ID
@@ -96,7 +104,7 @@ uint16_t ARDISCOVERY_getProductID(eARDISCOVERY_PRODUCT product);
 
 /**
  * @brief Converts from product enumerator to product name
- * This function is the only one knowing the correspondance
+ * This function is the only one knowing the correspondence
  * between the product enumerator and the products name.
  * @param product The product's enumerator
  * @return The corresponding product name
@@ -105,7 +113,7 @@ const char* ARDISCOVERY_getProductName(eARDISCOVERY_PRODUCT product);
 
 /**
  * @brief Converts from product enumerator to product path name
- * This function is the only one knowing the correspondance
+ * This function is the only one knowing the correspondence
  * between the product enumerator and the products path name.
  * @param product The product's enumerator
  * @param buffer The application buffer that will receive the product path name
@@ -116,7 +124,7 @@ void ARDISCOVERY_getProductPathName(eARDISCOVERY_PRODUCT product, char *buffer, 
 
 /**
  * @brief Converts from product name to product enumerator
- * This function is the only one knowing the correspondance
+ * This function is the only one knowing the correspondence
  * between the products name and the product enumerator.
  * @param name The product's name
  * @return The corresponding product enumerator
@@ -134,7 +142,7 @@ eARDISCOVERY_PRODUCT ARDISCOVERY_getProductFromPathName(const char *name);
 
 /**
  * @brief Converts from product ID to product enumerator
- * This function is the only one knowing the correspondance
+ * This function is the only one knowing the correspondence
  * between the products IDs and the product enumerator.
  * @param productID the productID of the product
  * @return The corresponding product enumerator
@@ -143,7 +151,7 @@ eARDISCOVERY_PRODUCT ARDISCOVERY_getProductFromProductID(uint16_t productID);
 
 /**
  * @brief Get family of product
- * This function is the only one knowing the correspondance between product
+ * This function is the only one knowing the correspondence between product
  * and family.
  * @param product The product's enumerator
  * @return The corresponding product family enumerator value
