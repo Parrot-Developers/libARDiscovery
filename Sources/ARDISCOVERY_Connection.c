@@ -693,12 +693,14 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_ControllerInitSocket (ARDISCOVE
                 getsockoptRes = getsockopt(connectionData->socket, SOL_SOCKET, SO_ERROR, (void*)(&valopt), &lon);
                 if (getsockoptRes < 0)
                 {
+                    ARSAL_PRINT(ARSAL_PRINT_ERROR, ARDISCOVERY_CONNECTION_TAG, "getsockopt() error: %d %s", errno, strerror(errno));
                     error = ARDISCOVERY_ERROR_SOCKET_PERMISSION_DENIED;
                 }
                 else
                 {
                     if (valopt)
                     {
+                        ARSAL_PRINT(ARSAL_PRINT_ERROR, ARDISCOVERY_CONNECTION_TAG, "connect() SO_ERROR: %d %s", valopt, strerror(valopt));
                         error = ARDISCOVERY_ERROR_SOCKET_PERMISSION_DENIED;
                     }
                     /* No else: socket successfully connected */
@@ -711,7 +713,7 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_ControllerInitSocket (ARDISCOVE
                 /* If the abortPipe is ready for a read, dump bytes from it (so it won't be ready next time) */
                 ret = read (connectionData->abortPipe[0], &dump, 10);
                 if (ret < 0)
-                    ARSAL_PRINT(ARSAL_PRINT_ERROR, ARDISCOVERY_CONNECTION_TAG, "read() error: %s", errno, strerror(errno));
+                    ARSAL_PRINT(ARSAL_PRINT_ERROR, ARDISCOVERY_CONNECTION_TAG, "read() error: %d %s", errno, strerror(errno));
 
                 error = ARDISCOVERY_ERROR_ABORT;
             }

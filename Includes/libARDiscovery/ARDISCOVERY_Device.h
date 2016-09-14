@@ -47,6 +47,8 @@
 #include <libARDiscovery/ARDISCOVERY_Discovery.h>
 #include <libARDiscovery/ARDISCOVERY_NetworkConfiguration.h>
 
+struct mux_ctx;
+
 //TODO add!!!
 typedef eARDISCOVERY_ERROR (*ARDISCOVERY_Device_ConnectionJsonCallback_t) (json_object *jsonObj, void *customData);
 
@@ -150,10 +152,18 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitNetworkConfiguration (ARDISCOVERY_Devi
  * @param[in] product Parrot's product to initialized
  * @param[in] name Device Name ; must be Null-terminated.
  * @param[in] address Device Address ; must be Null-terminated.
- * @param[in] port Device Port. 
+ * @param[in] discovery_port Device discovery Port.
  * @return executing error.
  */
-eARDISCOVERY_ERROR ARDISCOVERY_Device_InitWifi (ARDISCOVERY_Device_t *device, eARDISCOVERY_PRODUCT product, const char *name, const char *address, int port);
+eARDISCOVERY_ERROR ARDISCOVERY_Device_InitWifi (ARDISCOVERY_Device_t *device, eARDISCOVERY_PRODUCT product, const char *name, const char *address, int discovery_port);
+
+/**
+ * @brief Set the device to controller port.
+ * @param device The Discovery Device to Initialize.
+ * @param[in] d2c_port local udp port number for the incoming data.
+ * @return executing error.
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_Device_WifiSetDeviceToControllerPort (ARDISCOVERY_Device_t *device, int d2c_port);
 
 /**
  * @brief Add connection callbacks to a wifi device.
@@ -174,6 +184,16 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_WifiAddConnectionCallbacks (ARDISCOVERY_De
  */
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_WifiGetIpAddress (ARDISCOVERY_Device_t *device, char *ipAddress, int length);
 
+/**
+ * @brief Set requested QoS level.
+ * 0: No QoS, 1: QoS enabled (default)
+ * @param device The Discovery Device.
+ * @param [in] level The requested QoS level
+ * @note Must be called before "NewARNetworkAL" to have any effect.
+ * @return executing error.
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_WifiSetQoSLevel (ARDISCOVERY_Device_t *device, int level);
+
 /***********************
  * -- BLE part --
  ***********************/
@@ -187,5 +207,37 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_WifiGetIpAddress (ARDISCOVERY_Device_t *de
  * @return executing error.
  */
 eARDISCOVERY_ERROR ARDISCOVERY_Device_InitBLE (ARDISCOVERY_Device_t *device, eARDISCOVERY_PRODUCT product, ARNETWORKAL_BLEDeviceManager_t bleDeviceManager, ARNETWORKAL_BLEDevice_t bleDevice);
+
+/***********************
+ * -- USB part --
+ ***********************/
+
+/**
+ * @brief Initialize the Discovery Device with an usb device.
+ * @param device The Discovery Device to Initialize.
+ * @param[in] product Parrot's product to initialized
+ * @param[in] mux The mux instance to use
+ * @return executing error.
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_Device_InitUSB (ARDISCOVERY_Device_t *device, eARDISCOVERY_PRODUCT product, struct mux_ctx *mux);
+
+/**
+ * @brief Add connection callbacks to an usb device.
+ * @param device The Discovery Device to add callback.
+ * @param[in] sendJsonCallback Callback to add a json part durring the connection.
+ * @param[in] receiveJsonCallback Callback to read a json part durring the connection.
+ * @param[in] customData custom data given as parameter to the callbacks.
+ * @return executing error.
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_Device_UsbAddConnectionCallbacks (ARDISCOVERY_Device_t *device, ARDISCOVERY_Device_ConnectionJsonCallback_t sendJsonCallback, ARDISCOVERY_Device_ConnectionJsonCallback_t receiveJsonCallback, void *customData);
+
+
+/**
+ * @brief Get the mux associated with an usb device.
+ * @param device The Discovery Device.
+ * @param[out] mux the mux pointer.
+ * @return executing error.
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_Device_UsbGetMux(ARDISCOVERY_Device_t *device, struct mux_ctx **mux);
 
 #endif // _ARDISCOVERY_DEVICE_H_

@@ -52,7 +52,7 @@ public class ARDiscoveryDeviceService implements Parcelable
     
     private String name; /**< Name of the device */
     private int productID; /**< Specific product ID */
-    private Object device; /**< can by ARDiscoveryDeviceNetService or ARDiscoveryDeviceBLEService */
+    private Object device; /**< can by ARDiscoveryDeviceNetService or ARDiscoveryDeviceBLEService or ARDiscoveryDeviceUsbService*/
     
     public static final Parcelable.Creator<ARDiscoveryDeviceService> CREATOR = new Parcelable.Creator<ARDiscoveryDeviceService>()
     {
@@ -72,7 +72,7 @@ public class ARDiscoveryDeviceService implements Parcelable
     public ARDiscoveryDeviceService ()
     {
         name = "";
-        setDevice (null);
+        setDevice(null);
         productID = 0;
     }
     
@@ -86,7 +86,6 @@ public class ARDiscoveryDeviceService implements Parcelable
     // Parcelling part
     public ARDiscoveryDeviceService(Parcel in)
     {
-        
         this.name = in.readString();
         this.productID = in.readInt();
         eARDISCOVERY_DEVICE_SERVICE_TYPE type = in.readParcelable(eARDISCOVERY_DEVICE_SERVICE_TYPE.class.getClassLoader());
@@ -95,13 +94,13 @@ public class ARDiscoveryDeviceService implements Parcelable
         {
             case ARDISCOVERY_DEVICE_SERVICE_TYPE_NET:
                 this.device = in.readParcelable(ARDiscoveryDeviceNetService.class.getClassLoader());
-                
                 break;
-                
             case ARDISCOVERY_DEVICE_SERVICE_TYPE_BLE:
                 this.device = in.readParcelable(ARDiscoveryDeviceBLEService.class.getClassLoader());
                 break;
-            
+            case ARDISCOVERY_DEVICE_SERVICE_TYPE_USB:
+                this.device = in.readParcelable(ARDiscoveryDeviceUsbService.class.getClassLoader());
+                break;
             case ARDISCOVERY_DEVICE_SERVICE_TYPE_MAX:
             default:
                 this.device = null;
@@ -155,6 +154,15 @@ public class ARDiscoveryDeviceService implements Parcelable
                             {
                                 isEqual = false;
                             }
+                        }
+                    }
+                    else if (this.getDevice() instanceof ARDiscoveryUsbDiscovery)
+                    {
+                        ARDiscoveryUsbDiscovery deviceUsbService = (ARDiscoveryUsbDiscovery) this.getDevice();
+                        ARDiscoveryUsbDiscovery otherDeviceUsbService = (ARDiscoveryUsbDiscovery) otherDevice.getDevice();
+                        if (!deviceUsbService.equals(otherDeviceUsbService))
+                        {
+                            isEqual = false;
                         }
                     }
                     else
@@ -234,11 +242,15 @@ public class ARDiscoveryDeviceService implements Parcelable
         {
             type = eARDISCOVERY_DEVICE_SERVICE_TYPE.ARDISCOVERY_DEVICE_SERVICE_TYPE_BLE;
         }
+        else if (device instanceof ARDiscoveryDeviceUsbService)
+        {
+            type = eARDISCOVERY_DEVICE_SERVICE_TYPE.ARDISCOVERY_DEVICE_SERVICE_TYPE_USB;
+        }
         else
         {
             type = eARDISCOVERY_DEVICE_SERVICE_TYPE.ARDISCOVERY_DEVICE_SERVICE_TYPE_MAX;
         }
-        
+
         dest.writeParcelable(type, flags);
 
         if((type != null) && (type != eARDISCOVERY_DEVICE_SERVICE_TYPE.ARDISCOVERY_DEVICE_SERVICE_TYPE_MAX))
@@ -251,6 +263,7 @@ public class ARDiscoveryDeviceService implements Parcelable
     {
         ARDISCOVERY_DEVICE_SERVICE_TYPE_NET, 
         ARDISCOVERY_DEVICE_SERVICE_TYPE_BLE,
+        ARDISCOVERY_DEVICE_SERVICE_TYPE_USB,
         ARDISCOVERY_DEVICE_SERVICE_TYPE_MAX;
         
         @Override

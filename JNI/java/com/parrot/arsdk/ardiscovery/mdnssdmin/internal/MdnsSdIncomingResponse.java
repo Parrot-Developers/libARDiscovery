@@ -36,6 +36,7 @@ import com.parrot.arsdk.ardiscovery.mdnssdmin.MdnsSrvData;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -174,7 +175,7 @@ public class MdnsSdIncomingResponse
                     case A:
                         if (datalen == 4)
                         {
-                            String address = String.format("%d.%d.%d.%d", readU8(), readU8(), readU8(), readU8());
+                            String address = String.format(Locale.US, "%d.%d.%d.%d", readU8(), readU8(), readU8(), readU8());
                             entries.put(new MdnsRecord(name, type), address);
                         }
                         break;

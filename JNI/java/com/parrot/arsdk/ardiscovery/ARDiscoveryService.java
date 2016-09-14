@@ -98,7 +98,7 @@ public class ARDiscoveryService extends Service
     private ARDiscoveryBLEDiscovery bleDiscovery;
     private ARDiscoveryWifiDiscovery wifiDiscovery;
     private ARDiscoveryNsdPublisher wifiPublisher;
-
+    private ARDiscoveryUsbDiscovery usbDiscovery;
     private final IBinder binder = new LocalBinder();
 
     /**
@@ -153,7 +153,7 @@ public class ARDiscoveryService extends Service
     @Override
     public IBinder onBind(Intent intent)
     {
-        ARSALPrint.d(TAG,"onBind");
+        ARSALPrint.d(TAG, "onBind");
 
         return binder;
     }  
@@ -179,6 +179,9 @@ public class ARDiscoveryService extends Service
         bleDiscovery.open(this, this);
         // create and open wifi discovery and publisher
         initWifiDiscovery();
+        // create and open UsbDiscovery
+        usbDiscovery = new ARDiscoveryUsbDiscovery();
+        usbDiscovery.open(this, this);
     }
 
     @Override
@@ -196,7 +199,13 @@ public class ARDiscoveryService extends Service
     public void onDestroy()
     {
         super.onDestroy();
-        
+
+        if (usbDiscovery != null)
+        {
+            usbDiscovery.close();
+            usbDiscovery = null;
+        }
+
         if(bleDiscovery != null)
         {
             bleDiscovery.close();
@@ -237,14 +246,14 @@ public class ARDiscoveryService extends Service
     @Override
     public boolean onUnbind(Intent intent)
     {
-        ARSALPrint.d(TAG,"onUnbind");
+        ARSALPrint.d(TAG, "onUnbind");
         return true; /* ensures onRebind is called */
     }
     
     @Override
     public void onRebind(Intent intent)
     {
-        ARSALPrint.d(TAG,"onRebind");
+        ARSALPrint.d(TAG, "onRebind");
     }
     
     private synchronized void initWifiDiscovery()
@@ -316,7 +325,7 @@ public class ARDiscoveryService extends Service
         ARSALPrint.d(TAG, "Start discoveries");
         bleDiscovery.start();
         wifiDiscovery.start();
-
+        usbDiscovery.start();
     }
 
     public synchronized void stop()
@@ -324,6 +333,7 @@ public class ARDiscoveryService extends Service
         ARSALPrint.d(TAG, "Stop discoveries");
         bleDiscovery.stop();
         wifiDiscovery.stop();
+        usbDiscovery.stop();
     }
     
     public synchronized void startWifiDiscovering()
@@ -341,6 +351,20 @@ public class ARDiscoveryService extends Service
         {
             ARSALPrint.d(TAG, "Stop wifi discovery");
             wifiDiscovery.stop();
+        }
+    }
+
+    public synchronized void startUsbDiscovering() {
+        if (usbDiscovery != null) {
+            ARSALPrint.d(TAG, "Start Usb discovery");
+            usbDiscovery.start();
+        }
+    }
+
+    public synchronized void stopUsbDiscovering() {
+        if (usbDiscovery != null) {
+            ARSALPrint.d(TAG, "Stop Usb discovery");
+            usbDiscovery.stop();
         }
     }
     
@@ -381,6 +405,14 @@ public class ARDiscoveryService extends Service
         if (bleDiscovery != null)
         {
             deviceServicesArray.addAll(bleDiscovery.getDeviceServicesArray());
+        }
+        if (usbDiscovery != null)
+        {
+            ARDiscoveryDeviceService deviceService = usbDiscovery.getDeviceService();
+            if (deviceService != null)
+            {
+                deviceServicesArray.add(deviceService);
+            }
         }
         ARSALPrint.d(TAG,"getDeviceServicesArray: " + deviceServicesArray);
 
@@ -468,10 +500,15 @@ public class ARDiscoveryService extends Service
     public static ARDISCOVERY_PRODUCT_ENUM getProductNetworkFromProduct (ARDISCOVERY_PRODUCT_ENUM product)
     {
         int bleOrdinal = ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_BLESERVICE.getValue();
+        int usbOrdinal = ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_USBSERVICE.getValue();
         int productOrdinal = product.getValue();
         ARDISCOVERY_PRODUCT_ENUM retVal = ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_NSNETSERVICE;
 
-        if (productOrdinal >= bleOrdinal)
+        if (productOrdinal >= usbOrdinal)
+        {
+            retVal = ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_USBSERVICE;
+        }
+        else if (productOrdinal >= bleOrdinal)
         {
             retVal = ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_BLESERVICE;
         }

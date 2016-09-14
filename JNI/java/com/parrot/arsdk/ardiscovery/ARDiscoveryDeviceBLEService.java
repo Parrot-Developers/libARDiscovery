@@ -37,6 +37,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 //import com.parrot.arsdk.argraphics.ARApplication;
 import android.content.Intent;
+import com.parrot.arsdk.ardiscovery.ARDISCOVERY_CONNECTION_STATE_ENUM;
 
 import com.parrot.arsdk.arsal.ARSALPrint;
 
@@ -50,6 +51,8 @@ public class ARDiscoveryDeviceBLEService implements Parcelable
 
     private BluetoothDevice bluetoothDevice;
     private int signal;
+
+    private ARDISCOVERY_CONNECTION_STATE_ENUM connectionState;
 
     public static final Parcelable.Creator<ARDiscoveryDeviceBLEService> CREATOR = new Parcelable.Creator<ARDiscoveryDeviceBLEService>()
     {
@@ -84,6 +87,7 @@ public class ARDiscoveryDeviceBLEService implements Parcelable
 
         this.bluetoothDevice = in.readParcelable(BluetoothDevice.class.getClassLoader());
         this.signal = in.readInt();
+        this.connectionState = ARDISCOVERY_CONNECTION_STATE_ENUM.values()[in.readInt()];
     }
 
     @Override
@@ -137,6 +141,26 @@ public class ARDiscoveryDeviceBLEService implements Parcelable
         this.signal = signal;
     }
 
+    /**
+     * Get the scanned connection state
+     * This connection state reflects the state during the scan, it might have changed the moment you use it
+     * @return the scanned connection state
+     */
+    public ARDISCOVERY_CONNECTION_STATE_ENUM getConnectionState()
+    {
+        return connectionState;
+    }
+
+    /**
+     * Set the connection state
+     * This function should not be called by others than the discovery instance
+     * @param connectionState: the state to set
+     */
+    public void setConnectionState(ARDISCOVERY_CONNECTION_STATE_ENUM connectionState)
+    {
+        this.connectionState = connectionState;
+    }
+
 
     @Override
     public int describeContents()
@@ -149,6 +173,7 @@ public class ARDiscoveryDeviceBLEService implements Parcelable
     {    
         dest.writeParcelable( this.bluetoothDevice, flags);
         dest.writeInt(this.signal);
+        dest.writeInt(this.connectionState.ordinal());
     }
 
 };
