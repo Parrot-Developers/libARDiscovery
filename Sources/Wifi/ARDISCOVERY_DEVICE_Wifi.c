@@ -548,7 +548,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration (ARDISC
             .ackTimeoutMs = 500,
             .numberOfRetry = 3,
             .numberOfCell = 20,
-            .dataCopyMaxSize = 128,
+            .dataCopyMaxSize = 4096,
             .isOverwriting = 0,
         },
         /* Emergency commands. */
@@ -594,7 +594,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration (ARDISC
             .ackTimeoutMs = 500,
             .numberOfRetry = 3,
             .numberOfCell = 20,
-            .dataCopyMaxSize = 128,
+            .dataCopyMaxSize = 4096,
             .isOverwriting = 0,
         },
         /* Video data (Initialized later) */
@@ -1310,4 +1310,3 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_ReceiveJsonCallback (uint8_t *dataRx,
     
     return error;
 }
-
