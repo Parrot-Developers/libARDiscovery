@@ -477,7 +477,12 @@ public class ARDiscoveryService extends Service
      */
     public static int getProductID (ARDISCOVERY_PRODUCT_ENUM product)
     {
-        return nativeGetProductID (product.getValue());
+        if (product != ARDISCOVERY_PRODUCT_ENUM.eARDISCOVERY_PRODUCT_UNKNOWN_ENUM_VALUE) {
+            return nativeGetProductID(product.getValue());
+        } else {
+            ARSALPrint.e(TAG, "getProductID:Unknown product : " + product);
+            return 0;
+        }
     }
 
     /**
@@ -525,7 +530,12 @@ public class ARDiscoveryService extends Service
      */
     public static String getProductName (ARDISCOVERY_PRODUCT_ENUM product)
     {
-        return nativeGetProductName (product.getValue());
+        if (product != ARDISCOVERY_PRODUCT_ENUM.eARDISCOVERY_PRODUCT_UNKNOWN_ENUM_VALUE) {
+            return nativeGetProductName(product.getValue());
+        } else {
+            ARSALPrint.e(TAG, "getProductName:Unknown product : " + product);
+            return "UNKNOWN";
+        }
     }
     
     /**

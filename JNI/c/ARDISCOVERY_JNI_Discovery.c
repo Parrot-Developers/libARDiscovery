@@ -112,12 +112,11 @@ Java_com_parrot_arsdk_ardiscovery_ARDiscoveryService_nativeGetProductPathName (J
     char nativePathName[128];
     jstring jPathName = NULL;
 
+    nativePathName[0] = '\0';
+
     ARDISCOVERY_getProductPathName (product, nativePathName, sizeof(nativePathName));
 
-    if (nativePathName != NULL)
-    {
-        jPathName = (*env)->NewStringUTF(env, nativePathName);
-    }
+    jPathName = (*env)->NewStringUTF(env, nativePathName);
 
     return jPathName;
 }
