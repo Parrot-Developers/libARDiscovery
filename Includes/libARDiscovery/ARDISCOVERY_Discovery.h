@@ -51,6 +51,7 @@ typedef enum
     ARDISCOVERY_PRODUCT_POWER_UP,                                       ///< Power up product
     ARDISCOVERY_PRODUCT_EVINRUDE,                                       ///< Evinrude product
     ARDISCOVERY_PRODUCT_PAROS,                                          ///< Paros product
+    ARDISCOVERY_PRODUCT_SKYCONTROLLER_NG,                               ///< Sky controller product (2.0 & newer versions)
 
     ARDISCOVERY_PRODUCT_BLESERVICE,                                     ///< BlueTooth products category
     ARDISCOVERY_PRODUCT_MINIDRONE = ARDISCOVERY_PRODUCT_BLESERVICE,     ///< DELOS product
