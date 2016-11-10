@@ -770,7 +770,7 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_DeviceAccept (ARDISCOVERY_Conne
 {
     /* - Accept connection - */
     
-    eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
+    eARDISCOVERY_ERROR error = ARDISCOVERY_ERROR;
     
     socklen_t clientLen = sizeof (connectionData->address);
     
@@ -792,7 +792,7 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_DeviceAccept (ARDISCOVERY_Conne
     /* Wait for either file to be reading for a read */
     selectErr = select (maxFd, &set, NULL, NULL, NULL);
     
-    if (selectErr < 0)
+    if (selectErr <= 0)
     {
         /* Read error */
         error = ARDISCOVERY_ERROR_SELECT;
@@ -807,6 +807,10 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_DeviceAccept (ARDISCOVERY_Conne
             {
                 ARSAL_PRINT(ARSAL_PRINT_ERROR, ARDISCOVERY_CONNECTION_TAG, "accept() failed: %s", strerror(errno));
                 error = ARDISCOVERY_ERROR_ACCEPT;
+            }
+            else
+            {
+                error = ARDISCOVERY_OK;
             }
         }
         
