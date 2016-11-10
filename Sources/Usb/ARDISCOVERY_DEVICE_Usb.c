@@ -562,17 +562,17 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Usb_DiscoveryConnect (ARDISCOVERY_Device_t
     {
         json_object *jsonObj = json_object_new_object();
         json_object *json_name, *json_type;
-        char *name;
-        char *type;
+        char *name = NULL;
+        char *type = NULL;
         char *serial = "";
-        char *json;
+        char *json = NULL;
 
         // sending Json callback
         if (specificUsbParam->sendJsonCallback != NULL)
         {
             error = specificUsbParam->sendJsonCallback (jsonObj, specificUsbParam->jsonCallbacksCustomData);
             if (error != ARDISCOVERY_OK)
-                goto end;
+                goto conn_end;
             json_name = json_object_object_get(jsonObj, ARDISCOVERY_CONNECTION_JSON_CONTROLLER_NAME_KEY);
             json_object_get(json_name);
             json_type = json_object_object_get(jsonObj, ARDISCOVERY_CONNECTION_JSON_CONTROLLER_TYPE_KEY);
@@ -580,7 +580,6 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Usb_DiscoveryConnect (ARDISCOVERY_Device_t
             json_object_object_del(jsonObj, ARDISCOVERY_CONNECTION_JSON_CONTROLLER_NAME_KEY);
             json_object_object_del(jsonObj, ARDISCOVERY_CONNECTION_JSON_CONTROLLER_TYPE_KEY);
             json = strdup(json_object_to_json_string(jsonObj));
-            json_object_put(jsonObj);
         } else {
             json_name = NULL;
             json_type = NULL;
@@ -607,12 +606,11 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Usb_DiscoveryConnect (ARDISCOVERY_Device_t
         ARSAL_Sem_Wait(&specificUsbParam->sem);
 
     conn_end:
+        json_object_put(jsonObj);
         free(json);
         free(name);
         free(type);
     }
-
-end:
 
     // Cleanup
     ARDiscovery_MuxConnection_dispose(conn_ctx);
