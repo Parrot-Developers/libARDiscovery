@@ -599,58 +599,15 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_ControllerInitSocket (ARDISCOVE
             nbTryToConnect++;
         }
         while ((nbTryToConnect <= ARDISCOVERY_RECONNECTION_NB_RETRY_MAX) && (error == ARDISCOVERY_ERROR_SOCKET_UNREACHABLE));
-            
-        /*connectError = ARSAL_Socket_Connect (connectionData->socket, (struct sockaddr*) &(connectionData->address), sizeof (connectionData->address));
-        
-        if (connectError != 0)
-        {
-            switch (errno)
-            {
-                case EINPROGRESS:
-                    break;
-                case EACCES:
-                    error = ARDISCOVERY_ERROR_SOCKET_PERMISSION_DENIED;
-                    break;
-                case ENETUNREACH:
-                case EHOSTUNREACH:
-                {
-                    // in that particular case, we retry a connection because the host may be not resolved after a very recent connection
-                    ARSAL_PRINT(ARSAL_PRINT_ERROR, ARDISCOVERY_CONNECTION_TAG, "connect() failed: %d %s => Try reconnecting after %d seconds", errno, strerror(errno), ARDISCOVERY_RECONNECTION_TIME_SEC);
-                    sleep(ARDISCOVERY_RECONNECTION_TIME_SEC);
-                    connectError = ARSAL_Socket_Connect (connectionData->socket, (struct sockaddr*) &(connectionData->address), sizeof (connectionData->address));
-                    if (connectError != 0)
-                    {
-                        switch (errno)
-                        {
-                            case EINPROGRESS:
 
-                                break;
-                            case EACCES:
-                                error = ARDISCOVERY_ERROR_SOCKET_PERMISSION_DENIED;
-                                break;
-                                
-                            default:
-                                error = ARDISCOVERY_ERROR;
-                                break;
-                        }
-                    }
-                    break;
-                }
-                default:
-                    error = ARDISCOVERY_ERROR;
-                    break;
-            }
-            
-            if (error != ARDISCOVERY_OK)
-            {
-                ARSAL_PRINT(ARSAL_PRINT_ERROR, ARDISCOVERY_CONNECTION_TAG, "connect() failed: %d %s", errno, strerror(errno));
-            }
-        }*/
-        
         /* set the socket non blocking */
         flags = fcntl(connectionData->socket, F_GETFL, 0);
-        fcntl(connectionData->socket, F_SETFL, flags & (~O_NONBLOCK));
-        
+        if (flags < 0)
+            ARSAL_PRINT(ARSAL_PRINT_ERROR, ARDISCOVERY_CONNECTION_TAG, "fcntl() error: %d %s", errno, strerror(errno));
+        ret = fcntl(connectionData->socket, F_SETFL, flags & (~O_NONBLOCK));
+        if (ret < 0)
+            ARSAL_PRINT(ARSAL_PRINT_ERROR, ARDISCOVERY_CONNECTION_TAG, "fcntl() error: %d %s", errno, strerror(errno));
+
         /* Initialize set */
         FD_ZERO(&readSet);
         FD_ZERO(&writeSet);
