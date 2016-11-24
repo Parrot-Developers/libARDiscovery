@@ -89,6 +89,7 @@ struct ARDISCOVERY_Device_t
 {
     char *name;
     eARDISCOVERY_PRODUCT productID;
+    eARDISCOVERY_NETWORK_TYPE networkType;
     ARDISCOVERY_DEVICE_NewARNetworkAL_t newNetworkAL;
     ARDISCOVERY_DEVICE_DeleteARNetworkAL_t deleteNetworkAL;
     ARDISCOVERY_DEVICE_InitNetworkConfiguration_t initNetworkConfiguration;

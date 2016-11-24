@@ -92,31 +92,6 @@ static const char* ARDISCOVERY_Discovery_ProductNameTable[ARDISCOVERY_PRODUCT_MA
     [ARDISCOVERY_PRODUCT_TINOS] = "Flypad"
 };
 
-eARDISCOVERY_PRODUCT ARDISCOVERY_getProductService(eARDISCOVERY_PRODUCT uproduct)
-{
-    eARDISCOVERY_PRODUCT retval = ARDISCOVERY_PRODUCT_MAX;
-    int product = uproduct;
-
-    if(ARDISCOVERY_PRODUCT_NSNETSERVICE <= product && product < ARDISCOVERY_PRODUCT_BLESERVICE)
-    {
-        retval = ARDISCOVERY_PRODUCT_NSNETSERVICE;
-    }
-    else if(ARDISCOVERY_PRODUCT_BLESERVICE <= product && product < ARDISCOVERY_PRODUCT_USBSERVICE)
-    {
-        retval = ARDISCOVERY_PRODUCT_BLESERVICE;
-    }
-    else if(ARDISCOVERY_PRODUCT_USBSERVICE <= product && product < ARDISCOVERY_PRODUCT_UNSUPPORTED_SERVICE)
-    {
-        retval = ARDISCOVERY_PRODUCT_USBSERVICE;
-    }
-    else if(ARDISCOVERY_PRODUCT_UNSUPPORTED_SERVICE <= product && product < ARDISCOVERY_PRODUCT_MAX)
-    {
-        retval = ARDISCOVERY_PRODUCT_UNSUPPORTED_SERVICE;
-    }
-
-    return retval;
-}
-
 uint16_t ARDISCOVERY_getProductID(eARDISCOVERY_PRODUCT product)
 {
     if (product < ARDISCOVERY_PRODUCT_MAX)

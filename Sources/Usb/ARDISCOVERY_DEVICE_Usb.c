@@ -87,8 +87,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Usb_CreateSpecificParameters (ARDISCOVERY_
     ARDISCOVERY_DEVICE_USB_t *specificUsbParam = NULL;
 
     // Check parameters
-    if ((device == NULL) ||
-        (ARDISCOVERY_getProductService (device->productID) != ARDISCOVERY_PRODUCT_USBSERVICE))
+    if ((device == NULL) || (device->networkType != ARDISCOVERY_NETWORK_TYPE_USBMUX))
     {
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;
     }
@@ -138,8 +137,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Usb_DeleteSpecificParameters (ARDISCOVERY_
     ARDISCOVERY_DEVICE_USB_t *specificUsbParam = NULL;
 
     // check parameters
-    if ((device == NULL) ||
-        (ARDISCOVERY_getProductService (device->productID) != ARDISCOVERY_PRODUCT_USBSERVICE))
+    if ((device == NULL) || (device->networkType != ARDISCOVERY_NETWORK_TYPE_USBMUX))
     {
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;
     }
@@ -175,8 +173,7 @@ void *ARDISCOVERY_DEVICE_Usb_GetCopyOfSpecificParameters (ARDISCOVERY_Device_t *
     ARDISCOVERY_DEVICE_USB_t *specificUsbParam = NULL;
 
     // check parameters
-    if ((device == NULL) ||
-        (ARDISCOVERY_getProductService (device->productID) != ARDISCOVERY_PRODUCT_USBSERVICE))
+    if ((device == NULL) || (device->networkType != ARDISCOVERY_NETWORK_TYPE_USBMUX))
     {
         localError = ARDISCOVERY_ERROR_BAD_PARAMETER;
     }
@@ -249,7 +246,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Usb_AddConnectionCallbacks (ARDISCOVERY_De
 
     // check parameters
     if ((device == NULL) ||
-        (ARDISCOVERY_getProductService (device->productID) != ARDISCOVERY_PRODUCT_USBSERVICE) ||
+        (device->networkType != ARDISCOVERY_NETWORK_TYPE_USBMUX) ||
         (device->specificParameters == NULL))
     {
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;
@@ -285,7 +282,7 @@ ARNETWORKAL_Manager_t *ARDISCOVERY_DEVICE_Usb_NewARNetworkAL (ARDISCOVERY_Device
     // check parameters
     if ((device == NULL) ||
         (device->specificParameters == NULL) ||
-        (ARDISCOVERY_getProductService (device->productID) != ARDISCOVERY_PRODUCT_USBSERVICE))
+        (device->networkType != ARDISCOVERY_NETWORK_TYPE_USBMUX))
     {
         localError = ARDISCOVERY_ERROR_BAD_PARAMETER;
     }
@@ -353,8 +350,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Usb_DeleteARNetworkAL (ARDISCOVERY_Device_
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
 
     // check parameters
-    if ((device == NULL) ||
-        (ARDISCOVERY_getProductService (device->productID) != ARDISCOVERY_PRODUCT_USBSERVICE))
+    if ((device == NULL) || (device->networkType != ARDISCOVERY_NETWORK_TYPE_USBMUX))
     {
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;
     }
@@ -542,7 +538,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Usb_DiscoveryConnect (ARDISCOVERY_Device_t
 
     // check parameters
     if ((device == NULL) ||
-        (ARDISCOVERY_getProductService (device->productID) != ARDISCOVERY_PRODUCT_SKYCONTROLLER_2) ||
+        (device->networkType != ARDISCOVERY_NETWORK_TYPE_USBMUX) ||
         (device->specificParameters == NULL))
     {
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;
@@ -628,7 +624,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Usb_GetMux(ARDISCOVERY_Device_t *device, s
 
     // check parameters
     if ((device == NULL) || (mux == NULL) ||
-        (ARDISCOVERY_getProductService (device->productID) != ARDISCOVERY_PRODUCT_SKYCONTROLLER_2) ||
+        (device->networkType != ARDISCOVERY_NETWORK_TYPE_USBMUX) ||
         (device->specificParameters == NULL))
     {
         return ARDISCOVERY_ERROR_BAD_PARAMETER;

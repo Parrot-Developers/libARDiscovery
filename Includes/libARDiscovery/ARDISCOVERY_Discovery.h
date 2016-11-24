@@ -41,8 +41,7 @@
  */
 typedef enum
 {
-    ARDISCOVERY_PRODUCT_NSNETSERVICE = 0,                               ///< WiFi products category
-    ARDISCOVERY_PRODUCT_ARDRONE = ARDISCOVERY_PRODUCT_NSNETSERVICE,     ///< Bebop Drone product
+    ARDISCOVERY_PRODUCT_ARDRONE = 0,                                    ///< Bebop Drone product
     ARDISCOVERY_PRODUCT_JS,                                             ///< JUMPING SUMO product
     ARDISCOVERY_PRODUCT_SKYCONTROLLER,                                  ///< Sky controller product
     ARDISCOVERY_PRODUCT_JS_EVO_LIGHT,                                   ///< Jumping Sumo EVO Light product
@@ -53,21 +52,26 @@ typedef enum
     ARDISCOVERY_PRODUCT_PAROS,                                          ///< Paros product
     ARDISCOVERY_PRODUCT_SKYCONTROLLER_NG,                               ///< Sky controller product (2.0 & newer versions)
 
-    ARDISCOVERY_PRODUCT_BLESERVICE,                                     ///< BlueTooth products category
-    ARDISCOVERY_PRODUCT_MINIDRONE = ARDISCOVERY_PRODUCT_BLESERVICE,     ///< DELOS product
+    ARDISCOVERY_PRODUCT_MINIDRONE,                                      ///< DELOS product
     ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT,                            ///< Delos EVO Light product
     ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK,                            ///< Delos EVO Brick product
     ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL,                        ///< Delos EVO Hydrofoil product
     ARDISCOVERY_PRODUCT_MINIDRONE_DELOS3,                               ///< Delos3 product
     ARDISCOVERY_PRODUCT_MINIDRONE_WINGX,                                ///< WingX product
 
-    ARDISCOVERY_PRODUCT_USBSERVICE,                                      ///< AOA/iAP usb product category
-    ARDISCOVERY_PRODUCT_SKYCONTROLLER_2 = ARDISCOVERY_PRODUCT_USBSERVICE,///< Sky controller 2 product
+    ARDISCOVERY_PRODUCT_SKYCONTROLLER_2,                                ///< Sky controller 2 product
 
-    ARDISCOVERY_PRODUCT_UNSUPPORTED_SERVICE,                             ///< Service is unsupported
-    ARDISCOVERY_PRODUCT_TINOS = ARDISCOVERY_PRODUCT_UNSUPPORTED_SERVICE, ///< Tinos product
-    ARDISCOVERY_PRODUCT_MAX                                              ///< Max of products
+    ARDISCOVERY_PRODUCT_TINOS,                                          ///< Tinos product
+    ARDISCOVERY_PRODUCT_MAX                                             ///< Max of products
 } eARDISCOVERY_PRODUCT;
+
+typedef enum
+{
+    ARDISCOVERY_NETWORK_TYPE_UNKNOWN = 0, ///< unknown network
+    ARDISCOVERY_NETWORK_TYPE_NET, ///< IP (e.g. wifi) network
+    ARDISCOVERY_NETWORK_TYPE_BLE, ///< BLE network
+    ARDISCOVERY_NETWORK_TYPE_USBMUX, ///< libmux over USB network
+} eARDISCOVERY_NETWORK_TYPE;
 
 /**
  * Enum characterizing every Parrot's product family
@@ -83,16 +87,6 @@ typedef enum
     ARDISCOVERY_PRODUCT_FAMILY_GAMEPAD,       ///< Gamepad product family
     ARDISCOVERY_PRODUCT_FAMILY_MAX            ///< Max of product familys
 } eARDISCOVERY_PRODUCT_FAMILY;
-
-/**
- * @brief Get product service type
- * This function is the only one knowing the correspondence between product
- * and service.
- * @param product The product's to get the service from
- * @return ARDISCOVERY_PRODUCT_NSNETSERVICE if the product is a WIFI product, ARDISCOVERY_PRODUCT_BLESERVICE if the product is a BLE product,
- * ARDISCOVERY_PRODUCT_USB ofif the product is a USB product. Return ARDISCOVERY_PRODUCT_MAX if the product is invalid,
- */
-eARDISCOVERY_PRODUCT ARDISCOVERY_getProductService(eARDISCOVERY_PRODUCT product);
 
 /**
  * @brief Converts from product enumerator to product ID

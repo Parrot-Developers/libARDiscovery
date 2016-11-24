@@ -52,6 +52,7 @@ public class ARDiscoveryDeviceService implements Parcelable
     
     private String name; /**< Name of the device */
     private int productID; /**< Specific product ID */
+    private ARDISCOVERY_NETWORK_TYPE_ENUM networkType;
     private Object device; /**< can by ARDiscoveryDeviceNetService or ARDiscoveryDeviceBLEService or ARDiscoveryDeviceUsbService*/
     
     public static final Parcelable.Creator<ARDiscoveryDeviceService> CREATOR = new Parcelable.Creator<ARDiscoveryDeviceService>()
@@ -74,6 +75,7 @@ public class ARDiscoveryDeviceService implements Parcelable
         name = "";
         setDevice(null);
         productID = 0;
+        networkType = ARDISCOVERY_NETWORK_TYPE_ENUM.ARDISCOVERY_NETWORK_TYPE_UNKNOWN;
     }
     
     public ARDiscoveryDeviceService (String name, Object device, int productID)
@@ -88,20 +90,20 @@ public class ARDiscoveryDeviceService implements Parcelable
     {
         this.name = in.readString();
         this.productID = in.readInt();
-        eARDISCOVERY_DEVICE_SERVICE_TYPE type = in.readParcelable(eARDISCOVERY_DEVICE_SERVICE_TYPE.class.getClassLoader());
-        
-        switch(type)
+        this.networkType = ARDISCOVERY_NETWORK_TYPE_ENUM.getFromValue(in.readInt());
+
+        switch(this.networkType)
         {
-            case ARDISCOVERY_DEVICE_SERVICE_TYPE_NET:
+            case ARDISCOVERY_NETWORK_TYPE_NET:
                 this.device = in.readParcelable(ARDiscoveryDeviceNetService.class.getClassLoader());
                 break;
-            case ARDISCOVERY_DEVICE_SERVICE_TYPE_BLE:
+            case ARDISCOVERY_NETWORK_TYPE_BLE:
                 this.device = in.readParcelable(ARDiscoveryDeviceBLEService.class.getClassLoader());
                 break;
-            case ARDISCOVERY_DEVICE_SERVICE_TYPE_USB:
+            case ARDISCOVERY_NETWORK_TYPE_USBMUX:
                 this.device = in.readParcelable(ARDiscoveryDeviceUsbService.class.getClassLoader());
                 break;
-            case ARDISCOVERY_DEVICE_SERVICE_TYPE_MAX:
+            case ARDISCOVERY_NETWORK_TYPE_UNKNOWN:
             default:
                 this.device = null;
                 break;
@@ -131,39 +133,38 @@ public class ARDiscoveryDeviceService implements Parcelable
                 if((this.getDevice() != null) && (otherDevice.getDevice() != null))
                 {
                     /* check if the devices are of same class */
-                    if (this.getDevice().getClass().equals(otherDevice.getDevice().getClass()))
+                    if (this.networkType == otherDevice.networkType)
                     {
-                        if (this.getDevice() instanceof ARDiscoveryDeviceNetService)
-                        {
-                            /* if it is a NetDevice */
-                            ARDiscoveryDeviceNetService deviceNetService = (ARDiscoveryDeviceNetService) this.getDevice();
-                            ARDiscoveryDeviceNetService otherDeviceNetService = (ARDiscoveryDeviceNetService) otherDevice.getDevice();
-                            
-                            if (!deviceNetService.equals(otherDeviceNetService))
-                            {
-                                isEqual = false;
-                            }
-                        }
-                        else if (this.getDevice() instanceof ARDiscoveryDeviceBLEService)
-                        {
+                        switch (this.networkType) {
+                            case ARDISCOVERY_NETWORK_TYPE_NET:
+                                /* if it is a NetDevice */
+                                ARDiscoveryDeviceNetService deviceNetService = (ARDiscoveryDeviceNetService) this.getDevice();
+                                ARDiscoveryDeviceNetService otherDeviceNetService = (ARDiscoveryDeviceNetService) otherDevice.getDevice();
+
+                                if (!deviceNetService.equals(otherDeviceNetService)) {
+                                    isEqual = false;
+                                }
+                                break;
+                            case ARDISCOVERY_NETWORK_TYPE_BLE:
                             /* if it is a BLEDevice */
-                            ARDiscoveryDeviceBLEService deviceBLEService = (ARDiscoveryDeviceBLEService) this.getDevice();
-                            ARDiscoveryDeviceBLEService otherDeviceBLEService = (ARDiscoveryDeviceBLEService) otherDevice.getDevice();
-                            
-                            if (!deviceBLEService.equals(otherDeviceBLEService))
-                            {
-                                isEqual = false;
-                            }
+                                ARDiscoveryDeviceBLEService deviceBLEService = (ARDiscoveryDeviceBLEService) this.getDevice();
+                                ARDiscoveryDeviceBLEService otherDeviceBLEService = (ARDiscoveryDeviceBLEService) otherDevice.getDevice();
+
+                                if (!deviceBLEService.equals(otherDeviceBLEService)) {
+                                    isEqual = false;
+                                }
+                                break;
+                            case ARDISCOVERY_NETWORK_TYPE_USBMUX:
+                            /* if it is a BLEDevice */
+                                ARDiscoveryDeviceUsbService deviceUsbService = (ARDiscoveryDeviceUsbService) this.getDevice();
+                                ARDiscoveryDeviceUsbService otherDeviceUsbService = (ARDiscoveryDeviceUsbService) otherDevice.getDevice();
+
+                                if (!deviceUsbService.equals(otherDeviceUsbService)) {
+                                    isEqual = false;
+                                }
+                                break;
                         }
-                    }
-                    else if (this.getDevice() instanceof ARDiscoveryUsbDiscovery)
-                    {
-                        ARDiscoveryUsbDiscovery deviceUsbService = (ARDiscoveryUsbDiscovery) this.getDevice();
-                        ARDiscoveryUsbDiscovery otherDeviceUsbService = (ARDiscoveryUsbDiscovery) otherDevice.getDevice();
-                        if (!deviceUsbService.equals(otherDeviceUsbService))
-                        {
-                            isEqual = false;
-                        }
+
                     }
                     else
                     {
@@ -202,6 +203,19 @@ public class ARDiscoveryDeviceService implements Parcelable
     public void setDevice (Object device)
     {
         this.device = device;
+        if (device instanceof ARDiscoveryDeviceNetService) {
+            this.networkType = ARDISCOVERY_NETWORK_TYPE_ENUM.ARDISCOVERY_NETWORK_TYPE_NET;
+        } else if (device instanceof ARDiscoveryDeviceBLEService) {
+            this.networkType = ARDISCOVERY_NETWORK_TYPE_ENUM.ARDISCOVERY_NETWORK_TYPE_BLE;
+        } else if (device instanceof ARDiscoveryDeviceUsbService) {
+            this.networkType = ARDISCOVERY_NETWORK_TYPE_ENUM.ARDISCOVERY_NETWORK_TYPE_USBMUX;
+        } else {
+            this.networkType = ARDISCOVERY_NETWORK_TYPE_ENUM.ARDISCOVERY_NETWORK_TYPE_UNKNOWN;
+        }
+    }
+
+    public ARDISCOVERY_NETWORK_TYPE_ENUM getNetworkType() {
+        return networkType;
     }
     
     public int getProductID ()
@@ -223,7 +237,7 @@ public class ARDiscoveryDeviceService implements Parcelable
     @Override
     public String toString()
     {
-        return "name="+name+", productID="+productID;
+        return "name="+name+", productID="+productID+", networkType="+networkType;
     }
 
     @Override
@@ -231,67 +245,12 @@ public class ARDiscoveryDeviceService implements Parcelable
     {    
         dest.writeString(this.name);
         dest.writeInt(this.productID);
-        
-        eARDISCOVERY_DEVICE_SERVICE_TYPE type = null;
-        
-        if (device instanceof ARDiscoveryDeviceNetService)
-        {
-            type = eARDISCOVERY_DEVICE_SERVICE_TYPE.ARDISCOVERY_DEVICE_SERVICE_TYPE_NET;
-        }
-        else if (device instanceof ARDiscoveryDeviceBLEService)
-        {
-            type = eARDISCOVERY_DEVICE_SERVICE_TYPE.ARDISCOVERY_DEVICE_SERVICE_TYPE_BLE;
-        }
-        else if (device instanceof ARDiscoveryDeviceUsbService)
-        {
-            type = eARDISCOVERY_DEVICE_SERVICE_TYPE.ARDISCOVERY_DEVICE_SERVICE_TYPE_USB;
-        }
-        else
-        {
-            type = eARDISCOVERY_DEVICE_SERVICE_TYPE.ARDISCOVERY_DEVICE_SERVICE_TYPE_MAX;
-        }
+        dest.writeInt(this.networkType.getValue());
 
-        dest.writeParcelable(type, flags);
-
-        if((type != null) && (type != eARDISCOVERY_DEVICE_SERVICE_TYPE.ARDISCOVERY_DEVICE_SERVICE_TYPE_MAX))
+        if(this.networkType != ARDISCOVERY_NETWORK_TYPE_ENUM.ARDISCOVERY_NETWORK_TYPE_UNKNOWN)
         {
             dest.writeParcelable((Parcelable) this.device, flags);
         }
-    }
-    
-    private enum eARDISCOVERY_DEVICE_SERVICE_TYPE implements Parcelable
-    {
-        ARDISCOVERY_DEVICE_SERVICE_TYPE_NET, 
-        ARDISCOVERY_DEVICE_SERVICE_TYPE_BLE,
-        ARDISCOVERY_DEVICE_SERVICE_TYPE_USB,
-        ARDISCOVERY_DEVICE_SERVICE_TYPE_MAX;
-        
-        @Override
-        public int describeContents()
-        {
-            return 0;
-        }
-
-        @Override
-        public void writeToParcel(final Parcel dest, final int flags)
-        {
-            dest.writeInt(ordinal());
-        }
-
-        public static final Creator<eARDISCOVERY_DEVICE_SERVICE_TYPE> CREATOR = new Creator<eARDISCOVERY_DEVICE_SERVICE_TYPE>()
-        {
-            @Override
-            public eARDISCOVERY_DEVICE_SERVICE_TYPE createFromParcel(final Parcel source)
-            {
-                return eARDISCOVERY_DEVICE_SERVICE_TYPE.values()[source.readInt()];
-            }
-
-            @Override
-            public eARDISCOVERY_DEVICE_SERVICE_TYPE[] newArray(final int size)
-            {
-                return new eARDISCOVERY_DEVICE_SERVICE_TYPE[size];
-            }
-        };
     }
 };
 

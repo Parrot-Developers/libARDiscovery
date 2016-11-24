@@ -38,6 +38,7 @@
 #import <Foundation/Foundation.h>
 #import <CoreBluetooth/CoreBluetooth.h>
 #include <libARSAL/ARSAL_CentralManager.h>
+#import <libARDiscovery/ARDISCOVERY_Device.h>
 #import <libARDiscovery/ARDISCOVERY_Discovery.h>
 #import <libARDiscovery/ARDISCOVERY_MuxDiscovery.h>
 #import <libARDiscovery/ARDISCOVERY_Connection.h>
@@ -108,7 +109,16 @@
 @property (nonatomic, strong) NSString *name;               ///< Name of the device
 @property (nonatomic, assign) eARDISCOVERY_PRODUCT product; ///< Specific product
 @property (nonatomic, strong) id service;                   ///< Can be NSNetService or ARBLEService or ARUSBService
+@property (nonatomic, assign) eARDISCOVERY_NETWORK_TYPE network_type;
 @property (nonatomic, strong) NSNumber *signal;
+
+/**
+ * Creates an ARDISCOVERY_Device_t from the current ARService.
+ * @note If network_type is ARDISCOVERY_NETWORK_TYPE_NET, then the NSNetService
+ * will be resolved synchronously. The function can thus block for a small
+ * amount of time.
+ */
+- (ARDISCOVERY_Device_t *) createDevice:(eARDISCOVERY_ERROR *)err;
 @end
 
 @interface ARDiscovery : NSObject
@@ -172,6 +182,12 @@
  * are complete, or failed
  */
 - (void)resolveService:(ARService *)aService;
+
+/**
+ * Try to resolve the given service, synchronously
+ * This function will block until resolution is complete
+ */
+- (BOOL)resolveServiceSync:(ARService *)aService;
 
 /**
  * Convert the given service to resolved IP

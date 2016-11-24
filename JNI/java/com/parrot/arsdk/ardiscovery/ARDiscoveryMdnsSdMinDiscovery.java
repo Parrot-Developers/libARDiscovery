@@ -75,13 +75,16 @@ public class ARDiscoveryMdnsSdMinDiscovery implements ARDiscoveryWifiDiscovery
         ARSALPrint.d(TAG, "Creating MdsnSd based ARDiscovery");
         // build the list of services to look for
         devicesServices = new HashMap<String, ARDISCOVERY_PRODUCT_ENUM>();
-        for (int i = ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_NSNETSERVICE.getValue(); i < ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_BLESERVICE.getValue(); ++i)
+        for (ARDISCOVERY_PRODUCT_ENUM product : ARDISCOVERY_PRODUCT_ENUM.values())
         {
-            if (supportedProducts.contains(ARDISCOVERY_PRODUCT_ENUM.getFromValue(i)))
+            if (product == ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_MAX ||
+                    product == ARDISCOVERY_PRODUCT_ENUM.eARDISCOVERY_PRODUCT_UNKNOWN_ENUM_VALUE)
+                continue;
+            if (supportedProducts.contains(product))
             {
-                String devicesService = String.format(ARDiscoveryService.ARDISCOVERY_SERVICE_NET_DEVICE_FORMAT, ARDiscoveryService.nativeGetProductID(i));
+                String devicesService = String.format(ARDiscoveryService.ARDISCOVERY_SERVICE_NET_DEVICE_FORMAT, ARDiscoveryService.getProductID(product));
                 devicesService += ARDiscoveryService.ARDISCOVERY_SERVICE_NET_DEVICE_DOMAIN;
-                devicesServices.put(devicesService, ARDISCOVERY_PRODUCT_ENUM.getFromValue(i));
+                devicesServices.put(devicesService, product);
             }
         }
 

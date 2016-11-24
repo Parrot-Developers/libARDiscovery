@@ -8,7 +8,7 @@
       notice, this list of conditions and the following disclaimer.
     * Redistributions in binary form must reproduce the above copyright
       notice, this list of conditions and the following disclaimer in
-      the documentation and/or other materials provided with the 
+      the documentation and/or other materials provided with the
       distribution.
     * Neither the name of Parrot nor the names
       of its contributors may be used to endorse or promote products
@@ -22,7 +22,7 @@
     COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
     INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
     BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
-    OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED 
+    OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
     AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
     OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
     OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
@@ -79,28 +79,81 @@
 @implementation ARService
 @synthesize signal;
 
+- (ARDISCOVERY_Device_t *) createDevice:(eARDISCOVERY_ERROR *)err
+{
+    ARDISCOVERY_Device_t *ret;
+
+    if (!err)
+        return nil;
+
+    ret = ARDISCOVERY_Device_New(err);
+
+    if (*err != ARDISCOVERY_OK) {
+        ARDISCOVERY_Device_Delete(&ret);
+        return ret;
+    }
+
+
+    switch(self.network_type) {
+    case ARDISCOVERY_NETWORK_TYPE_NET:
+    {
+        if (![[ARDiscovery sharedInstance] resolveServiceSync:self]) {
+            *err = ARDISCOVERY_ERROR_BUSY;
+            goto exit;
+        }
+        NSString *ip = [[ARDiscovery sharedInstance] convertNSNetServiceToIp:self];
+        int port = (int)[(NSNetService *)self.service port];
+        *err = ARDISCOVERY_Device_InitWifi(ret, self.product, [self.name UTF8String], [ip UTF8String], port);
+    }
+    break;
+
+    case ARDISCOVERY_NETWORK_TYPE_BLE:
+    {
+        ARBLEService* bleService = (ARBLEService *)self.service;
+        *err = ARDISCOVERY_Device_InitBLE (ret, self.product, (__bridge ARNETWORKAL_BLEDeviceManager_t)(bleService.centralManager), (__bridge ARNETWORKAL_BLEDevice_t)(bleService.peripheral));
+    }
+    break;
+
+    case ARDISCOVERY_NETWORK_TYPE_USBMUX:
+    {
+        *err = ARDISCOVERY_Device_InitUSB(ret, self.product, ((ARUSBService*)self.service).usbMux);
+    }
+    break;
+
+    default:
+        *err = ARDISCOVERY_ERROR_BAD_PARAMETER;
+        break;
+    }
+
+exit:
+    if (*err != ARDISCOVERY_OK)
+        ARDISCOVERY_Device_Delete(&ret);
+
+    return ret;
+}
+
 - (BOOL)isEqual:(id)object
 {
     BOOL result = YES;
     ARService *otherService = (ARService *)object;
 
-    if((otherService != nil) && ([[self.service class] isEqual: [otherService.service class]]))
+    if((otherService != nil) && (self.network_type == otherService.network_type))
     {
-        if ([self.service isKindOfClass:[NSNetService class]])
+        if (self.network_type == ARDISCOVERY_NETWORK_TYPE_NET)
         {
             NSNetService *netService = (NSNetService *) self.service;
             NSNetService *otherNETService = (NSNetService *) otherService.service;
 
             result = ([netService.name isEqual:otherNETService.name]);
         }
-        else if ([self.service isKindOfClass:[ARBLEService class]])
+        else if (self.network_type == ARDISCOVERY_NETWORK_TYPE_BLE)
         {
             ARBLEService *bleService = (ARBLEService *) self.service;
             ARBLEService *otherBLEService = (ARBLEService *) otherService.service;
 
             result = ([[bleService.peripheral.identifier UUIDString] isEqual: [otherBLEService.peripheral.identifier UUIDString]]);
         }
-        else if ([self.service isKindOfClass:[ARUSBService class]])
+        else if (self.network_type == ARDISCOVERY_NETWORK_TYPE_USBMUX)
         {
             ARUSBService *usbService = (ARUSBService *) self.service;
             ARUSBService *otherUSBService = (ARUSBService *) otherService.service;
@@ -165,7 +218,11 @@
 
 
 #pragma mark Implementation
-@implementation ARDiscovery
+@implementation ARDiscovery {
+    BOOL resolveResult;
+    dispatch_semaphore_t resolveSem;
+    BOOL resolveSyncBusy;
+}
 
 @synthesize controllersServicesList;
 @synthesize devicesServicesList;
@@ -197,7 +254,7 @@
             _sharedInstance.controllersServicesList = [[NSMutableDictionary alloc] init];
             _sharedInstance.devicesServicesList = [[NSMutableDictionary alloc] init];
             _sharedInstance.devicesBLEServicesTimerList = [[NSMutableDictionary alloc] init];
-        
+
             /**
              * Supported products list init with all products of eARDISCOVERY_PRODUCT
              */
@@ -220,7 +277,7 @@
             _sharedInstance.controllersServiceBrowser = [[NSNetServiceBrowser alloc] init];
             [_sharedInstance.controllersServiceBrowser setDelegate:_sharedInstance];
             _sharedInstance.devicesServiceBrowsers = [[NSMutableArray alloc] init];
-            for (int i = ARDISCOVERY_PRODUCT_NSNETSERVICE; i < ARDISCOVERY_PRODUCT_BLESERVICE; ++i)
+            for (int i = 0; i < ARDISCOVERY_PRODUCT_MAX; ++i)
             {
                 NSNetServiceBrowser *browser = [[NSNetServiceBrowser alloc] init];
                 [browser setDelegate:_sharedInstance];
@@ -244,6 +301,10 @@
             _sharedInstance.isNSNetDiscovering = NO;
             _sharedInstance.isCBDiscovering = NO;
             _sharedInstance.askForCBDiscovering = NO;
+
+            _sharedInstance->resolveResult = NO;
+            _sharedInstance->resolveSem = dispatch_semaphore_create(0);
+            _sharedInstance->resolveSyncBusy = NO;
         });
 
     return _sharedInstance;
@@ -304,7 +365,7 @@
 #pragma mark - Discovery
 - (BOOL)isNetServiceValid:(NSNetService *)aNetService
 {
-    for (int i = ARDISCOVERY_PRODUCT_NSNETSERVICE; i < ARDISCOVERY_PRODUCT_BLESERVICE; ++i)
+    for (int i = 0; i < ARDISCOVERY_PRODUCT_MAX; ++i)
     {
         NSString *deviceType = [NSString stringWithFormat:kServiceNetDeviceFormat, ARDISCOVERY_getProductID(i)];
         if ([aNetService.type isEqualToString:deviceType])
@@ -329,6 +390,24 @@
     }
 }
 
+- (BOOL)resolveServiceSync:(ARService *)aService
+{
+    CHECK_VALID(NO);
+    @synchronized(self)
+    {
+        if(self->resolveSyncBusy)
+            return NO;
+        self->resolveSyncBusy = YES;
+    }
+    [self resolveService:aService];
+    dispatch_semaphore_wait(self->resolveSem, DISPATCH_TIME_FOREVER);
+    @synchronized(self)
+    {
+        self->resolveSyncBusy = NO;
+    }
+    return self->resolveResult;
+}
+
 - (void)start
 {
     ARSAL_PRINT(ARSAL_PRINT_DEBUG, ARDISCOVERY_BONJOURDISCOVERY_TAG, "%s:%d", __FUNCTION__, __LINE__);
@@ -342,7 +421,7 @@
         for (NSUInteger i = 0; i < [devicesServiceBrowsers count]; ++i)
         {
             NSNetServiceBrowser *browser = [devicesServiceBrowsers objectAtIndex:i];
-            [browser searchForServicesOfType:[NSString stringWithFormat:kServiceNetDeviceFormat, ARDISCOVERY_getProductID(ARDISCOVERY_PRODUCT_NSNETSERVICE + i)] inDomain:kServiceNetDomain];
+            [browser searchForServicesOfType:[NSString stringWithFormat:kServiceNetDeviceFormat, ARDISCOVERY_getProductID(i)] inDomain:kServiceNetDomain];
         }
 
         isNSNetDiscovering = YES;
@@ -436,7 +515,7 @@
         for (NSString *key in devicesServicesList)
         {
             ARService *aService = [devicesServicesList objectForKey:key];
-            if([aService.service isKindOfClass:[ARBLEService class]])
+            if(aService.network_type == ARDISCOVERY_NETWORK_TYPE_BLE)
             {
                 [bleDevices addObject:key];
             }
@@ -455,7 +534,7 @@
         for (NSString *key in devicesServicesList)
         {
             ARService *aService = [devicesServicesList objectForKey:key];
-            if([aService.service isKindOfClass:[ARUSBService class]])
+            if(aService.network_type == ARDISCOVERY_NETWORK_TYPE_USBMUX)
             {
                 [usbDevices addObject:key];
             }
@@ -474,7 +553,7 @@
         for (NSString *key in devicesServicesList)
         {
             ARService *aService = [devicesServicesList objectForKey:key];
-            if([aService.service isKindOfClass:[NSNetService class]])
+            if(aService.network_type == ARDISCOVERY_NETWORK_TYPE_NET)
             {
                 [wifiDevices addObject:key];
             }
@@ -593,6 +672,7 @@
             {
                 aService = [[ARService alloc] init];
                 aService.service = aNetService;
+                aService.network_type = ARDISCOVERY_NETWORK_TYPE_NET;
             }
             aService.name = [aNetService name];
             aService.signal = [NSNumber numberWithInt:0];
@@ -617,6 +697,7 @@
             {
                 aService = [[ARService alloc] init];
                 aService.service = aNetService;
+                aService.network_type = ARDISCOVERY_NETWORK_TYPE_NET;
             }
             else
             {
@@ -625,6 +706,7 @@
                 {
                     aService = [[ARService alloc] init];
                     aService.service = aNetService;
+                    aService.network_type = ARDISCOVERY_NETWORK_TYPE_NET;
                 }
             }
 
@@ -637,7 +719,7 @@
             }
             aService.product = ARDISCOVERY_PRODUCT_MAX;
 
-            for (int i = ARDISCOVERY_PRODUCT_NSNETSERVICE; (aService.product == ARDISCOVERY_PRODUCT_MAX) && (i < ARDISCOVERY_PRODUCT_BLESERVICE); ++i)
+            for (int i = 0; (aService.product == ARDISCOVERY_PRODUCT_MAX) && (i < ARDISCOVERY_PRODUCT_MAX); ++i)
             {
                 NSString *deviceType = [NSString stringWithFormat:kServiceNetDeviceFormat, ARDISCOVERY_getProductID(i)];
                 if ([aNetService.type isEqualToString:deviceType])
@@ -727,9 +809,12 @@
 {
     @synchronized (self)
     {
+        self->resolveResult = NO;
         self.currentResolutionService = nil;
         [self sendNotResolveNotification];
         [service stop];
+        if (self->resolveSyncBusy)
+            dispatch_semaphore_signal(self->resolveSem);
     }
 }
 
@@ -737,8 +822,11 @@
 {
     @synchronized (self)
     {
+        self->resolveResult = YES;
         [self sendResolveNotification];
         [service stop];
+        if (self->resolveSyncBusy)
+            dispatch_semaphore_signal(self->resolveSem);
     }
 }
 
@@ -828,7 +916,7 @@
                 if(aService == nil)
                 {
                     eARDISCOVERY_PRODUCT product = ARDISCOVERY_PRODUCT_MAX;
-                    for (int i = ARDISCOVERY_PRODUCT_BLESERVICE ; (product == ARDISCOVERY_PRODUCT_MAX) && (i < ARDISCOVERY_PRODUCT_MAX) ; i++)
+                    for (int i = 0; (product == ARDISCOVERY_PRODUCT_MAX) && (i < ARDISCOVERY_PRODUCT_MAX) ; i++)
                     {
                         if (ids[2] == ARDISCOVERY_getProductID(i))
                             product = i;
@@ -844,6 +932,7 @@
 
                         aService = [[ARService alloc] init];
                         aService.service = bleService;
+                        aService.network_type = ARDISCOVERY_NETWORK_TYPE_BLE;
                         aService.name = [advertisementData objectForKey:CBAdvertisementDataLocalNameKey];
                         aService.signal = RSSI;
                         aService.product = product;
@@ -979,6 +1068,7 @@
 
                 aService = [[ARService alloc] init];
                 aService.service = usbService;
+                aService.network_type = ARDISCOVERY_NETWORK_TYPE_USBMUX;
                 aService.name = name;
                 aService.signal = [NSNumber numberWithInt:0];
                 aService.product = productType;

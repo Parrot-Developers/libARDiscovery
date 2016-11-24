@@ -103,8 +103,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_CreateSpecificParameters (ARDISCOVERY
     ARDISCOVERY_DEVICE_WIFI_t *specificWifiParam = NULL;
     
     // Check parameters
-    if ((device == NULL) ||
-        (ARDISCOVERY_getProductService (device->productID) != ARDISCOVERY_PRODUCT_NSNETSERVICE))
+    if ((device == NULL) || (device->networkType != ARDISCOVERY_NETWORK_TYPE_NET))
     {
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;
     }
@@ -163,8 +162,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_SetDeviceToControllerPort (ARDISCOVER
     ARDISCOVERY_DEVICE_WIFI_t *specificWifiParam = NULL;
 
     // check parameters
-    if ((device == NULL) ||
-        (ARDISCOVERY_getProductService (device->productID) != ARDISCOVERY_PRODUCT_NSNETSERVICE))
+    if ((device == NULL) || (device->networkType != ARDISCOVERY_NETWORK_TYPE_NET))
     {
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;
     }
@@ -192,8 +190,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_DeleteSpecificParameters (ARDISCOVERY
     ARDISCOVERY_DEVICE_WIFI_t *specificWifiParam = NULL; 
     
     // check parameters
-    if ((device == NULL) ||
-        (ARDISCOVERY_getProductService (device->productID) != ARDISCOVERY_PRODUCT_NSNETSERVICE))
+    if ((device == NULL) || (device->networkType != ARDISCOVERY_NETWORK_TYPE_NET))
     {
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;
     }
@@ -229,8 +226,7 @@ void *ARDISCOVERY_DEVICE_Wifi_GetCopyOfSpecificParameters (ARDISCOVERY_Device_t 
     ARDISCOVERY_DEVICE_WIFI_t *specificWifiParam = NULL;
     
     // check parameters
-    if ((device == NULL) ||
-        (ARDISCOVERY_getProductService (device->productID) != ARDISCOVERY_PRODUCT_NSNETSERVICE))
+    if ((device == NULL) || (device->networkType != ARDISCOVERY_NETWORK_TYPE_NET))
     {
         localError = ARDISCOVERY_ERROR_BAD_PARAMETER;
     }
@@ -309,7 +305,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_AddConnectionCallbacks (ARDISCOVERY_D
     
     // check parameters
     if ((device == NULL) ||
-        (ARDISCOVERY_getProductService (device->productID) != ARDISCOVERY_PRODUCT_NSNETSERVICE) ||
+        (device->networkType != ARDISCOVERY_NETWORK_TYPE_NET) ||
         (device->specificParameters == NULL))
     {
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;
@@ -339,9 +335,9 @@ ARNETWORKAL_Manager_t *ARDISCOVERY_DEVICE_Wifi_NewARNetworkAL (ARDISCOVERY_Devic
     ARDISCOVERY_DEVICE_WIFI_t *specificWifiParam = NULL;
     
     // check parameters
-    if ((device == NULL) || 
+    if ((device == NULL) ||
         (device->specificParameters == NULL) ||
-        (ARDISCOVERY_getProductService (device->productID) != ARDISCOVERY_PRODUCT_NSNETSERVICE))
+        (device->networkType != ARDISCOVERY_NETWORK_TYPE_NET))
     {
         localError = ARDISCOVERY_ERROR_BAD_PARAMETER;
     }
@@ -421,8 +417,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_DeleteARNetworkAL (ARDISCOVERY_Device
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
     
     // check parameters
-    if ((device == NULL) || 
-        (ARDISCOVERY_getProductService (device->productID) != ARDISCOVERY_PRODUCT_NSNETSERVICE))
+    if ((device == NULL) || (device->networkType != ARDISCOVERY_NETWORK_TYPE_NET))
     {
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;
     }
@@ -456,9 +451,9 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_GetIpAddress (ARDISCOVERY_Device_t *d
 
     // check parameters
     if((device == NULL) ||
-        (ARDISCOVERY_getProductService (device->productID) != ARDISCOVERY_PRODUCT_NSNETSERVICE) ||
-        (device->specificParameters == NULL) ||
-        (ipAddress == NULL))
+       (device->networkType != ARDISCOVERY_NETWORK_TYPE_NET) ||
+       (device->specificParameters == NULL) ||
+       (ipAddress == NULL))
     {
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;
     }
@@ -491,7 +486,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_SetQoSLevel (ARDISCOVERY_Device_t *de
     ARDISCOVERY_DEVICE_WIFI_t *specificWifiParam = NULL;
 
     if ((device == NULL) ||
-        (ARDISCOVERY_getProductService (device->productID) != ARDISCOVERY_PRODUCT_NSNETSERVICE) ||
+        (device->networkType != ARDISCOVERY_NETWORK_TYPE_NET) ||
         (level < 0) ||
         (level > 1))
     {
@@ -1136,8 +1131,8 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_DiscoveryConnect (ARDISCOVERY_Device_
     ARDISCOVERY_Connection_ConnectionData_t *discoveryData = NULL;
     
     // check parameters
-    if ((device == NULL) || 
-        (ARDISCOVERY_getProductService (device->productID) != ARDISCOVERY_PRODUCT_ARDRONE) ||
+    if ((device == NULL) ||
+        (device->networkType != ARDISCOVERY_NETWORK_TYPE_NET) ||
         (device->specificParameters == NULL))
     {
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;

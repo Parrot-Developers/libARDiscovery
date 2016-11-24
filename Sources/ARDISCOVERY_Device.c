@@ -84,6 +84,7 @@ ARDISCOVERY_Device_t *ARDISCOVERY_Device_New (eARDISCOVERY_ERROR *error)
         // Initialize the Device
         device->name = NULL;
         device->productID = ARDISCOVERY_PRODUCT_MAX;
+        device->networkType = ARDISCOVERY_NETWORK_TYPE_UNKNOWN;
         device->newNetworkAL = NULL;
         device->deleteNetworkAL = NULL;
         device->initNetworkConfiguration = NULL;
@@ -136,6 +137,7 @@ ARDISCOVERY_Device_t *ARDISCOVERY_Device_NewByCopy (ARDISCOVERY_Device_t *device
     {
         // Copy common parameters
         device->productID = deviceToCopy->productID;
+        device->networkType = deviceToCopy->networkType;
         device->newNetworkAL = deviceToCopy->newNetworkAL;
         device->deleteNetworkAL = deviceToCopy->deleteNetworkAL;
         device->initNetworkConfiguration = deviceToCopy->initNetworkConfiguration;
@@ -332,8 +334,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitWifi (ARDISCOVERY_Device_t *device, eA
     // Check parameters
     if ((device == NULL) ||
         (name == NULL) ||
-        (address == NULL) ||
-        (ARDISCOVERY_getProductService (product) != ARDISCOVERY_PRODUCT_NSNETSERVICE))
+        (address == NULL))
     {
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;
     }
@@ -394,6 +395,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitWifi (ARDISCOVERY_Device_t *device, eA
     {
         // Initialize common parameters
         device->productID = product;
+        device->networkType = ARDISCOVERY_NETWORK_TYPE_NET;
         device->newNetworkAL = ARDISCOVERY_DEVICE_Wifi_NewARNetworkAL;
         device->deleteNetworkAL = ARDISCOVERY_DEVICE_Wifi_DeleteARNetworkAL;
         device->getCopyOfSpecificParameters = ARDISCOVERY_DEVICE_Wifi_GetCopyOfSpecificParameters;
@@ -453,8 +455,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitBLE (ARDISCOVERY_Device_t *device, eAR
     // check parameters
     if ((device == NULL) ||
         (bleDeviceManager == NULL) ||
-        (bleDevice == NULL) ||
-        (ARDISCOVERY_getProductService (product) != ARDISCOVERY_PRODUCT_BLESERVICE))
+        (bleDevice == NULL))
     {
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;
     }
@@ -501,6 +502,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitBLE (ARDISCOVERY_Device_t *device, eAR
     {
         // Initialize common parameters
         device->productID = product;
+        device->networkType = ARDISCOVERY_NETWORK_TYPE_BLE;
         device->newNetworkAL = ARDISCOVERY_DEVICE_Ble_NewARNetworkAL;
         device->deleteNetworkAL = ARDISCOVERY_DEVICE_Ble_DeleteARNetworkAL;
         device->getCopyOfSpecificParameters = ARDISCOVERY_DEVICE_Ble_GetCopyOfSpecificParameters;
@@ -526,8 +528,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitUSB (ARDISCOVERY_Device_t *device, eAR
 
     // Check parameters
     if ((device == NULL) ||
-        (mux == NULL) ||
-        (ARDISCOVERY_getProductService (product) != ARDISCOVERY_PRODUCT_USBSERVICE))
+        (mux == NULL))
         return ARDISCOVERY_ERROR_BAD_PARAMETER;
 
     switch (product) {
@@ -562,6 +563,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitUSB (ARDISCOVERY_Device_t *device, eAR
 
     // Initialize common parameters
     device->productID = product;
+    device->networkType = ARDISCOVERY_NETWORK_TYPE_USBMUX;
     device->newNetworkAL = ARDISCOVERY_DEVICE_Usb_NewARNetworkAL;
     device->deleteNetworkAL = ARDISCOVERY_DEVICE_Usb_DeleteARNetworkAL;
     device->getCopyOfSpecificParameters = ARDISCOVERY_DEVICE_Usb_GetCopyOfSpecificParameters;

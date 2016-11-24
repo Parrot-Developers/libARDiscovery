@@ -43,8 +43,6 @@ import java.util.HashMap;
 public enum ARDISCOVERY_PRODUCT_ENUM {
    /** Dummy value for all unknown cases */
     eARDISCOVERY_PRODUCT_UNKNOWN_ENUM_VALUE (Integer.MIN_VALUE, "Dummy value for all unknown cases"),
-   /** WiFi products category */
-    ARDISCOVERY_PRODUCT_NSNETSERVICE (0, "WiFi products category"),
    /** Bebop Drone product */
     ARDISCOVERY_PRODUCT_ARDRONE (0, "Bebop Drone product"),
    /** JUMPING SUMO product */
@@ -65,8 +63,6 @@ public enum ARDISCOVERY_PRODUCT_ENUM {
     ARDISCOVERY_PRODUCT_PAROS (8, "Paros product"),
    /** Sky controller product (2.0 & newer versions) */
     ARDISCOVERY_PRODUCT_SKYCONTROLLER_NG (9, "Sky controller product (2.0 & newer versions)"),
-   /** BlueTooth products category */
-    ARDISCOVERY_PRODUCT_BLESERVICE (10, "BlueTooth products category"),
    /** DELOS product */
     ARDISCOVERY_PRODUCT_MINIDRONE (10, "DELOS product"),
    /** Delos EVO Light product */
@@ -79,12 +75,8 @@ public enum ARDISCOVERY_PRODUCT_ENUM {
     ARDISCOVERY_PRODUCT_MINIDRONE_DELOS3 (14, "Delos3 product"),
    /** WingX product */
     ARDISCOVERY_PRODUCT_MINIDRONE_WINGX (15, "WingX product"),
-   /** AOA/iAP usb product category */
-    ARDISCOVERY_PRODUCT_USBSERVICE (16, "AOA/iAP usb product category"),
    /** Sky controller 2 product */
     ARDISCOVERY_PRODUCT_SKYCONTROLLER_2 (16, "Sky controller 2 product"),
-   /** Service is unsupported */
-    ARDISCOVERY_PRODUCT_UNSUPPORTED_SERVICE (17, "Service is unsupported"),
    /** Tinos product */
     ARDISCOVERY_PRODUCT_TINOS (17, "Tinos product"),
    /** Max of products */
