@@ -855,7 +855,7 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_RxPending (ARDISCOVERY_Connecti
                 else
                 {
                     connectionData->rxData.size = 0;
-                    ARSAL_PRINT(ARSAL_PRINT_ERROR, ARDISCOVERY_CONNECTION_TAG, "ARSAL_Socket_Recv did return %d", readSize);
+                    ARSAL_PRINT(ARSAL_PRINT_ERROR, ARDISCOVERY_CONNECTION_TAG, "ARSAL_Socket_Recv did return %zd", readSize);
                     error = ARDISCOVERY_ERROR_READ;
                 }
             }
@@ -891,7 +891,7 @@ static eARDISCOVERY_ERROR ARDISCOVERY_Connection_RxPending (ARDISCOVERY_Connecti
                         else
                         {
                             connectionData->rxData.size = 0;
-                            ARSAL_PRINT(ARSAL_PRINT_ERROR, ARDISCOVERY_CONNECTION_TAG, "ARSAL_Socket_Recv did return %d", readSize);
+                            ARSAL_PRINT(ARSAL_PRINT_ERROR, ARDISCOVERY_CONNECTION_TAG, "ARSAL_Socket_Recv did return %zd", readSize);
                             error = ARDISCOVERY_ERROR_READ;
                         }
                     }
