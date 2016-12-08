@@ -30,6 +30,9 @@
 */
 #include <libARDiscovery/ARDISCOVERY_Discovery.h>
 #include <string.h>
+#include <libARSAL/ARSAL_Print.h>
+
+#define ARDISCOVERY_DISCOVERY_TAG "ARDISCOVERY_Discovery"
 
 static const uint16_t ARDISCOVERY_Discovery_ProductTable[ARDISCOVERY_PRODUCT_MAX] =
 {
@@ -87,9 +90,10 @@ static const char* ARDISCOVERY_Discovery_ProductNameTable[ARDISCOVERY_PRODUCT_MA
     [ARDISCOVERY_PRODUCT_TINOS] = "Flypad"
 };
 
-eARDISCOVERY_PRODUCT ARDISCOVERY_getProductService(eARDISCOVERY_PRODUCT product)
+eARDISCOVERY_PRODUCT ARDISCOVERY_getProductService(eARDISCOVERY_PRODUCT uproduct)
 {
     eARDISCOVERY_PRODUCT retval = ARDISCOVERY_PRODUCT_MAX;
+    int product = uproduct;
 
     if(ARDISCOVERY_PRODUCT_NSNETSERVICE <= product && product < ARDISCOVERY_PRODUCT_BLESERVICE)
     {
@@ -113,23 +117,43 @@ eARDISCOVERY_PRODUCT ARDISCOVERY_getProductService(eARDISCOVERY_PRODUCT product)
 
 uint16_t ARDISCOVERY_getProductID(eARDISCOVERY_PRODUCT product)
 {
-    return ARDISCOVERY_Discovery_ProductTable[product];
+    if (product < ARDISCOVERY_PRODUCT_MAX)
+    {
+        return ARDISCOVERY_Discovery_ProductTable[product];
+    }
+    else
+    {
+        ARSAL_PRINT(ARSAL_PRINT_ERROR, ARDISCOVERY_DISCOVERY_TAG,
+                    "Unknown product : %d", product);
+        return 0;
+    }
 }
 
 const char* ARDISCOVERY_getProductName(eARDISCOVERY_PRODUCT product)
 {
     char *name = NULL;
-    if(product == ARDISCOVERY_PRODUCT_MAX)
-        name = "";
-    else
+    if(product < ARDISCOVERY_PRODUCT_MAX)
+    {
         name = (char *)ARDISCOVERY_Discovery_ProductNameTable[product];
+    }
+    else
+    {
+        ARSAL_PRINT(ARSAL_PRINT_ERROR, ARDISCOVERY_DISCOVERY_TAG,
+                    "Unknown product : %d", product);
+        name = "UNKNOWN";
+    }
 
     return (const char *)name;
 }
 
 void ARDISCOVERY_getProductPathName(eARDISCOVERY_PRODUCT product, char *buffer, int length)
 {
-    if ((buffer != NULL) && (length > 0))
+    if ((buffer == NULL) || (length <= 0))
+    {
+        return;
+    }
+
+    if (product < ARDISCOVERY_PRODUCT_MAX)
     {
         const char *name = ARDISCOVERY_getProductName(product);
         int nameLen = strlen(name);
@@ -153,6 +177,11 @@ void ARDISCOVERY_getProductPathName(eARDISCOVERY_PRODUCT product, char *buffer, 
         {
             *buffer = '\0';
         }
+    }
+    else
+    {
+        ARSAL_PRINT(ARSAL_PRINT_ERROR, ARDISCOVERY_DISCOVERY_TAG,
+                    "Unknown product : %d", product);
     }
 }
 

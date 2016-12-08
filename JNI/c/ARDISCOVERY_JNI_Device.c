@@ -65,6 +65,7 @@
  *****************************************/
 eARDISCOVERY_ERROR ARDISCOVERY_JNI_Device_SendJsonCallback (json_object *jsonObj, void *customData);
 eARDISCOVERY_ERROR ARDISCOVERY_JNI_Device_ReceiveJsonCallback (json_object *jsonObj, void *customData);
+eARDISCOVERY_ERROR ARDISCOVERY_JNI_Device_InitBLE (JNIEnv *env, ARDISCOVERY_Device_t *device, eARDISCOVERY_PRODUCT product, jobject jBLEPart);
 
 /*****************************************
  *

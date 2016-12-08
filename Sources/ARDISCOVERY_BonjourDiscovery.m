@@ -123,6 +123,8 @@
 
 @end
 
+#pragma mark Private part
+
 @interface ARDiscovery () <NSNetServiceBrowserDelegate, NSNetServiceDelegate, CBCentralManagerDelegate>
 
 #pragma mark - Supported products list
@@ -156,8 +158,6 @@
 @property (nonatomic) BOOL askForCBDiscovering;
 @end
 
-
-#pragma mark Private part
 #ifdef USE_USB_ACCESSORY
 @interface ARDiscovery () <USBAccessoryManagerDelegate>
 @end
@@ -363,6 +363,7 @@
             askForCBDiscovering = YES;
         }
     }
+
 #ifdef USE_USB_ACCESSORY
     [[USBAccessoryManager sharedInstance] setDelegate:self];
 #endif
@@ -959,6 +960,7 @@
 }
 
 #ifdef USE_USB_ACCESSORY
+
 #pragma mark - USBAccessoryManagerDelegate methods
 - (void)USBAccessoryManager:(USBAccessoryManager*)usbAccessoryManager didAddDeviceWithConnectionId:(NSUInteger)connectionId name:(NSString *)name mux:(struct mux_ctx *)mux serial:(NSString *)serial productType:(eARDISCOVERY_PRODUCT)productType
 {
@@ -1028,6 +1030,7 @@
     }
 }
 #endif
+
 
 #pragma mark - Notification sender
 - (void)sendPublishNotification

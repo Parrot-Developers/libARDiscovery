@@ -83,7 +83,9 @@ LOCAL_LDLIBS += \
 ifneq ("$(TARGET_OS_FLAVOUR)","native")
 
 LOCAL_SRC_FILES += \
-	Sources/USBAccessoryManager.m
+	Sources/USBAccessoryManager.m \
+	Sources/USBAccessoryManagerEA.m \
+	Sources/USBAccessoryManagerProxy.m
 
 LOCAL_INSTALL_HEADERS += \
 	Includes/libARDiscovery/USBAccessoryManager.h:usr/include/libARDiscovery/
@@ -92,6 +94,7 @@ LOCAL_LDLIBS +=	\
 	-framework ExternalAccessory
 
 LOCAL_CFLAGS += -DUSE_USB_ACCESSORY=1
+
 endif
 endif
 
@@ -119,11 +122,6 @@ LOCAL_LIBRARIES := \
 	libARNetwork \
 	libARNetworkAL \
 	json
-
-LOCAL_CONDITIONAL_LIBRARIES := \
-	OPTIONAL:libmux \
-	OPTIONAL:libpomp
-
 
 LOCAL_C_INCLUDES := \
 	$(LOCAL_PATH)/Includes \
@@ -153,7 +151,8 @@ LOCAL_INSTALL_HEADERS := \
 
 # Darwin: use bonjour
 LOCAL_SRC_FILES += \
-	Sources/ARDISCOVERY_BonjourDiscovery.m
+	Sources/ARDISCOVERY_BonjourDiscovery.m \
+	Sources/USBAccessoryManager.m \
 
 LOCAL_INSTALL_HEADERS += \
 	Includes/libARDiscovery/ARDISCOVERY_BonjourDiscovery.h:usr/include/libARDiscovery/
