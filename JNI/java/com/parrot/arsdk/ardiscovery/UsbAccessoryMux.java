@@ -39,6 +39,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.hardware.usb.UsbAccessory;
 import android.hardware.usb.UsbManager;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
@@ -69,7 +71,7 @@ public class UsbAccessoryMux {
     // discovery
     private ARDiscoveryMux discoveryChannel;
     private ARDiscoveryMux.Listener mDiscoveryListener;
-
+    private final Handler mHandler;
 
     public static UsbAccessoryMux get(Context appContext) {
         synchronized (UsbAccessoryMux.class) {
@@ -84,6 +86,7 @@ public class UsbAccessoryMux {
         Log.i(TAG, "create UsbAccessoryMux");
         this.context = appContext;
         this.usbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
+        mHandler = new Handler(Looper.getMainLooper());
 
         IntentFilter filter = new IntentFilter(ACTION_USB_ACCESSORY_ATTACHED);
         filter.addAction(ACTION_USB_PERMISSION);
@@ -122,65 +125,66 @@ public class UsbAccessoryMux {
 
     private void startMux(UsbAccessory accessory) {
         Log.i(TAG, "Accessory connected " + accessory);
-        synchronized (this) {
-            if (usbMux == null) {
-                muxFileDescriptor = usbManager.openAccessory(accessory);
-                if (muxFileDescriptor != null) {
-                    Log.i(TAG, "Opening mux, fd=" + muxFileDescriptor.getFd());
-                    usbMux = new Mux(muxFileDescriptor, onCloseListener);
-                    if (usbMux.isValid()) {
-                        // start mux thread
-                        muxThread = new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                usbMux.runReader();
-                            }
-                        }, "muxThread");
-                        muxThread.start();
-                        discoveryChannel = new ARDiscoveryMux(usbMux);
-                        if (mDiscoveryListener != null) {
-                            discoveryChannel.setListener(mDiscoveryListener);
+        if (usbMux == null) {
+            muxFileDescriptor = usbManager.openAccessory(accessory);
+            if (muxFileDescriptor != null) {
+                Log.i(TAG, "Opening mux, fd=" + muxFileDescriptor.getFd());
+                usbMux = new Mux(muxFileDescriptor, onCloseListener);
+                if (usbMux.isValid()) {
+                    // start mux thread
+                    muxThread = new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            usbMux.runReader();
                         }
-                    } else {
-                        Log.i(TAG, "Error opening usb mux");
-                        usbMux = null;
-                        try {
-                            muxFileDescriptor.close();
-                        } catch (IOException e) {
-                        }
+                    }, "muxThread");
+                    muxThread.start();
+                    discoveryChannel = new ARDiscoveryMux(usbMux);
+                    if (mDiscoveryListener != null) {
+                        discoveryChannel.setListener(mDiscoveryListener);
                     }
                 } else {
-                    Log.e(TAG, "Error opening USB Accessory");
+                    Log.i(TAG, "Error opening usb mux");
+                    usbMux = null;
+                    try {
+                        muxFileDescriptor.close();
+                    } catch (IOException e) {
+                    }
                 }
+            } else {
+                Log.e(TAG, "Error opening USB Accessory");
             }
         }
     }
 
     private void closeMux() {
-        synchronized (this) {
-            if (discoveryChannel != null) {
-                discoveryChannel.destroy();
-                discoveryChannel = null;
+        if (discoveryChannel != null) {
+            discoveryChannel.destroy();
+            discoveryChannel = null;
+        }
+        if (usbMux != null) {
+            usbMux.stop();
+            usbMux.destroy();
+            usbMux = null;
+        }
+        if (muxFileDescriptor != null) {
+            try {
+                muxFileDescriptor.close();
+            } catch (IOException e) {
             }
-            if (usbMux != null) {
-                usbMux.stop();
-                usbMux.destroy();
-                usbMux = null;
-            }
-            if (muxFileDescriptor != null) {
-                try {
-                    muxFileDescriptor.close();
-                } catch (IOException e) {
-                }
-                muxFileDescriptor = null;
-            }
+            muxFileDescriptor = null;
         }
     }
 
     private final Mux.IOnClosedListener onCloseListener = new Mux.IOnClosedListener() {
         @Override
         public void onClosed() {
-            closeMux();
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    closeMux();
+                }
+            });
         }
     };
 
