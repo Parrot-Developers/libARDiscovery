@@ -386,7 +386,8 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Usb_InitSkyController2NetworkConfiguration
     // check parameters
     if ((device == NULL) ||
         (networkConfiguration == NULL) ||
-        (device->productID != ARDISCOVERY_PRODUCT_SKYCONTROLLER_2))
+        ((device->productID != ARDISCOVERY_PRODUCT_SKYCONTROLLER_2) &&
+         (device->productID != ARDISCOVERY_PRODUCT_SKYCONTROLLER_NG)))
     {
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;
     }

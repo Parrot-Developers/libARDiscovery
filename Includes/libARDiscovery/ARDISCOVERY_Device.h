@@ -209,6 +209,22 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_WifiSetQoSLevel (ARDISCOVERY_Device_t *dev
  */
 eARDISCOVERY_ERROR ARDISCOVERY_Device_InitBLE (ARDISCOVERY_Device_t *device, eARDISCOVERY_PRODUCT product, ARNETWORKAL_BLEDeviceManager_t bleDeviceManager, ARNETWORKAL_BLEDevice_t bleDevice);
 
+/**
+ * @brief Gets the BLEDeviceManager associated with the given device.
+ * @param device The Discovery Device.
+ * @param[out] manager Pointer where the BLEDeviceManager will be stored
+ * @return executing error.
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_Device_BLEGetManager(ARDISCOVERY_Device_t *device, ARNETWORKAL_BLEDeviceManager_t **manager);
+
+/**
+ * @brief Gets the BLEDevice associated with the given device.
+ * @param device The Discovery Device.
+ * @param[out] bleDevice Pointer where the BLEDevice will be stored
+ * @return executing error.
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_Device_BLEGetDevice(ARDISCOVERY_Device_t *device, ARNETWORKAL_BLEDevice_t **bleDevice);
+
 /***********************
  * -- USB part --
  ***********************/

@@ -371,6 +371,9 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitWifi (ARDISCOVERY_Device_t *device, eA
         case ARDISCOVERY_PRODUCT_SKYCONTROLLER:
             device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Wifi_InitSkyControllerNetworkConfiguration;
             break;
+        case ARDISCOVERY_PRODUCT_SKYCONTROLLER_NG:
+            device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Wifi_InitSkyControllerNGNetworkConfiguration;
+            break;
 
         case ARDISCOVERY_PRODUCT_MINIDRONE:
         case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT:
@@ -518,6 +521,17 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitBLE (ARDISCOVERY_Device_t *device, eAR
     return error;
 }
 
+
+eARDISCOVERY_ERROR ARDISCOVERY_Device_BLEGetManager(ARDISCOVERY_Device_t *device, ARNETWORKAL_BLEDeviceManager_t **manager)
+{
+    return ARDISCOVERY_Device_Ble_GetManager(device, manager);
+}
+
+eARDISCOVERY_ERROR ARDISCOVERY_Device_BLEGetDevice(ARDISCOVERY_Device_t *device, ARNETWORKAL_BLEDevice_t **bleDevice)
+{
+    return ARDISCOVERY_Device_Ble_GetDevice(device, bleDevice);
+}
+
 /***********************
  * -- USB part --
  ***********************/
@@ -533,6 +547,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitUSB (ARDISCOVERY_Device_t *device, eAR
 
     switch (product) {
     case ARDISCOVERY_PRODUCT_SKYCONTROLLER_2:
+    case ARDISCOVERY_PRODUCT_SKYCONTROLLER_NG:
         device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Usb_InitSkyController2NetworkConfiguration;
         break;
     case ARDISCOVERY_PRODUCT_ARDRONE:

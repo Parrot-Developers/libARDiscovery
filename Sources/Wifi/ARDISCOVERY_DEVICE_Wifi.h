@@ -170,6 +170,14 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitBebop2NetworkConfiguration (ARDIS
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitParosNetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration);
 
 /**
+ * @brief Initilize network Configuration adapted to a SkyControllerNG.
+ * @param device The Discovery Device. Must be a SkyControllerNG Device
+ * @param[out] networkConfiguration The networkConfiguration to Initilize.
+ * @return executing error.
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitSkyControllerNGNetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration);
+
+/**
  * @brief Initilize network Configuration adapted to a Jumping Sumo.
  * @param device The Discovery Device. Must be a Jumping Sumo Device
  * @param[out] networkConfiguration The networkConfiguration to Initilize.
