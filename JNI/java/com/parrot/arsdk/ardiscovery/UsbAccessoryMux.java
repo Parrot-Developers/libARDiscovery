@@ -57,6 +57,7 @@ public class UsbAccessoryMux {
     private static final String ACTION_USB_PERMISSION = "com.parrot.arsdk.USB_ACCESSORY_PERMISSION";
 
     private static final String MANUFACTURER_ID = "Parrot";
+    private static final String SKYCONTROLLER_NG_MODEL_ID = "Skycontroller";
     private static final String SKYCONTROLLER2_MODEL_ID = "Skycontroller 2";
 
     private static final String TAG = "UsbAccessoryMux";
@@ -96,7 +97,8 @@ public class UsbAccessoryMux {
         UsbAccessory[] accessoryList = usbManager.getAccessoryList();
         if (accessoryList != null) {
             for (UsbAccessory accessory : accessoryList) {
-                if (MANUFACTURER_ID.equals(accessory.getManufacturer()) && SKYCONTROLLER2_MODEL_ID.equals(accessory.getModel())) {
+                String accessoryModel = accessory.getModel();
+                if (MANUFACTURER_ID.equals(accessory.getManufacturer()) && isValidModel(accessoryModel)) {
                     usbManager.requestPermission(accessory, PendingIntent.getBroadcast(context, 0, new Intent(ACTION_USB_PERMISSION), 0));
                 }
             }
@@ -194,12 +196,21 @@ public class UsbAccessoryMux {
             boolean permissionGranted = intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, true);
             UsbAccessory accessory = intent.getParcelableExtra(UsbManager.EXTRA_ACCESSORY);
             Log.i(TAG, "mUsbAccessoryReceiver " + intent.getAction());
-            if (usbMux == null && permissionGranted && accessory != null && MANUFACTURER_ID.equals(accessory
-                    .getManufacturer()) && SKYCONTROLLER2_MODEL_ID.equals(accessory.getModel())) {
-                startMux(accessory);
+            if (accessory != null) {
+                String accessoryModel = accessory.getModel();
+                if (usbMux == null
+                        && permissionGranted
+                        && MANUFACTURER_ID.equals(accessory.getManufacturer())
+                        && isValidModel(accessoryModel)) {
+                    startMux(accessory);
+                }
             }
         }
     };
+
+    private boolean isValidModel(String accessoryModel) {
+        return SKYCONTROLLER2_MODEL_ID.equals(accessoryModel) || SKYCONTROLLER_NG_MODEL_ID.equals(accessoryModel);
+    }
 
     public Mux getMux() {
         return usbMux;
