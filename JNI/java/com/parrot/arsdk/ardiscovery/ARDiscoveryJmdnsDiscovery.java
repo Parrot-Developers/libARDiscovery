@@ -277,6 +277,10 @@ public class ARDiscoveryJmdnsDiscovery implements ARDiscoveryWifiDiscovery
         }
     }
 
+    @Override
+    public void wifiAvailable(boolean wifiAvailable)
+    {}
+
     private void mdnsConnect()
     {
         /* if jmdns is not running yet */

@@ -101,6 +101,8 @@ public class ARDiscoveryService extends Service
     private ARDiscoveryUsbDiscovery usbDiscovery;
     private final IBinder binder = new LocalBinder();
 
+    private boolean mWifiAvailable;
+
     /**
      * Selected wifi discovery implementation. Can be set using
      * {@link #setWifiPreferredWifiDiscoveryType(ARDISCOVERYSERVICE_WIFI_DISCOVERY_TYPE_ENUM)}
@@ -314,6 +316,20 @@ public class ARDiscoveryService extends Service
         else
         {
             ARSALPrint.i(TAG, "No wifi publisher available");
+        }
+    }
+
+    /**
+     * Tells the service that wifi is present, even though it may not be seeable by connectivity manager.
+     * This is usefull for android >= 7 where wifi is not always accessible via connectivity manager (when mobile data is
+     * available for exemple), but wifi is present and accessible anyway.
+     *
+     * @param wifiAvailable : True if we must consider wifi is present and accessible, false if we must check via ConnectivityManager.
+     */
+    public void wifiAvailable(boolean wifiAvailable) {
+        mWifiAvailable = wifiAvailable;
+        if (wifiDiscovery != null) {
+            wifiDiscovery.wifiAvailable(mWifiAvailable);
         }
     }
 

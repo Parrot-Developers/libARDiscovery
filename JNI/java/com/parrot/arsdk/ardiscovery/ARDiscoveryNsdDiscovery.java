@@ -165,6 +165,10 @@ public class ARDiscoveryNsdDiscovery implements ARDiscoveryWifiDiscovery
         }
     }
 
+    @Override
+    public void wifiAvailable(boolean wifiAvailable)
+    {}
+
     private void initializeDiscoveryListeners()
     {
         mDiscoveryListeners = new HashMap<String, NsdManager.DiscoveryListener> ();
