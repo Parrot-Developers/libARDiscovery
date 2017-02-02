@@ -471,21 +471,23 @@ static void libmux_mux_ops_channel_cb(struct mux_ctx *ctx, uint32_t chanid, enum
     if(self.usbMux)
     {
         struct MuxConnectionCtx *muxConnection = ARDiscovery_MuxConnection_new(self.usbMux, device_conn_resp_cb, (__bridge void *)self);
-        self.connectSemaphore = dispatch_semaphore_create(0);
+        if (muxConnection != NULL) {
+            self.connectSemaphore = dispatch_semaphore_create(0);
 
-        if(self.muxDiscovery != NULL)
-        {
-            self.connectionCbBlock = connectionCbBlock;
-            int result =  ARDiscovery_MuxConnection_sendConnReq(muxConnection, [name UTF8String], [model UTF8String], [serial UTF8String], [jsonStr UTF8String]);
-            if(result == 0)
+            if(self.muxDiscovery != NULL)
             {
-                //NSLog(@"%s Wait for connection from mux", __FUNCTION__);
-                dispatch_semaphore_wait(self.connectSemaphore, DISPATCH_TIME_FOREVER);
-                err = ARDISCOVERY_OK;
+                self.connectionCbBlock = connectionCbBlock;
+                int result =  ARDiscovery_MuxConnection_sendConnReq(muxConnection, [name UTF8String], [model UTF8String], [serial UTF8String], [jsonStr UTF8String]);
+                if(result == 0)
+                {
+                    //NSLog(@"%s Wait for connection from mux", __FUNCTION__);
+                    dispatch_semaphore_wait(self.connectSemaphore, DISPATCH_TIME_FOREVER);
+                    err = ARDISCOVERY_OK;
+                }
             }
+            self.connectSemaphore = nil;
+            ARDiscovery_MuxConnection_dispose(muxConnection);
         }
-        self.connectSemaphore = nil;
-        ARDiscovery_MuxConnection_dispose(muxConnection);
     }
     return err;
 }
