@@ -195,13 +195,16 @@ public class UsbAccessoryMux {
         public void onReceive(Context context, Intent intent) {
             boolean permissionGranted = intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, true);
             UsbAccessory accessory = intent.getParcelableExtra(UsbManager.EXTRA_ACCESSORY);
-            Log.i(TAG, "mUsbAccessoryReceiver " + intent.getAction());
+            Log.i(TAG, "UsbAccessoryReceiver has received intent for accessory " + accessory + " and has permission " +
+                permissionGranted);
             if (accessory != null) {
+                UsbManager manager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
                 String accessoryModel = accessory.getModel();
                 if (usbMux == null
                         && permissionGranted
                         && MANUFACTURER_ID.equals(accessory.getManufacturer())
-                        && isValidModel(accessoryModel)) {
+                        && isValidModel(accessoryModel)
+                        && manager.hasPermission(accessory)) {
                     startMux(accessory);
                 }
             }
