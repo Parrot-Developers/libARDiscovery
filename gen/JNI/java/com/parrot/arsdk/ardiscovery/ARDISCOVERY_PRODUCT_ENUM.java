@@ -59,28 +59,30 @@ public enum ARDISCOVERY_PRODUCT_ENUM {
     ARDISCOVERY_PRODUCT_POWER_UP (6, "Power up product"),
    /** Evinrude product */
     ARDISCOVERY_PRODUCT_EVINRUDE (7, "Evinrude product"),
-   /** Paros product */
-    ARDISCOVERY_PRODUCT_PAROS (8, "Paros product"),
+   /** Unknownproduct_4 product */
+    ARDISCOVERY_PRODUCT_UNKNOWNPRODUCT_4 (8, "Unknownproduct_4 product"),
    /** Sky controller product (2.0 & newer versions) */
     ARDISCOVERY_PRODUCT_SKYCONTROLLER_NG (9, "Sky controller product (2.0 & newer versions)"),
+   /** Anafi product */
+    ARDISCOVERY_PRODUCT_ANAFI (10, "Anafi product"),
    /** DELOS product */
-    ARDISCOVERY_PRODUCT_MINIDRONE (10, "DELOS product"),
+    ARDISCOVERY_PRODUCT_MINIDRONE (11, "DELOS product"),
    /** Delos EVO Light product */
-    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT (11, "Delos EVO Light product"),
+    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT (12, "Delos EVO Light product"),
    /** Delos EVO Brick product */
-    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK (12, "Delos EVO Brick product"),
+    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK (13, "Delos EVO Brick product"),
    /** Delos EVO Hydrofoil product */
-    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL (13, "Delos EVO Hydrofoil product"),
+    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL (14, "Delos EVO Hydrofoil product"),
    /** Delos3 product */
-    ARDISCOVERY_PRODUCT_MINIDRONE_DELOS3 (14, "Delos3 product"),
+    ARDISCOVERY_PRODUCT_MINIDRONE_DELOS3 (15, "Delos3 product"),
    /** WingX product */
-    ARDISCOVERY_PRODUCT_MINIDRONE_WINGX (15, "WingX product"),
+    ARDISCOVERY_PRODUCT_MINIDRONE_WINGX (16, "WingX product"),
    /** Sky controller 2 product */
-    ARDISCOVERY_PRODUCT_SKYCONTROLLER_2 (16, "Sky controller 2 product"),
+    ARDISCOVERY_PRODUCT_SKYCONTROLLER_2 (17, "Sky controller 2 product"),
    /** Tinos product */
-    ARDISCOVERY_PRODUCT_TINOS (17, "Tinos product"),
+    ARDISCOVERY_PRODUCT_TINOS (18, "Tinos product"),
    /** Max of products */
-    ARDISCOVERY_PRODUCT_MAX (18, "Max of products");
+    ARDISCOVERY_PRODUCT_MAX (19, "Max of products");
 
     private final int value;
     private final String comment;
