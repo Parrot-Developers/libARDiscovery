@@ -66,6 +66,33 @@ public class ARDiscoveryDevice
         }
     }
 
+    public ARDiscoveryDevice(Context ctx, ARDiscoveryDeviceService service) throws ARDiscoveryException
+    {
+        this();
+        ARDISCOVERY_PRODUCT_ENUM product = ARDiscoveryService.getProductFromProductID(service.getProductID());
+        ARDISCOVERY_ERROR_ENUM err;
+        switch (service.getNetworkType()) {
+            case ARDISCOVERY_NETWORK_TYPE_NET:
+                ARDiscoveryDeviceNetService ns = (ARDiscoveryDeviceNetService)service.getDevice();
+                err = initWifi(product, service.getName(), ns.getIp(), ns.getPort());
+                break;
+            case ARDISCOVERY_NETWORK_TYPE_BLE:
+                ARDiscoveryDeviceBLEService bs = (ARDiscoveryDeviceBLEService)service.getDevice();
+                err = initBLE(product, ctx.getApplicationContext(), bs.getBluetoothDevice());
+                break;
+            case ARDISCOVERY_NETWORK_TYPE_USBMUX:
+                err = initUSB(product, UsbAccessoryMux.get(ctx.getApplicationContext()).getMux());
+                break;
+            default:
+                err = ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_ERROR_BAD_PARAMETER;
+                break;
+        }
+        if (err != ARDISCOVERY_ERROR_ENUM.ARDISCOVERY_OK) {
+            throw new ARDiscoveryException(err.getValue());
+        }
+    }
+
+
     /**
      * Dispose
      */

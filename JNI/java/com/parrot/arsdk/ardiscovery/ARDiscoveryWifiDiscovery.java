@@ -44,5 +44,6 @@ public interface ARDiscoveryWifiDiscovery
     public void start();
     public void stop();
 
+    public void wifiAvailable(boolean wifiAvailable);
     public List<ARDiscoveryDeviceService> getDeviceServicesArray();
 }

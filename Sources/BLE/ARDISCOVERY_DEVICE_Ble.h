@@ -83,7 +83,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Ble_CreateSpecificParameters (ARDISCOVERY_
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Ble_DeleteSpecificParameters (ARDISCOVERY_Device_t *device);
 
 /**
- * @brief Copy BLE specificParameters 
+ * @brief Copy BLE specificParameters
  * @param deviceToCopy The Discovery Device to copy.
  * @param[out] error Executing error.
  * @return new specificParameters.
@@ -116,5 +116,21 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Ble_DeleteARNetworkAL (ARDISCOVERY_Device_
  * @return executing error.
  */
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Ble_InitRollingSpiderNetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration);
+
+/**
+ * @brief Gets the BLEDeviceManager associated with the given device.
+ * @param device The Discovery Device.
+ * @param[out] manager Pointer where the BLEDeviceManager will be stored
+ * @return executing error.
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_Device_Ble_GetManager(ARDISCOVERY_Device_t *device, ARNETWORKAL_BLEDeviceManager_t **manager);
+
+/**
+ * @brief Gets the BLEDevice associated with the given device.
+ * @param device The Discovery Device.
+ * @param[out] bleDevice Pointer where the BLEDevice will be stored
+ * @return executing error.
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_Device_Ble_GetDevice(ARDISCOVERY_Device_t *device, ARNETWORKAL_BLEDevice_t **bleDevice);
 
 #endif // _ARDISCOVERY_DEVICE_BLE_H_

@@ -45,6 +45,38 @@ public class ARDiscoveryDeviceUsbService implements Parcelable
         this.serial = serial;
     }
 
+    @Override
+    public boolean equals(Object other)
+    {
+        boolean isEqual = true;
+
+        if ( (other == null) || !(other instanceof ARDiscoveryDeviceUsbService) )
+        {
+            isEqual = false;
+        }
+        else if (other == this)
+        {
+            isEqual = true;
+        }
+        else
+        {
+            /* check */
+            ARDiscoveryDeviceUsbService otherDevice = (ARDiscoveryDeviceUsbService) other;
+
+            if (!this.serial.equals(otherDevice.serial))
+            {
+                isEqual = false;
+            }
+        }
+
+        return isEqual;
+    }
+
+    @Override
+    public int hashCode() {
+        return serial != null ? serial.hashCode() : 0;
+    }
+
     public String getSerial() {
         return serial;
     }

@@ -43,8 +43,6 @@ import java.util.HashMap;
 public enum ARDISCOVERY_PRODUCT_ENUM {
    /** Dummy value for all unknown cases */
     eARDISCOVERY_PRODUCT_UNKNOWN_ENUM_VALUE (Integer.MIN_VALUE, "Dummy value for all unknown cases"),
-   /** WiFi products category */
-    ARDISCOVERY_PRODUCT_NSNETSERVICE (0, "WiFi products category"),
    /** Bebop Drone product */
     ARDISCOVERY_PRODUCT_ARDRONE (0, "Bebop Drone product"),
    /** JUMPING SUMO product */
@@ -63,30 +61,26 @@ public enum ARDISCOVERY_PRODUCT_ENUM {
     ARDISCOVERY_PRODUCT_EVINRUDE (7, "Evinrude product"),
    /** Unknownproduct_4 product */
     ARDISCOVERY_PRODUCT_UNKNOWNPRODUCT_4 (8, "Unknownproduct_4 product"),
-   /** BlueTooth products category */
-    ARDISCOVERY_PRODUCT_BLESERVICE (9, "BlueTooth products category"),
+   /** Sky controller product (2.0 & newer versions) */
+    ARDISCOVERY_PRODUCT_SKYCONTROLLER_NG (9, "Sky controller product (2.0 & newer versions)"),
    /** DELOS product */
-    ARDISCOVERY_PRODUCT_MINIDRONE (9, "DELOS product"),
+    ARDISCOVERY_PRODUCT_MINIDRONE (10, "DELOS product"),
    /** Delos EVO Light product */
-    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT (10, "Delos EVO Light product"),
+    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT (11, "Delos EVO Light product"),
    /** Delos EVO Brick product */
-    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK (11, "Delos EVO Brick product"),
+    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK (12, "Delos EVO Brick product"),
    /** Delos EVO Hydrofoil product */
-    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL (12, "Delos EVO Hydrofoil product"),
+    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL (13, "Delos EVO Hydrofoil product"),
    /** Delos3 product */
-    ARDISCOVERY_PRODUCT_MINIDRONE_DELOS3 (13, "Delos3 product"),
+    ARDISCOVERY_PRODUCT_MINIDRONE_DELOS3 (14, "Delos3 product"),
    /** WingX product */
-    ARDISCOVERY_PRODUCT_MINIDRONE_WINGX (14, "WingX product"),
-   /** AOA/iAP usb product category */
-    ARDISCOVERY_PRODUCT_USBSERVICE (15, "AOA/iAP usb product category"),
+    ARDISCOVERY_PRODUCT_MINIDRONE_WINGX (15, "WingX product"),
    /** Sky controller 2 product */
-    ARDISCOVERY_PRODUCT_SKYCONTROLLER_2 (15, "Sky controller 2 product"),
-   /** Service is unsupported */
-    ARDISCOVERY_PRODUCT_UNSUPPORTED_SERVICE (16, "Service is unsupported"),
+    ARDISCOVERY_PRODUCT_SKYCONTROLLER_2 (16, "Sky controller 2 product"),
    /** Tinos product */
-    ARDISCOVERY_PRODUCT_TINOS (16, "Tinos product"),
+    ARDISCOVERY_PRODUCT_TINOS (17, "Tinos product"),
    /** Max of products */
-    ARDISCOVERY_PRODUCT_MAX (17, "Max of products");
+    ARDISCOVERY_PRODUCT_MAX (18, "Max of products");
 
     private final int value;
     private final String comment;

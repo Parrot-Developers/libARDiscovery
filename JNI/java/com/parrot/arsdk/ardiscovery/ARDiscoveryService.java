@@ -101,6 +101,8 @@ public class ARDiscoveryService extends Service
     private ARDiscoveryUsbDiscovery usbDiscovery;
     private final IBinder binder = new LocalBinder();
 
+    private boolean mWifiAvailable;
+
     /**
      * Selected wifi discovery implementation. Can be set using
      * {@link #setWifiPreferredWifiDiscoveryType(ARDISCOVERYSERVICE_WIFI_DISCOVERY_TYPE_ENUM)}
@@ -318,6 +320,20 @@ public class ARDiscoveryService extends Service
     }
 
     /**
+     * Tells the service that wifi is present, even though it may not be seeable by connectivity manager.
+     * This is usefull for android >= 7 where wifi is not always accessible via connectivity manager (when mobile data is
+     * available for exemple), but wifi is present and accessible anyway.
+     *
+     * @param wifiAvailable : True if we must consider wifi is present and accessible, false if we must check via ConnectivityManager.
+     */
+    public void wifiAvailable(boolean wifiAvailable) {
+        mWifiAvailable = wifiAvailable;
+        if (wifiDiscovery != null) {
+            wifiDiscovery.wifiAvailable(mWifiAvailable);
+        }
+    }
+
+    /**
      * Starts discovering all wifi and bluetooth devices
      */
     public synchronized void start()
@@ -495,30 +511,6 @@ public class ARDiscoveryService extends Service
     public static ARDISCOVERY_PRODUCT_ENUM getProductFromProductID (int productID)
     {
         return ARDISCOVERY_PRODUCT_ENUM.getFromValue (nativeGetProductFromProductID (productID));
-    }
-
-    /**
-     * @brief Converts a product enum to a generic (network type) product enum
-     * @param product The product to convert
-     * @return The corresponding network type product enum
-     */
-    public static ARDISCOVERY_PRODUCT_ENUM getProductNetworkFromProduct (ARDISCOVERY_PRODUCT_ENUM product)
-    {
-        int bleOrdinal = ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_BLESERVICE.getValue();
-        int usbOrdinal = ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_USBSERVICE.getValue();
-        int productOrdinal = product.getValue();
-        ARDISCOVERY_PRODUCT_ENUM retVal = ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_NSNETSERVICE;
-
-        if (productOrdinal >= usbOrdinal)
-        {
-            retVal = ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_USBSERVICE;
-        }
-        else if (productOrdinal >= bleOrdinal)
-        {
-            retVal = ARDISCOVERY_PRODUCT_ENUM.ARDISCOVERY_PRODUCT_BLESERVICE;
-        }
-
-        return retVal;
     }
     
     /**

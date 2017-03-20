@@ -63,8 +63,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_JNI_DEVICE_Ble_CreateSpecificParameters (JNIEnv *
     ARDISCOVERY_JNI_DEVICE_BLE_t *specificBLEParam = NULL;
         
     // Check parameters
-    if ((device == NULL) ||
-        (ARDISCOVERY_getProductService (device->productID) != ARDISCOVERY_PRODUCT_BLESERVICE))
+    if ((device == NULL) || (device->networkType != ARDISCOVERY_NETWORK_TYPE_BLE))
     {
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;
     }
@@ -110,7 +109,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_JNI_DEVICE_Ble_DeleteSpecificParameters (ARDISCOV
     // check parameters
     if ((device == NULL) || 
         (device->specificParameters == NULL) ||
-        (ARDISCOVERY_getProductService (device->productID) != ARDISCOVERY_PRODUCT_BLESERVICE))
+        (device->networkType != ARDISCOVERY_NETWORK_TYPE_BLE))
     {
         localError = ARDISCOVERY_ERROR_BAD_PARAMETER;
     }
@@ -170,8 +169,7 @@ void *ARDISCOVERY_JNI_DEVICE_Ble_GetCopyOfSpecificParameters (ARDISCOVERY_Device
     ARDISCOVERY_JNI_DEVICE_BLE_t *specificBLEParam = NULL;
     
     // check parameters
-    if ((device == NULL)||
-        (ARDISCOVERY_getProductService (device->productID) != ARDISCOVERY_PRODUCT_BLESERVICE))
+    if ((device == NULL) || (device->networkType != ARDISCOVERY_NETWORK_TYPE_BLE))
     {
         localError = ARDISCOVERY_ERROR_BAD_PARAMETER;
     }
@@ -255,9 +253,9 @@ ARNETWORKAL_Manager_t *ARDISCOVERY_JNI_DEVICE_Ble_NewARNetworkAL (ARDISCOVERY_De
     ARDISCOVERY_JNI_DEVICE_BLE_t *specificBLEParam = NULL;
     
     // check parameters
-    if ((device == NULL) || 
+    if ((device == NULL) ||
         (device->specificParameters == NULL) ||
-        (ARDISCOVERY_getProductService (device->productID) != ARDISCOVERY_PRODUCT_BLESERVICE))
+        (device->networkType != ARDISCOVERY_NETWORK_TYPE_BLE))
     {
         localError = ARDISCOVERY_ERROR_BAD_PARAMETER;
     }
@@ -323,9 +321,9 @@ eARDISCOVERY_ERROR ARDISCOVERY_JNI_DEVICE_Ble_DeleteARNetworkAL (ARDISCOVERY_Dev
     ARDISCOVERY_JNI_DEVICE_BLE_t *specificBLEParam = NULL;
     
     // check parameters
-    if ((device == NULL) || 
+    if ((device == NULL) ||
         (device->specificParameters == NULL) ||
-        (ARDISCOVERY_getProductService (device->productID) != ARDISCOVERY_PRODUCT_BLESERVICE))
+        (device->networkType != ARDISCOVERY_NETWORK_TYPE_BLE))
     {
         localError = ARDISCOVERY_ERROR_BAD_PARAMETER;
     }

@@ -326,8 +326,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_JNI_Device_InitBLE (JNIEnv *env, ARDISCOVERY_Devi
 
     // check parameters
     if ((device == NULL) ||
-        (jBLEPart == NULL) ||
-        (ARDISCOVERY_getProductService (product) != ARDISCOVERY_PRODUCT_BLESERVICE))
+        (jBLEPart == NULL))
     {
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;
     }
@@ -366,6 +365,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_JNI_Device_InitBLE (JNIEnv *env, ARDISCOVERY_Devi
     {
         // Initialize common parameters
         device->productID = product;
+        device->networkType = ARDISCOVERY_NETWORK_TYPE_BLE;
         device->newNetworkAL = ARDISCOVERY_JNI_DEVICE_Ble_NewARNetworkAL;
         device->deleteNetworkAL = ARDISCOVERY_JNI_DEVICE_Ble_DeleteARNetworkAL;
         device->getCopyOfSpecificParameters = ARDISCOVERY_JNI_DEVICE_Ble_GetCopyOfSpecificParameters;

@@ -89,6 +89,7 @@ struct ARDISCOVERY_Device_t
 {
     char *name;
     eARDISCOVERY_PRODUCT productID;
+    eARDISCOVERY_NETWORK_TYPE networkType;
     ARDISCOVERY_DEVICE_NewARNetworkAL_t newNetworkAL;
     ARDISCOVERY_DEVICE_DeleteARNetworkAL_t deleteNetworkAL;
     ARDISCOVERY_DEVICE_InitNetworkConfiguration_t initNetworkConfiguration;
@@ -207,6 +208,22 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_WifiSetQoSLevel (ARDISCOVERY_Device_t *dev
  * @return executing error.
  */
 eARDISCOVERY_ERROR ARDISCOVERY_Device_InitBLE (ARDISCOVERY_Device_t *device, eARDISCOVERY_PRODUCT product, ARNETWORKAL_BLEDeviceManager_t bleDeviceManager, ARNETWORKAL_BLEDevice_t bleDevice);
+
+/**
+ * @brief Gets the BLEDeviceManager associated with the given device.
+ * @param device The Discovery Device.
+ * @param[out] manager Pointer where the BLEDeviceManager will be stored
+ * @return executing error.
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_Device_BLEGetManager(ARDISCOVERY_Device_t *device, ARNETWORKAL_BLEDeviceManager_t **manager);
+
+/**
+ * @brief Gets the BLEDevice associated with the given device.
+ * @param device The Discovery Device.
+ * @param[out] bleDevice Pointer where the BLEDevice will be stored
+ * @return executing error.
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_Device_BLEGetDevice(ARDISCOVERY_Device_t *device, ARNETWORKAL_BLEDevice_t **bleDevice);
 
 /***********************
  * -- USB part --
