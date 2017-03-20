@@ -928,7 +928,8 @@ exit:
                         ARBLEService *bleService = [[ARBLEService alloc] init];
                         bleService.centralManager = self.centralManager;
                         bleService.peripheral = peripheral;
-                        bleService.connectionState = [self connectionStateForValue:ids[3]];
+                        bleService.connectionState = [self connectionStateForValue:(ids[3] & 0x03)];
+                        bleService.hasMinicam = !!((ids[3] >> 8) & 0x01);
 
                         aService = [[ARService alloc] init];
                         aService.service = bleService;
@@ -957,10 +958,13 @@ exit:
                         sendNotification = YES;
                     }
 
-                    eARDISCOVERY_CONNECTION_STATE connectionState = [self connectionStateForValue:ids[3]];
+                    eARDISCOVERY_CONNECTION_STATE connectionState = [self connectionStateForValue:(ids[3] & 0x0ff)];
+                    BOOL hasMinicam = !!((ids[3] >> 8) & 0x01);
                     ARBLEService *bleService = aService.service;
-                    if (bleService.connectionState != connectionState) {
+                    if (bleService.connectionState != connectionState ||
+                        bleService.hasMinicam != hasMinicam) {
                         bleService.connectionState = connectionState;
+                        bleService.hasMinicam = hasMinicam;
                         sendNotification = YES;
                     }
 
@@ -1014,7 +1018,7 @@ exit:
     BOOL res = NO;
     NSData *manufacturerData = [advertisementData valueForKey:CBAdvertisementDataManufacturerDataKey];
 
-    if ((manufacturerData != nil) && (manufacturerData.length == ARBLESERVICE_BLE_MANUFACTURER_DATA_LENGTH))
+    if ((manufacturerData != nil) && (manufacturerData.length >= ARBLESERVICE_BLE_MANUFACTURER_DATA_LENGTH))
     {
         uint16_t *ids = (uint16_t*) manufacturerData.bytes;
 
@@ -1044,7 +1048,7 @@ exit:
  * @return the connection state related to the given value.
  *         return ARDISCOVERY_CONNECTION_STATE_UNKNOWN if a value is given but unknown (forward compatibility)
  */
-- (eARDISCOVERY_CONNECTION_STATE)connectionStateForValue:(uint16_t)value {
+- (eARDISCOVERY_CONNECTION_STATE)connectionStateForValue:(uint8_t)value {
     return (value < ARDISCOVERY_CONNECTION_STATE_MAX) ? value : ARDISCOVERY_CONNECTION_STATE_UNKNOWN;
 }
 

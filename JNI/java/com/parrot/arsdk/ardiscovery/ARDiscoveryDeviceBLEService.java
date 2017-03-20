@@ -53,6 +53,7 @@ public class ARDiscoveryDeviceBLEService implements Parcelable
     private int signal;
 
     private ARDISCOVERY_CONNECTION_STATE_ENUM connectionState;
+    private boolean minicam;
 
     public static final Parcelable.Creator<ARDiscoveryDeviceBLEService> CREATOR = new Parcelable.Creator<ARDiscoveryDeviceBLEService>()
     {
@@ -88,6 +89,7 @@ public class ARDiscoveryDeviceBLEService implements Parcelable
         this.bluetoothDevice = in.readParcelable(BluetoothDevice.class.getClassLoader());
         this.signal = in.readInt();
         this.connectionState = ARDISCOVERY_CONNECTION_STATE_ENUM.values()[in.readInt()];
+        this.minicam = (in.readInt() == 1);
     }
 
     @Override
@@ -161,6 +163,26 @@ public class ARDiscoveryDeviceBLEService implements Parcelable
         this.connectionState = connectionState;
     }
 
+    /**
+     * Get whether the product has a minicam attached
+     * This state reflects the state during the scan, it might have changed the moment you use it
+     * @return the scanned extra connectivity
+     */
+    public boolean hasMinicam()
+    {
+        return minicam;
+    }
+
+    /**
+     * Set the minicam presence boolean
+     * This function should not be called by others than the discovery instance
+     * @param present: whether the minicam is present or not
+     */
+    public void setHasMinicam(boolean present)
+    {
+        this.minicam = present;
+    }
+
 
     @Override
     public int describeContents()
@@ -174,6 +196,7 @@ public class ARDiscoveryDeviceBLEService implements Parcelable
         dest.writeParcelable( this.bluetoothDevice, flags);
         dest.writeInt(this.signal);
         dest.writeInt(this.connectionState.ordinal());
+        dest.writeInt(this.minicam ? 1 : 0);
     }
 
 };

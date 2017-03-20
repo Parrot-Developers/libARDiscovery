@@ -385,6 +385,7 @@ public class ARDiscoveryBLEDiscoveryImpl implements ARDiscoveryBLEDiscovery
                 
                 deviceBLEService.setSignal(rssi);
                 deviceBLEService.setConnectionState(getBLEProductConnectionState(scanRecord));
+                deviceBLEService.setHasMinicam(getBLEProductHasMinicam(scanRecord));
                 
                 /* add the service in the array*/
                 ARDiscoveryDeviceService deviceService = new ARDiscoveryDeviceService (bleService.getName(), deviceBLEService, productID);
@@ -431,7 +432,7 @@ public class ARDiscoveryBLEDiscoveryImpl implements ARDiscoveryBLEDiscovery
             int manufacturerDataLenght = (MASK & data[0]);
 
             /* check if it is the length expected */
-            if (manufacturerDataLenght == ARDISCOVERY_BLE_MANUFACTURER_DATA_LENGTH_WITH_ADTYPE)
+            if (manufacturerDataLenght >= ARDISCOVERY_BLE_MANUFACTURER_DATA_LENGTH_WITH_ADTYPE)
             {
                 /* get the manufacturerData */
                 data = (byte[]) Arrays.copyOfRange(scanRecord, ARDISCOVERY_BLE_MANUFACTURER_DATA_ADTYPE_OFFSET , ARDISCOVERY_BLE_MANUFACTURER_DATA_ADTYPE_OFFSET + manufacturerDataLenght);
@@ -471,7 +472,7 @@ public class ARDiscoveryBLEDiscoveryImpl implements ARDiscoveryBLEDiscovery
             /* see getParrotProductID(byte[] scanRecord) to get scanRecord structure */
 
             ARDISCOVERY_CONNECTION_STATE_ENUM connectionState =
-                ARDISCOVERY_CONNECTION_STATE_ENUM.eARDISCOVERY_CONNECTION_STATE_UNKNOWN_ENUM_VALUE;
+                    ARDISCOVERY_CONNECTION_STATE_ENUM.eARDISCOVERY_CONNECTION_STATE_UNKNOWN_ENUM_VALUE;
 
             final int MASK = 0xFF;
 
@@ -480,7 +481,7 @@ public class ARDiscoveryBLEDiscoveryImpl implements ARDiscoveryBLEDiscovery
             int manufacturerDataLenght = (MASK & data[0]);
 
             /* check if it is the length expected */
-            if (manufacturerDataLenght == ARDISCOVERY_BLE_MANUFACTURER_DATA_LENGTH_WITH_ADTYPE)
+            if (manufacturerDataLenght >= ARDISCOVERY_BLE_MANUFACTURER_DATA_LENGTH_WITH_ADTYPE)
             {
                 /* get the manufacturerData */
                 data = (byte[]) Arrays.copyOfRange(scanRecord, ARDISCOVERY_BLE_MANUFACTURER_DATA_ADTYPE_OFFSET , ARDISCOVERY_BLE_MANUFACTURER_DATA_ADTYPE_OFFSET + manufacturerDataLenght);
@@ -489,8 +490,8 @@ public class ARDiscoveryBLEDiscoveryImpl implements ARDiscoveryBLEDiscovery
                 /* check if it is the AD Type expected */
                 if (adType == ARDISCOVERY_BLE_MANUFACTURER_DATA_ADTYPE)
                 {
-                    // connection state is taken from the bit 7 and 8
-                    int connectionStateID = (data[7] & MASK) + ((data[8] & MASK) << 8);
+                    // connection state is taken from the last 2 bits of the byte 7
+                    int connectionStateID = (data[7] & 0x03);
                     connectionState = ARDISCOVERY_CONNECTION_STATE_ENUM.getFromValue(connectionStateID);
 
                     // unknown value can happen in a forward compatibility issue
@@ -503,6 +504,43 @@ public class ARDiscoveryBLEDiscoveryImpl implements ARDiscoveryBLEDiscovery
 
             return connectionState;
         }
+
+        /**
+         * Checks whether the product has a minicam attached from the scan record
+         * @param scanRecord BLE scanRecord
+         * @return true if a minicam is attached, false otherwise
+         */
+        private boolean getBLEProductHasMinicam (byte[] scanRecord)
+        {
+            /* see getParrotProductID(byte[] scanRecord) to get scanRecord structure */
+
+            final int MASK = 0xFF;
+            boolean res = false;
+
+            /* get the length of the manufacturerData */
+            byte[] data = (byte[]) Arrays.copyOfRange(scanRecord, ARDISCOVERY_BLE_MANUFACTURER_DATA_LENGTH_OFFSET, ARDISCOVERY_BLE_MANUFACTURER_DATA_LENGTH_OFFSET + 1);
+            int manufacturerDataLenght = (MASK & data[0]);
+
+            /* check if it is the length expected */
+            if (manufacturerDataLenght >= ARDISCOVERY_BLE_MANUFACTURER_DATA_LENGTH_WITH_ADTYPE)
+            {
+                /* get the manufacturerData */
+                data = (byte[]) Arrays.copyOfRange(scanRecord, ARDISCOVERY_BLE_MANUFACTURER_DATA_ADTYPE_OFFSET , ARDISCOVERY_BLE_MANUFACTURER_DATA_ADTYPE_OFFSET + manufacturerDataLenght);
+                int adType = (MASK & data[0]);
+
+                /* check if it is the AD Type expected */
+                if (adType == ARDISCOVERY_BLE_MANUFACTURER_DATA_ADTYPE)
+                {
+                    // connection state is taken from the first bit of byte 8
+                    int has_camera = (data[8] & 0x01);
+                    res = has_camera == 0x01;
+                }
+            }
+
+            return res;
+        }
+
+
 
         private void periodScanLeDeviceEnd()
         {
