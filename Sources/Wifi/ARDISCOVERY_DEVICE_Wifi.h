@@ -38,7 +38,7 @@
 #ifndef _ARDISCOVERY_DEVICE_WIFI_H_
 #define _ARDISCOVERY_DEVICE_WIFI_H_
 
-#include <json/json.h>
+#include <json-c/json.h>
 #include <libARNetworkAL/ARNETWORKAL_Manager.h>
 #include <libARNetworkAL/ARNETWORKAL_Error.h>
 #include <libARNetwork/ARNETWORK_IOBufferParam.h>

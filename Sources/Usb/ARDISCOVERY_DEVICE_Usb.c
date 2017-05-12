@@ -37,7 +37,7 @@
  */
 
 #include <stdlib.h>
-#include <json/json.h>
+#include <json-c/json.h>
 #include <libARSAL/ARSAL_Print.h>
 #include <libARNetworkAL/ARNETWORKAL_Manager.h>
 #include <libARNetworkAL/ARNETWORKAL_Error.h>
