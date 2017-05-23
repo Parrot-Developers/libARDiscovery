@@ -59,10 +59,8 @@
 #define BEBOP_CONTROLLER_TO_DEVICE_NONACK_ID 10
 #define BEBOP_CONTROLLER_TO_DEVICE_ACK_ID 11
 #define BEBOP_CONTROLLER_TO_DEVICE_EMERGENCY_ID 12
-#define BEBOP_CONTROLLER_TO_DEVICE_VIDEO_ACK_ID 13
 #define BEBOP_DEVICE_TO_CONTROLLER_NAVDATA_ID ((ARNETWORKAL_MANAGER_WIFI_ID_MAX /2) - 1)
 #define BEBOP_DEVICE_TO_CONTROLLER_EVENT_ID ((ARNETWORKAL_MANAGER_WIFI_ID_MAX /2) - 2)
-#define BEBOP_DEVICE_TO_CONTROLLER_VIDEO_DATA_ID ((ARNETWORKAL_MANAGER_WIFI_ID_MAX /2) - 3)
 
 // Jumping Sumo
 #define JUMPINGSUMO_CONTROLLER_TO_DEVICE_NONACK_ID 10
@@ -558,17 +556,6 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration (ARDISC
             .dataCopyMaxSize = 128,
             .isOverwriting = 0,
         },
-        /* Video ACK (Initialized later) */
-        {
-            .ID = BEBOP_CONTROLLER_TO_DEVICE_VIDEO_ACK_ID,
-            .dataType = ARNETWORKAL_FRAME_TYPE_UNINITIALIZED,
-            .sendingWaitTimeMs = 0,
-            .ackTimeoutMs = 0,
-            .numberOfRetry = 0,
-            .numberOfCell = 0,
-            .dataCopyMaxSize = 0,
-            .isOverwriting = 0,
-        },
     };
     size_t numC2dParams = sizeof(c2dParams) / sizeof(ARNETWORK_IOBufferParam_t);
 
@@ -593,17 +580,6 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration (ARDISC
             .dataCopyMaxSize = 4096,
             .isOverwriting = 0,
         },
-        /* Video data (Initialized later) */
-        {
-            .ID = BEBOP_DEVICE_TO_CONTROLLER_VIDEO_DATA_ID,
-            .dataType = ARNETWORKAL_FRAME_TYPE_UNINITIALIZED,
-            .sendingWaitTimeMs = 0,
-            .ackTimeoutMs = 0,
-            .numberOfRetry = 0,
-            .numberOfCell = 0,
-            .dataCopyMaxSize = 0,
-            .isOverwriting = 0,
-        },
     };
     size_t numD2cParams = sizeof(d2cParams) / sizeof(ARNETWORK_IOBufferParam_t);
 
@@ -621,13 +597,13 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration (ARDISC
         networkConfiguration->controllerToDeviceNotAckId = BEBOP_CONTROLLER_TO_DEVICE_NONACK_ID;
         networkConfiguration->controllerToDeviceAckId = BEBOP_CONTROLLER_TO_DEVICE_ACK_ID;
         networkConfiguration->controllerToDeviceHightPriority = BEBOP_CONTROLLER_TO_DEVICE_EMERGENCY_ID;
-        networkConfiguration->controllerToDeviceARStreamAck = BEBOP_CONTROLLER_TO_DEVICE_VIDEO_ACK_ID;
+        networkConfiguration->controllerToDeviceARStreamAck = -1;
         networkConfiguration->controllerToDeviceARStreamAudioAck = -1;
         networkConfiguration->controllerToDeviceARStreamAudioData = -1;
         networkConfiguration->deviceToControllerNotAckId = BEBOP_DEVICE_TO_CONTROLLER_NAVDATA_ID;
         networkConfiguration->deviceToControllerAckId = BEBOP_DEVICE_TO_CONTROLLER_NAVDATA_ID;
-        //int deviceToControllerHightPriority = -1;
-        networkConfiguration->deviceToControllerARStreamData = BEBOP_DEVICE_TO_CONTROLLER_VIDEO_DATA_ID;
+        // Set as -2 make sure that libARController will know that we have a video stream
+        networkConfiguration->deviceToControllerARStreamData = -2;
         networkConfiguration->deviceToControllerARStreamAudioData = -1;
         networkConfiguration->deviceToControllerARStreamAudioAck = -1;
 
@@ -764,13 +740,13 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitSkyControllerNGNetworkConfigurati
         networkConfiguration->controllerToDeviceNotAckId = BEBOP_CONTROLLER_TO_DEVICE_NONACK_ID;
         networkConfiguration->controllerToDeviceAckId = BEBOP_CONTROLLER_TO_DEVICE_ACK_ID;
         networkConfiguration->controllerToDeviceHightPriority = BEBOP_CONTROLLER_TO_DEVICE_EMERGENCY_ID;
-        networkConfiguration->controllerToDeviceARStreamAck = BEBOP_CONTROLLER_TO_DEVICE_VIDEO_ACK_ID;
+        networkConfiguration->controllerToDeviceARStreamAck = -1;
         networkConfiguration->controllerToDeviceARStreamAudioAck = -1;
         networkConfiguration->controllerToDeviceARStreamAudioData = -1;
         networkConfiguration->deviceToControllerNotAckId = BEBOP_DEVICE_TO_CONTROLLER_NAVDATA_ID;
         networkConfiguration->deviceToControllerAckId = BEBOP_DEVICE_TO_CONTROLLER_NAVDATA_ID;
-        //int deviceToControllerHightPriority = -1;
-        networkConfiguration->deviceToControllerARStreamData = BEBOP_DEVICE_TO_CONTROLLER_VIDEO_DATA_ID;
+        // Set as -2 make sure that libARController will know that we have a video stream
+        networkConfiguration->deviceToControllerARStreamData = -2;
         networkConfiguration->deviceToControllerARStreamAudioData = -1;
         networkConfiguration->deviceToControllerARStreamAudioAck = -1;
 
