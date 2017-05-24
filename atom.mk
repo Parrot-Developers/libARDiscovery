@@ -57,15 +57,20 @@ LOCAL_SRC_FILES += \
 LOCAL_INSTALL_HEADERS += \
 	Includes/libARDiscovery/ARDISCOVERY_AvahiDiscovery.h:usr/include/libARDiscovery/
 
-else ifeq ("$(TARGET_OS)-$(TARGET_OS_FLAVOUR)","linux-native")
+else ifeq ("$(TARGET_OS)","linux")
 
-# Native linux: use avahi with dbus
-LOCAL_LIBRARIES += \
-	avahi
+ifneq ("$(TARGET_OS_FLAVOUR)","android")
+
+# Linux: use avahi with dbus if available
+LOCAL_LIBRARIES += avahi
+
 LOCAL_SRC_FILES += \
 	Sources/ARDISCOVERY_AvahiDiscovery.c
 LOCAL_INSTALL_HEADERS += \
 	Includes/libARDiscovery/ARDISCOVERY_AvahiDiscovery.h:usr/include/libARDiscovery/
+
+endif
+# ifneq ("$(TARGET_OS_FLAVOUR)","android")
 
 else ifeq ("$(TARGET_OS)","darwin")
 
@@ -96,7 +101,11 @@ LOCAL_LDLIBS +=	\
 LOCAL_CFLAGS += -DUSE_USB_ACCESSORY=1
 
 endif
+# ifneq ("$(TARGET_OS_FLAVOUR)","native")
+
 endif
+# ifndef ARSDK_BUILD_FOR_APP
+
 
 include $(BUILD_LIBRARY)
 
