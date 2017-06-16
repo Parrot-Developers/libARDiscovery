@@ -1339,6 +1339,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_ReceiveJsonCallback (uint8_t *dataRx,
 
     json_object *jsonObj = NULL;
     json_object *valueJsonObj = NULL;
+    json_bool json_res;
 
 
     if ((dataRx == NULL) ||
@@ -1365,23 +1366,23 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_ReceiveJsonCallback (uint8_t *dataRx,
     if (error == ARDISCOVERY_OK)
     {
         // get ARDISCOVERY_CONNECTION_JSON_C2DPORT_KEY
-        valueJsonObj = json_object_object_get (jsonObj, ARDISCOVERY_CONNECTION_JSON_C2DPORT_KEY);
-        if (valueJsonObj != NULL)
+        json_res = json_object_object_get_ex (jsonObj, ARDISCOVERY_CONNECTION_JSON_C2DPORT_KEY, &valueJsonObj);
+        if (json_res && valueJsonObj != NULL)
         {
             specificWifiParam->controllerToDevicePort = json_object_get_int(valueJsonObj);
         }
 
         // get ARDISCOVERY_CONNECTION_JSON_QOS_MODE_KEY
-        valueJsonObj = json_object_object_get (jsonObj, ARDISCOVERY_CONNECTION_JSON_QOS_MODE_KEY);
-        if (valueJsonObj != NULL)
+        json_object_object_get_ex (jsonObj, ARDISCOVERY_CONNECTION_JSON_QOS_MODE_KEY, &valueJsonObj);
+        if (json_res && valueJsonObj != NULL)
         {
             specificWifiParam->qos_level = json_object_get_int(valueJsonObj);
         }
 
         // get ARDISCOVERY_CONNECTION_JSON_STATUS_KEY
 
-        valueJsonObj = json_object_object_get (jsonObj, ARDISCOVERY_CONNECTION_JSON_STATUS_KEY);
-        if (valueJsonObj != NULL)
+        json_res = json_object_object_get_ex (jsonObj, ARDISCOVERY_CONNECTION_JSON_STATUS_KEY, &valueJsonObj);
+        if (json_res && valueJsonObj != NULL)
         {
             specificWifiParam->connectionStatus = json_object_get_int(valueJsonObj);
         }

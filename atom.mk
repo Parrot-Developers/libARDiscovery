@@ -1,6 +1,59 @@
 LOCAL_PATH := $(call my-dir)
 
 ###############################################################################
+#  libARDiscovery headers
+###############################################################################
+include $(CLEAR_VARS)
+
+LOCAL_MODULE := libARDiscovery_headers
+LOCAL_DESCRIPTION := ARSDK Discovery and Connection Management Layer (Headers only)
+LOCAL_CATEGORY_PATH := dragon/libs
+
+LOCAL_INSTALL_HEADERS := \
+	Includes/libARDiscovery/ARDiscovery.h:usr/include/libARDiscovery/ \
+	Includes/libARDiscovery/ARDISCOVERY_MuxDiscovery.h:usr/include/libARDiscovery/ \
+	Includes/libARDiscovery/ARDISCOVERY_Connection.h:usr/include/libARDiscovery/ \
+	Includes/libARDiscovery/ARDISCOVERY_Discovery.h:usr/include/libARDiscovery/ \
+	Includes/libARDiscovery/ARDISCOVERY_NetworkConfiguration.h:usr/include/libARDiscovery/ \
+	Includes/libARDiscovery/ARDISCOVERY_Device.h:usr/include/libARDiscovery/ \
+	Includes/libARDiscovery/ARDISCOVERY_Error.h:usr/include/libARDiscovery/
+
+ifndef ARSDK_BUILD_FOR_APP
+
+LOCAL_INSTALL_HEADERS += \
+	Includes/libARDiscovery/ARDISCOVERY_AvahiDiscovery.h:usr/include/libARDiscovery/
+
+else ifeq ("$(TARGET_OS)","linux")
+
+ifneq ("$(TARGET_OS_FLAVOUR)","android")
+
+# Linux: use avahi with dbus if available
+LOCAL_INSTALL_HEADERS += \
+	Includes/libARDiscovery/ARDISCOVERY_AvahiDiscovery.h:usr/include/libARDiscovery/
+
+endif
+# ifneq ("$(TARGET_OS_FLAVOUR)","android")
+
+else ifeq ("$(TARGET_OS)","darwin")
+
+# Darwin: use bonjour
+LOCAL_INSTALL_HEADERS += \
+	Includes/libARDiscovery/ARDISCOVERY_BonjourDiscovery.h:usr/include/libARDiscovery/
+
+ifneq ("$(TARGET_OS_FLAVOUR)","native")
+
+LOCAL_INSTALL_HEADERS += \
+	Includes/libARDiscovery/USBAccessoryManager.h:usr/include/libARDiscovery/
+
+endif
+# ifneq ("$(TARGET_OS_FLAVOUR)","native")
+
+endif
+# ifndef ARSDK_BUILD_FOR_APP
+
+include $(BUILD_CUSTOM)
+
+###############################################################################
 #  default libARDiscovery (contains ExternalAccessory framework on iOS)
 ###############################################################################
 
@@ -13,6 +66,7 @@ LOCAL_CATEGORY_PATH := dragon/libs
 LOCAL_MODULE_FILENAME := libardiscovery.so
 
 LOCAL_LIBRARIES := \
+	libARDiscovery_headers \
 	libARSAL \
 	libARNetwork \
 	libARNetworkAL \
@@ -40,22 +94,11 @@ LOCAL_SRC_FILES := \
 	Sources/Usb/ARDISCOVERY_DEVICE_Usb.c \
 	gen/Sources/ARDISCOVERY_Error.c
 
-LOCAL_INSTALL_HEADERS := \
-	Includes/libARDiscovery/ARDiscovery.h:usr/include/libARDiscovery/ \
-	Includes/libARDiscovery/ARDISCOVERY_MuxDiscovery.h:usr/include/libARDiscovery/ \
-	Includes/libARDiscovery/ARDISCOVERY_Connection.h:usr/include/libARDiscovery/ \
-	Includes/libARDiscovery/ARDISCOVERY_Discovery.h:usr/include/libARDiscovery/ \
-	Includes/libARDiscovery/ARDISCOVERY_NetworkConfiguration.h:usr/include/libARDiscovery/ \
-	Includes/libARDiscovery/ARDISCOVERY_Device.h:usr/include/libARDiscovery/ \
-	Includes/libARDiscovery/ARDISCOVERY_Error.h:usr/include/libARDiscovery/
-
 ifndef ARSDK_BUILD_FOR_APP
 
 # Embedded: Use avahi without dbus
 LOCAL_SRC_FILES += \
 	Sources/ARDISCOVERY_AvahiDiscovery_nodbus.c
-LOCAL_INSTALL_HEADERS += \
-	Includes/libARDiscovery/ARDISCOVERY_AvahiDiscovery.h:usr/include/libARDiscovery/
 
 else ifeq ("$(TARGET_OS)","linux")
 
@@ -66,8 +109,6 @@ LOCAL_LIBRARIES += avahi
 
 LOCAL_SRC_FILES += \
 	Sources/ARDISCOVERY_AvahiDiscovery.c
-LOCAL_INSTALL_HEADERS += \
-	Includes/libARDiscovery/ARDISCOVERY_AvahiDiscovery.h:usr/include/libARDiscovery/
 
 endif
 # ifneq ("$(TARGET_OS_FLAVOUR)","android")
@@ -77,9 +118,6 @@ else ifeq ("$(TARGET_OS)","darwin")
 # Darwin: use bonjour
 LOCAL_SRC_FILES += \
 	Sources/ARDISCOVERY_BonjourDiscovery.m
-
-LOCAL_INSTALL_HEADERS += \
-	Includes/libARDiscovery/ARDISCOVERY_BonjourDiscovery.h:usr/include/libARDiscovery/
 
 LOCAL_LDLIBS += \
 	-framework Foundation \
@@ -91,9 +129,6 @@ LOCAL_SRC_FILES += \
 	Sources/USBAccessoryManager.m \
 	Sources/USBAccessoryManagerEA.m \
 	Sources/USBAccessoryManagerProxy.m
-
-LOCAL_INSTALL_HEADERS += \
-	Includes/libARDiscovery/USBAccessoryManager.h:usr/include/libARDiscovery/
 
 LOCAL_LDLIBS +=	\
 	-framework ExternalAccessory
@@ -127,6 +162,7 @@ LOCAL_CATEGORY_PATH := dragon/libs
 LOCAL_MODULE_FILENAME := libardiscoverywithouteacc.so
 
 LOCAL_LIBRARIES := \
+	libARDiscovery_headers \
 	libARSAL \
 	libARNetwork \
 	libARNetworkAL \
@@ -150,22 +186,10 @@ LOCAL_SRC_FILES := \
 	Sources/Usb/ARDISCOVERY_DEVICE_Usb.c \
 	gen/Sources/ARDISCOVERY_Error.c
 
-LOCAL_INSTALL_HEADERS := \
-	Includes/libARDiscovery/ARDiscovery.h:usr/include/libARDiscovery/ \
-	Includes/libARDiscovery/ARDISCOVERY_MuxDiscovery.h:usr/include/libARDiscovery/ \
-	Includes/libARDiscovery/ARDISCOVERY_Connection.h:usr/include/libARDiscovery/ \
-	Includes/libARDiscovery/ARDISCOVERY_Discovery.h:usr/include/libARDiscovery/ \
-	Includes/libARDiscovery/ARDISCOVERY_NetworkConfiguration.h:usr/include/libARDiscovery/ \
-	Includes/libARDiscovery/ARDISCOVERY_Device.h:usr/include/libARDiscovery/ \
-	Includes/libARDiscovery/ARDISCOVERY_Error.h:usr/include/libARDiscovery/
-
 # Darwin: use bonjour
 LOCAL_SRC_FILES += \
 	Sources/ARDISCOVERY_BonjourDiscovery.m \
 	Sources/USBAccessoryManager.m \
-
-LOCAL_INSTALL_HEADERS += \
-	Includes/libARDiscovery/ARDISCOVERY_BonjourDiscovery.h:usr/include/libARDiscovery/
 
 LOCAL_LDLIBS += \
 	-framework Foundation \
