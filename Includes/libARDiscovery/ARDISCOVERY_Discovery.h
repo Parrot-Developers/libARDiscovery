@@ -52,6 +52,7 @@ typedef enum
     ARDISCOVERY_PRODUCT_UNKNOWNPRODUCT_4,                                          ///< Unknownproduct_4 product
     ARDISCOVERY_PRODUCT_SKYCONTROLLER_NG,                               ///< Sky controller product (2.0 & newer versions)
     ARDISCOVERY_PRODUCT_ANAFI,                                          ///< Anafi product
+    ARDISCOVERY_PRODUCT_CHIMERA,                                        ///< Chimera product
 
     ARDISCOVERY_PRODUCT_MINIDRONE,                                      ///< DELOS product
     ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT,                            ///< Delos EVO Light product
@@ -61,6 +62,7 @@ typedef enum
     ARDISCOVERY_PRODUCT_MINIDRONE_WINGX,                                ///< WingX product
 
     ARDISCOVERY_PRODUCT_SKYCONTROLLER_2,                                ///< Sky controller 2 product
+    ARDISCOVERY_PRODUCT_SKYCONTROLLER_2P,                               ///< Sky controller 2P product
 
     ARDISCOVERY_PRODUCT_TINOS,                                          ///< Tinos product
     ARDISCOVERY_PRODUCT_MAX                                             ///< Max of products

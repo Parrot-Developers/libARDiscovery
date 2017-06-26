@@ -515,7 +515,8 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration (ARDISC
          (device->productID != ARDISCOVERY_PRODUCT_BEBOP_2) &&
          (device->productID != ARDISCOVERY_PRODUCT_EVINRUDE) &&
          (device->productID != ARDISCOVERY_PRODUCT_UNKNOWNPRODUCT_4) &&
-         (device->productID != ARDISCOVERY_PRODUCT_ANAFI))
+         (device->productID != ARDISCOVERY_PRODUCT_ANAFI) &&
+         (device->productID != ARDISCOVERY_PRODUCT_CHIMERA))
         )
     {
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;
@@ -650,7 +651,16 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitAnafiNetworkConfiguration (ARDISC
     return ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration(device, networkConfiguration);
 }
 
-eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitSkyControllerNGNetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration)
+
+
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitChimeraNetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration)
+{
+    // -- Initilize network Configuration adapted to a Chimera. --
+    // This should be the same as the Bebop to be able to be used by the SkyController
+    return ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration(device, networkConfiguration);
+}
+
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitSkyController2NetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration)
 {
     // -- Initilize network Configuration adapted to a SkyControllerNG. --
 
@@ -659,7 +669,10 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitSkyControllerNGNetworkConfigurati
     // check parameters
     if ((device == NULL) ||
         (networkConfiguration == NULL) ||
-        (device->productID != ARDISCOVERY_PRODUCT_SKYCONTROLLER_NG))
+        ((device->productID != ARDISCOVERY_PRODUCT_SKYCONTROLLER_NG) &&
+         (device->productID != ARDISCOVERY_PRODUCT_SKYCONTROLLER_2) &&
+         (device->productID != ARDISCOVERY_PRODUCT_SKYCONTROLLER_2P))
+        )
     {
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;
     }

@@ -65,24 +65,28 @@ public enum ARDISCOVERY_PRODUCT_ENUM {
     ARDISCOVERY_PRODUCT_SKYCONTROLLER_NG (9, "Sky controller product (2.0 & newer versions)"),
    /** Anafi product */
     ARDISCOVERY_PRODUCT_ANAFI (10, "Anafi product"),
+   /** Chimera product */
+    ARDISCOVERY_PRODUCT_CHIMERA (11, "Chimera product"),
    /** DELOS product */
-    ARDISCOVERY_PRODUCT_MINIDRONE (11, "DELOS product"),
+    ARDISCOVERY_PRODUCT_MINIDRONE (12, "DELOS product"),
    /** Delos EVO Light product */
-    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT (12, "Delos EVO Light product"),
+    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT (13, "Delos EVO Light product"),
    /** Delos EVO Brick product */
-    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK (13, "Delos EVO Brick product"),
+    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK (14, "Delos EVO Brick product"),
    /** Delos EVO Hydrofoil product */
-    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL (14, "Delos EVO Hydrofoil product"),
+    ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL (15, "Delos EVO Hydrofoil product"),
    /** Delos3 product */
-    ARDISCOVERY_PRODUCT_MINIDRONE_DELOS3 (15, "Delos3 product"),
+    ARDISCOVERY_PRODUCT_MINIDRONE_DELOS3 (16, "Delos3 product"),
    /** WingX product */
-    ARDISCOVERY_PRODUCT_MINIDRONE_WINGX (16, "WingX product"),
+    ARDISCOVERY_PRODUCT_MINIDRONE_WINGX (17, "WingX product"),
    /** Sky controller 2 product */
-    ARDISCOVERY_PRODUCT_SKYCONTROLLER_2 (17, "Sky controller 2 product"),
+    ARDISCOVERY_PRODUCT_SKYCONTROLLER_2 (18, "Sky controller 2 product"),
+   /** Sky controller 2P product */
+    ARDISCOVERY_PRODUCT_SKYCONTROLLER_2P (19, "Sky controller 2P product"),
    /** Tinos product */
-    ARDISCOVERY_PRODUCT_TINOS (18, "Tinos product"),
+    ARDISCOVERY_PRODUCT_TINOS (20, "Tinos product"),
    /** Max of products */
-    ARDISCOVERY_PRODUCT_MAX (19, "Max of products");
+    ARDISCOVERY_PRODUCT_MAX (21, "Max of products");
 
     private final int value;
     private final String comment;
