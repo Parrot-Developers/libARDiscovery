@@ -51,7 +51,7 @@ typedef enum
     ARDISCOVERY_PRODUCT_EVINRUDE,                                       ///< Evinrude product
     ARDISCOVERY_PRODUCT_UNKNOWNPRODUCT_4,                                          ///< Unknownproduct_4 product
     ARDISCOVERY_PRODUCT_SKYCONTROLLER_NG,                               ///< Sky controller product (2.0 & newer versions)
-    ARDISCOVERY_PRODUCT_ANAFI,                                          ///< Anafi product
+    ARDISCOVERY_PRODUCT_UNKNOWNPRODUCT_5,                                        ///< Unknownproduct_5 product
     ARDISCOVERY_PRODUCT_CHIMERA,                                        ///< Chimera product
 
     ARDISCOVERY_PRODUCT_MINIDRONE,                                      ///< DELOS product

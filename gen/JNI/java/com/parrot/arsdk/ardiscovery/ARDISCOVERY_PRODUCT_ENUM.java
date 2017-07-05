@@ -63,8 +63,8 @@ public enum ARDISCOVERY_PRODUCT_ENUM {
     ARDISCOVERY_PRODUCT_UNKNOWNPRODUCT_4 (8, "Unknownproduct_4 product"),
    /** Sky controller product (2.0 & newer versions) */
     ARDISCOVERY_PRODUCT_SKYCONTROLLER_NG (9, "Sky controller product (2.0 & newer versions)"),
-   /** Anafi product */
-    ARDISCOVERY_PRODUCT_ANAFI (10, "Anafi product"),
+   /** Unknownproduct_5 product */
+    ARDISCOVERY_PRODUCT_UNKNOWNPRODUCT_5 (10, "Unknownproduct_5 product"),
    /** Chimera product */
     ARDISCOVERY_PRODUCT_CHIMERA (11, "Chimera product"),
    /** DELOS product */

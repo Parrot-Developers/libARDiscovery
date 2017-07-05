@@ -515,7 +515,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration (ARDISC
          (device->productID != ARDISCOVERY_PRODUCT_BEBOP_2) &&
          (device->productID != ARDISCOVERY_PRODUCT_EVINRUDE) &&
          (device->productID != ARDISCOVERY_PRODUCT_UNKNOWNPRODUCT_4) &&
-         (device->productID != ARDISCOVERY_PRODUCT_ANAFI) &&
+         (device->productID != ARDISCOVERY_PRODUCT_UNKNOWNPRODUCT_5) &&
          (device->productID != ARDISCOVERY_PRODUCT_CHIMERA))
         )
     {
@@ -644,9 +644,9 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitUnknownproduct_4NetworkConfigurat
     return ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration(device, networkConfiguration);
 }
 
-eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitAnafiNetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration)
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitUnknownproduct_5NetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration)
 {
-    // -- Initilize network Configuration adapted to an Anafi. --
+    // -- Initilize network Configuration adapted to an Unknownproduct_5. --
     // This should be the same as the Bebop to be able to be used by the SkyController
     return ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration(device, networkConfiguration);
 }
