@@ -293,6 +293,7 @@ void ARDISCOVERY_AvahiDiscovery_StopPublishing(ARDISCOVERY_AvahiDiscovery_Publis
     {
         return;
     }
+    unlink(ARDISCOVERY_CONFIG_FILE);
 }
 
 void ARDISCOVERY_AvahiDiscovery_Publisher_Delete(ARDISCOVERY_AvahiDiscovery_PublisherData_t** serviceDataPtrAddr)
