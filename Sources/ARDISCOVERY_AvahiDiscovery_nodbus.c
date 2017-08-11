@@ -72,7 +72,7 @@ ARDISCOVERY_AvahiDiscovery_PublisherData_t* ARDISCOVERY_AvahiDiscovery_Publisher
     ARDISCOVERY_AvahiDiscovery_PublisherData_t *serviceData = NULL;
     eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
 
-    if (serviceName == NULL || serviceType == NULL)
+    if (serviceType == NULL)
     {
         ERR("Null parameter");
         error = ARDISCOVERY_ERROR;
@@ -101,17 +101,23 @@ ARDISCOVERY_AvahiDiscovery_PublisherData_t* ARDISCOVERY_AvahiDiscovery_Publisher
             }
 
             /* Set Service Name */
-            if (error == ARDISCOVERY_OK)
+            if (error == ARDISCOVERY_OK && serviceName != NULL)
             {
-                serviceData->serviceName = malloc(sizeof(uint8_t) * ARDISCOVERY_AVAHIDISCOVERY_SERVICENAME_SIZE);
+                const size_t maxsize = ARDISCOVERY_AVAHIDISCOVERY_SERVICENAME_SIZE;
+                serviceData->serviceName = malloc(maxsize);
                 if (serviceData->serviceName != NULL)
                 {
-                    strcpy(serviceData->serviceName, serviceName);
+                    strncpy(serviceData->serviceName, serviceName, maxsize - 1);
+                    serviceData->serviceName[maxsize - 1] = '\0';
                 }
                 else
                 {
                     error = ARDISCOVERY_ERROR_ALLOC;
                 }
+            }
+            else if (error == ARDISCOVERY_OK)
+            {
+                serviceData->serviceName = NULL;
             }
 
             /* Set Service Custom Data */
@@ -257,8 +263,11 @@ void ARDISCOVERY_AvahiDiscovery_Publish(ARDISCOVERY_AvahiDiscovery_PublisherData
 
     if (error == ARDISCOVERY_OK)
     {
-        /* Build service name */
-        serviceData->serviceName = ARDISCOVERY_AvahiDiscovery_BuildName();
+        /* Use device hostname if no service name was specified. */
+        if (serviceData->serviceName == NULL)
+        {
+            serviceData->serviceName = ARDISCOVERY_AvahiDiscovery_BuildName();
+        }
         if (serviceData->serviceName == NULL)
         {
             error = ARDISCOVERY_ERROR_BUILD_NAME;
