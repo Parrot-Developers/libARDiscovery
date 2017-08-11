@@ -249,7 +249,53 @@ eARDISCOVERY_ERROR ARDISCOVERY_AvahiDiscovery_ResetService(ARDISCOVERY_AvahiDisc
     return error;
 }
 
+eARDISCOVERY_ERROR ARDISCOVERY_AvahiDiscovery_SetServiceName(ARDISCOVERY_AvahiDiscovery_PublisherData_t* serviceData, const char *serviceName)
+{
+    eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
+    char *newName;
 
+    if (serviceData == NULL)
+    {
+        ERR("Null parameter");
+        error = ARDISCOVERY_ERROR;
+    }
+
+    if (error == ARDISCOVERY_OK)
+    {
+        /* Use device hostname if no service name was specified. */
+        if (serviceName == NULL)
+        {
+            newName = ARDISCOVERY_AvahiDiscovery_BuildName();
+            if (newName == NULL)
+            {
+                error = ARDISCOVERY_ERROR_BUILD_NAME;
+            }
+        }
+        else
+        {
+            const size_t maxsize = ARDISCOVERY_AVAHIDISCOVERY_SERVICENAME_SIZE;
+            newName = malloc(maxsize);
+            if (newName != NULL)
+            {
+                strncpy(newName, serviceName, maxsize - 1);
+                newName[maxsize - 1] = '\0';
+            }
+            else
+            {
+                error = ARDISCOVERY_ERROR_ALLOC;
+            }
+        }
+        if (error == ARDISCOVERY_OK)
+        {
+            if (serviceData->serviceName != NULL) {
+                free(serviceData->serviceName);
+            }
+            serviceData->serviceName = newName;
+        }
+    }
+
+    return error;
+}
 
 void ARDISCOVERY_AvahiDiscovery_Publish(ARDISCOVERY_AvahiDiscovery_PublisherData_t* serviceData)
 {
