@@ -186,6 +186,14 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitUnknownproduct_5NetworkConfigurat
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitChimeraNetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration);
 
 /**
+ * @brief Initilize network Configuration adapted to a Mambo FPV.
+ * @param device The Discovery Device. Must be a Mambo FPV Device
+ * @param[out] networkConfiguration The networkConfiguration to Initilize.
+ * @return executing error.
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitDelos3NetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration);
+
+/**
  * @brief Initilize network Configuration adapted to a SkyController2.
  * @param device The Discovery Device. Must be a SkyController2/2P/NG Device
  * @param[out] networkConfiguration The networkConfiguration to Initilize.

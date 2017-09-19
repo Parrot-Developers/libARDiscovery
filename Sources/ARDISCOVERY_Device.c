@@ -381,12 +381,14 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitWifi (ARDISCOVERY_Device_t *device, eA
         case ARDISCOVERY_PRODUCT_SKYCONTROLLER_2P:
             device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Wifi_InitSkyController2NetworkConfiguration;
             break;
+        case ARDISCOVERY_PRODUCT_MINIDRONE_DELOS3:
+            device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Wifi_InitDelos3NetworkConfiguration;
+            break;
 
         case ARDISCOVERY_PRODUCT_MINIDRONE:
         case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT:
         case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK:
         case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL:
-        case ARDISCOVERY_PRODUCT_MINIDRONE_DELOS3:
         case ARDISCOVERY_PRODUCT_MINIDRONE_WINGX:
         case ARDISCOVERY_PRODUCT_TINOS:
         case ARDISCOVERY_PRODUCT_MAX:
