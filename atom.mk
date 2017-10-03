@@ -70,6 +70,7 @@ LOCAL_LIBRARIES := \
 	libARSAL \
 	libARNetwork \
 	libARNetworkAL \
+	libARCommands \
 	json
 
 LOCAL_CONDITIONAL_LIBRARIES := \
@@ -166,6 +167,7 @@ LOCAL_LIBRARIES := \
 	libARSAL \
 	libARNetwork \
 	libARNetworkAL \
+	libARCommands \
 	json
 
 

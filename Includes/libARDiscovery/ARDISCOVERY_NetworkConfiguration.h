@@ -40,6 +40,20 @@
 #define _ARDISCOVERY_DISCOVERY_NETWORK_CONFIGURATION_H_
 
 #include <libARNetwork/ARNETWORK_IOBufferParam.h>
+#include <libARCommands/ARCOMMANDS_Generator.h>
+
+/**
+ * @brief Way to start/stop video streaming
+ */
+typedef enum {
+    ARDISCOVERY_STREAM_STARTSTOP_NONE,
+    ARDISCOVERY_STREAM_STARTSTOP_ARCOMMANDS,
+    ARDISCOVERY_STREAM_STARTSTOP_RTSP,
+} eARDISCOVERY_STREAM_STARTSTOP_TYPE;
+
+typedef eARCOMMANDS_GENERATOR_ERROR (*commandGenerator)(uint8_t *buffer,
+                                                        int32_t buffLen,
+                                                        int32_t *cmdLen);
 
 /**
  * @brief 
@@ -60,6 +74,16 @@ typedef struct
     int deviceToControllerARStreamData;
     int deviceToControllerARStreamAudioData;
     int deviceToControllerARStreamAudioAck;
+
+    int hasVideo;
+    eARDISCOVERY_STREAM_STARTSTOP_TYPE streamType;
+
+    /* if streamType == ARCOMMANDS */
+    commandGenerator startCommand;
+    commandGenerator stopCommand;
+
+    /* if streamType == RTSP */
+    char *rtspAddress;
     
     int numberOfControllerToDeviceParam;
     ARNETWORK_IOBufferParam_t *controllerToDeviceParams;

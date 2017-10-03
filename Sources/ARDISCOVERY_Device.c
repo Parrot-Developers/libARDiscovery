@@ -321,6 +321,17 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitNetworkConfiguration (ARDISCOVERY_Devi
     return error;
 }
 
+eARDISCOVERY_ERROR ARDISCOVERY_Device_DestroyNetworkConfiguration (ARDISCOVERY_Device_t *discoveryDevice, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration)
+{
+    if (!discoveryDevice || ! networkConfiguration)
+        return ARDISCOVERY_ERROR_BAD_PARAMETER;
+
+    free(networkConfiguration->rtspAddress);
+    networkConfiguration->rtspAddress = NULL;
+
+    return ARDISCOVERY_OK;
+}
+
 /***********************
  * -- Wifi part --
  ***********************/
