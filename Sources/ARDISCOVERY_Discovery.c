@@ -88,7 +88,7 @@ static const char* ARDISCOVERY_Discovery_ProductNameTable[ARDISCOVERY_PRODUCT_MA
     [ARDISCOVERY_PRODUCT_UNKNOWNPRODUCT_4]         = "Unknownproduct_4",
     [ARDISCOVERY_PRODUCT_SKYCONTROLLER_NG] = "SkyController",
     [ARDISCOVERY_PRODUCT_UNKNOWNPRODUCT_5]       = "Unknownproduct_5",
-    [ARDISCOVERY_PRODUCT_CHIMERA]       = "Fusion",
+    [ARDISCOVERY_PRODUCT_CHIMERA]       = "Bluegrass",
 
     // USB service
     [ARDISCOVERY_PRODUCT_SKYCONTROLLER_2] = "SkyController 2",
