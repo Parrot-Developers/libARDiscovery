@@ -38,40 +38,25 @@ package com.parrot.arsdk.ardiscovery;
 import java.util.HashMap;
 
 /**
- * Java copy of the eARDISCOVERY_PRODUCT_FAMILY enum
+ * Java copy of the eARDISCOVERY_STREAM_STARTSTOP_TYPE enum
  */
-public enum ARDISCOVERY_PRODUCT_FAMILY_ENUM {
+public enum ARDISCOVERY_STREAM_STARTSTOP_TYPE_ENUM {
    /** Dummy value for all unknown cases */
-    eARDISCOVERY_PRODUCT_FAMILY_UNKNOWN_ENUM_VALUE (Integer.MIN_VALUE, "Dummy value for all unknown cases"),
-   /** AR DRONE product family */
-    ARDISCOVERY_PRODUCT_FAMILY_ARDRONE (0, "AR DRONE product family"),
-   /** JUMPING SUMO product family */
-    ARDISCOVERY_PRODUCT_FAMILY_JS (1, "JUMPING SUMO product family"),
-   /** SKY CONTROLLER product family */
-    ARDISCOVERY_PRODUCT_FAMILY_SKYCONTROLLER (2, "SKY CONTROLLER product family"),
-   /** DELOS product */
-    ARDISCOVERY_PRODUCT_FAMILY_MINIDRONE (3, "DELOS product"),
-   /** Power Up product family */
-    ARDISCOVERY_PRODUCT_FAMILY_POWER_UP (4, "Power Up product family"),
-   /** Fixed wing product family */
-    ARDISCOVERY_PRODUCT_FAMILY_FIXED_WING (5, "Fixed wing product family"),
-   /** Gamepad product family */
-    ARDISCOVERY_PRODUCT_FAMILY_GAMEPAD (6, "Gamepad product family"),
-   /** Camera product family */
-    ARDISCOVERY_PRODUCT_FAMILY_CAMERA (7, "Camera product family"),
-   /** Max of product familys */
-    ARDISCOVERY_PRODUCT_FAMILY_MAX (8, "Max of product familys");
+    eARDISCOVERY_STREAM_STARTSTOP_TYPE_UNKNOWN_ENUM_VALUE (Integer.MIN_VALUE, "Dummy value for all unknown cases"),
+   ARDISCOVERY_STREAM_STARTSTOP_NONE (0),
+   ARDISCOVERY_STREAM_STARTSTOP_ARCOMMANDS (1),
+   ARDISCOVERY_STREAM_STARTSTOP_RTSP (2);
 
     private final int value;
     private final String comment;
-    static HashMap<Integer, ARDISCOVERY_PRODUCT_FAMILY_ENUM> valuesList;
+    static HashMap<Integer, ARDISCOVERY_STREAM_STARTSTOP_TYPE_ENUM> valuesList;
 
-    ARDISCOVERY_PRODUCT_FAMILY_ENUM (int value) {
+    ARDISCOVERY_STREAM_STARTSTOP_TYPE_ENUM (int value) {
         this.value = value;
         this.comment = null;
     }
 
-    ARDISCOVERY_PRODUCT_FAMILY_ENUM (int value, String comment) {
+    ARDISCOVERY_STREAM_STARTSTOP_TYPE_ENUM (int value, String comment) {
         this.value = value;
         this.comment = comment;
     }
@@ -85,21 +70,21 @@ public enum ARDISCOVERY_PRODUCT_FAMILY_ENUM {
     }
 
     /**
-     * Gets the ARDISCOVERY_PRODUCT_FAMILY_ENUM instance from a C enum value
+     * Gets the ARDISCOVERY_STREAM_STARTSTOP_TYPE_ENUM instance from a C enum value
      * @param value C value of the enum
-     * @return The ARDISCOVERY_PRODUCT_FAMILY_ENUM instance, or null if the C enum value was not valid
+     * @return The ARDISCOVERY_STREAM_STARTSTOP_TYPE_ENUM instance, or null if the C enum value was not valid
      */
-    public static ARDISCOVERY_PRODUCT_FAMILY_ENUM getFromValue (int value) {
+    public static ARDISCOVERY_STREAM_STARTSTOP_TYPE_ENUM getFromValue (int value) {
         if (null == valuesList) {
-            ARDISCOVERY_PRODUCT_FAMILY_ENUM [] valuesArray = ARDISCOVERY_PRODUCT_FAMILY_ENUM.values ();
-            valuesList = new HashMap<Integer, ARDISCOVERY_PRODUCT_FAMILY_ENUM> (valuesArray.length);
-            for (ARDISCOVERY_PRODUCT_FAMILY_ENUM entry : valuesArray) {
+            ARDISCOVERY_STREAM_STARTSTOP_TYPE_ENUM [] valuesArray = ARDISCOVERY_STREAM_STARTSTOP_TYPE_ENUM.values ();
+            valuesList = new HashMap<Integer, ARDISCOVERY_STREAM_STARTSTOP_TYPE_ENUM> (valuesArray.length);
+            for (ARDISCOVERY_STREAM_STARTSTOP_TYPE_ENUM entry : valuesArray) {
                 valuesList.put (entry.getValue (), entry);
             }
         }
-        ARDISCOVERY_PRODUCT_FAMILY_ENUM retVal = valuesList.get (value);
+        ARDISCOVERY_STREAM_STARTSTOP_TYPE_ENUM retVal = valuesList.get (value);
         if (retVal == null) {
-            retVal = eARDISCOVERY_PRODUCT_FAMILY_UNKNOWN_ENUM_VALUE;
+            retVal = eARDISCOVERY_STREAM_STARTSTOP_TYPE_UNKNOWN_ENUM_VALUE;
         }
         return retVal;    }
 

@@ -64,6 +64,7 @@ static const uint16_t ARDISCOVERY_Discovery_ProductTable[ARDISCOVERY_PRODUCT_MAX
 
     // Unsupported Service
     [ARDISCOVERY_PRODUCT_TINOS] = 0x0912,
+    [ARDISCOVERY_PRODUCT_SEQUOIA] = 0x0917,
 };
 
 static const char* ARDISCOVERY_Discovery_ProductNameTable[ARDISCOVERY_PRODUCT_MAX] =
@@ -95,7 +96,8 @@ static const char* ARDISCOVERY_Discovery_ProductNameTable[ARDISCOVERY_PRODUCT_MA
     [ARDISCOVERY_PRODUCT_SKYCONTROLLER_2P] = "SkyController 2P",
 
     // Unsupported Service
-    [ARDISCOVERY_PRODUCT_TINOS] = "Flypad"
+    [ARDISCOVERY_PRODUCT_TINOS] = "Flypad",
+    [ARDISCOVERY_PRODUCT_SEQUOIA] = "Sequoia",
 };
 
 uint16_t ARDISCOVERY_getProductID(eARDISCOVERY_PRODUCT product)
@@ -265,6 +267,9 @@ eARDISCOVERY_PRODUCT_FAMILY ARDISCOVERY_getProductFamily(eARDISCOVERY_PRODUCT pr
         break;
     case ARDISCOVERY_PRODUCT_TINOS:
         family = ARDISCOVERY_PRODUCT_FAMILY_GAMEPAD;
+        break;
+    case ARDISCOVERY_PRODUCT_SEQUOIA:
+        family = ARDISCOVERY_PRODUCT_FAMILY_CAMERA;
         break;
     default:
         break;

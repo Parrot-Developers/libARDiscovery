@@ -65,6 +65,7 @@ typedef enum
     ARDISCOVERY_PRODUCT_SKYCONTROLLER_2P,                               ///< Sky controller 2P product
 
     ARDISCOVERY_PRODUCT_TINOS,                                          ///< Tinos product
+    ARDISCOVERY_PRODUCT_SEQUOIA,                                        ///< Sequoia product
     ARDISCOVERY_PRODUCT_MAX                                             ///< Max of products
 } eARDISCOVERY_PRODUCT;
 
@@ -88,6 +89,7 @@ typedef enum
     ARDISCOVERY_PRODUCT_FAMILY_POWER_UP,      ///< Power Up product family
     ARDISCOVERY_PRODUCT_FAMILY_FIXED_WING,    ///< Fixed wing product family
     ARDISCOVERY_PRODUCT_FAMILY_GAMEPAD,       ///< Gamepad product family
+    ARDISCOVERY_PRODUCT_FAMILY_CAMERA,        ///< Camera product family
     ARDISCOVERY_PRODUCT_FAMILY_MAX            ///< Max of product familys
 } eARDISCOVERY_PRODUCT_FAMILY;
 
