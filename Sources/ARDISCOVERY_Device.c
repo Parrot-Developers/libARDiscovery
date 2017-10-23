@@ -368,6 +368,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitWifi (ARDISCOVERY_Device_t *device, eA
             break;
         case ARDISCOVERY_PRODUCT_UNKNOWNPRODUCT_5:
             device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Wifi_InitUnknownproduct_5NetworkConfiguration;
+            break;
         case ARDISCOVERY_PRODUCT_CHIMERA:
             device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Wifi_InitChimeraNetworkConfiguration;
             break;
