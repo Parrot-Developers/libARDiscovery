@@ -387,7 +387,8 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Usb_InitSkyController2NetworkConfiguration
     if ((device == NULL) ||
         (networkConfiguration == NULL) ||
         ((device->productID != ARDISCOVERY_PRODUCT_SKYCONTROLLER_2) &&
-         (device->productID != ARDISCOVERY_PRODUCT_SKYCONTROLLER_NG)))
+         (device->productID != ARDISCOVERY_PRODUCT_SKYCONTROLLER_NG) &&
+         (device->productID != ARDISCOVERY_PRODUCT_SKYCONTROLLER_2P)))
     {
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;
     }
@@ -570,9 +571,9 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Usb_DiscoveryConnect (ARDISCOVERY_Device_t
             error = specificUsbParam->sendJsonCallback (jsonObj, specificUsbParam->jsonCallbacksCustomData);
             if (error != ARDISCOVERY_OK)
                 goto conn_end;
-            json_name = json_object_object_get(jsonObj, ARDISCOVERY_CONNECTION_JSON_CONTROLLER_NAME_KEY);
+            json_object_object_get_ex(jsonObj, ARDISCOVERY_CONNECTION_JSON_CONTROLLER_NAME_KEY, &json_name);
             json_object_get(json_name);
-            json_type = json_object_object_get(jsonObj, ARDISCOVERY_CONNECTION_JSON_CONTROLLER_TYPE_KEY);
+            json_object_object_get_ex(jsonObj, ARDISCOVERY_CONNECTION_JSON_CONTROLLER_TYPE_KEY, &json_type);
             json_object_get(json_type);
             json_object_object_del(jsonObj, ARDISCOVERY_CONNECTION_JSON_CONTROLLER_NAME_KEY);
             json_object_object_del(jsonObj, ARDISCOVERY_CONNECTION_JSON_CONTROLLER_TYPE_KEY);

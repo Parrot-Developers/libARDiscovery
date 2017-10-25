@@ -84,6 +84,13 @@ void ARDISCOVERY_AvahiDiscovery_Publish(ARDISCOVERY_AvahiDiscovery_PublisherData
  */
 eARDISCOVERY_ERROR ARDISCOVERY_AvahiDiscovery_ResetService(ARDISCOVERY_AvahiDiscovery_PublisherData_t* serviceData);
 
+/*
+ * @brief Change service name. No change will be seen until the service is reset.
+ * @param[in] serviceData Service data
+ * @param[in] serviceName New service name. NULL to use machine hostname.
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_AvahiDiscovery_SetServiceName(ARDISCOVERY_AvahiDiscovery_PublisherData_t* serviceData, const char *serviceName);
+
 /**
  * @brief Stop Avahi process of service advertisement
  * @param[in] serviceData Service data

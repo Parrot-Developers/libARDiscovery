@@ -62,7 +62,6 @@ typedef struct
 {
     ARNETWORKAL_BLEDeviceManager_t deviceManager;
     ARNETWORKAL_BLEDevice_t device;
-    
 }ARDISCOVERY_DEVICE_BLE_t;
 
 /**

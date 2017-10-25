@@ -84,6 +84,12 @@
 #define POWERUP_DEVICE_TO_CONTROLLER_VIDEO_DATA_ID ((ARNETWORKAL_MANAGER_WIFI_ID_MAX /2) - 3)
 #define POWERUP_DEVICE_TO_CONTROLLER_AUDIO_DATA_ID ((ARNETWORKAL_MANAGER_WIFI_ID_MAX /2) - 4)
 
+// RollingSpider buffer IDs
+#define ROLLINGSPIDER_CONTROLLER_TO_DEVICE_NONACK_ID 10
+#define ROLLINGSPIDER_CONTROLLER_TO_DEVICE_ACK_ID 11
+#define ROLLINGSPIDER_DEVICE_TO_CONTROLLER_NAVDATA_ID ((ARNETWORKAL_MANAGER_WIFI_ID_MAX /2) - 1)
+#define ROLLINGSPIDER_DEVICE_TO_CONTROLLER_EVENT_ID ((ARNETWORKAL_MANAGER_WIFI_ID_MAX /2) - 2)
+
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_DiscoveryConnect (ARDISCOVERY_Device_t *device);
 
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_SendJsonCallback (uint8_t *dataTx, uint32_t *dataTxSize, void *customData);
@@ -500,6 +506,16 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_SetQoSLevel (ARDISCOVERY_Device_t *de
     return error;
 }
 
+static eARCOMMANDS_GENERATOR_ERROR BebopStartStreamingGenerator(uint8_t *buffer, int32_t buffLen, int32_t *cmdLen)
+{
+    return ARCOMMANDS_Generator_GenerateARDrone3MediaStreamingVideoEnable(buffer, buffLen, cmdLen, 1);
+}
+
+static eARCOMMANDS_GENERATOR_ERROR BebopStopStreamingGenerator(uint8_t *buffer, int32_t buffLen, int32_t *cmdLen)
+{
+    return ARCOMMANDS_Generator_GenerateARDrone3MediaStreamingVideoEnable(buffer, buffLen, cmdLen, 0);
+}
+
 
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration)
 {
@@ -514,12 +530,16 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration (ARDISC
          (device->productID != ARDISCOVERY_PRODUCT_SKYCONTROLLER) &&
          (device->productID != ARDISCOVERY_PRODUCT_BEBOP_2) &&
          (device->productID != ARDISCOVERY_PRODUCT_EVINRUDE) &&
-         (device->productID != ARDISCOVERY_PRODUCT_UNKNOWNPRODUCT_4))
+         (device->productID != ARDISCOVERY_PRODUCT_UNKNOWNPRODUCT_4) &&
+         (device->productID != ARDISCOVERY_PRODUCT_UNKNOWNPRODUCT_5) &&
+         (device->productID != ARDISCOVERY_PRODUCT_CHIMERA))
         )
     {
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;
     }
     // No Else: the checking parameters sets error to ARNETWORK_ERROR_BAD_PARAMETER and stop the processing
+
+    memset(networkConfiguration, 0x0, sizeof(*networkConfiguration));
 
     static ARNETWORK_IOBufferParam_t c2dParams[] = {
         /* Non-acknowledged commands. */
@@ -601,10 +621,14 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration (ARDISC
         networkConfiguration->controllerToDeviceARStreamAudioData = -1;
         networkConfiguration->deviceToControllerNotAckId = BEBOP_DEVICE_TO_CONTROLLER_NAVDATA_ID;
         networkConfiguration->deviceToControllerAckId = BEBOP_DEVICE_TO_CONTROLLER_NAVDATA_ID;
-        // Set as -2 make sure that libARController will know that we have a video stream
-        networkConfiguration->deviceToControllerARStreamData = -2;
+        networkConfiguration->deviceToControllerARStreamData = -1;
         networkConfiguration->deviceToControllerARStreamAudioData = -1;
         networkConfiguration->deviceToControllerARStreamAudioAck = -1;
+
+        networkConfiguration->hasVideo = 1;
+        networkConfiguration->streamType = ARDISCOVERY_STREAM_STARTSTOP_ARCOMMANDS;
+        networkConfiguration->startCommand = &BebopStartStreamingGenerator;
+        networkConfiguration->stopCommand = &BebopStopStreamingGenerator;
 
         networkConfiguration->controllerToDeviceParams = c2dParams;
         networkConfiguration->numberOfControllerToDeviceParam = numC2dParams;
@@ -642,7 +666,132 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitUnknownproduct_4NetworkConfigurat
     return ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration(device, networkConfiguration);
 }
 
-eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitSkyControllerNGNetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration)
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitUnknownproduct_5NetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration)
+{
+    // -- Initilize network Configuration adapted to an Unknownproduct_5. --
+    // This should be the same as the Bebop to be able to be used by the SkyController
+    return ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration(device, networkConfiguration);
+}
+
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitDelos3NetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration)
+{
+    // -- Initilize network Configuration adapted to a Mambo FPV. --
+
+    eARDISCOVERY_ERROR error = ARDISCOVERY_OK;
+
+    // check parameters
+    if ((device == NULL) ||
+        (networkConfiguration == NULL) ||
+        (device->productID != ARDISCOVERY_PRODUCT_MINIDRONE_DELOS3))
+    {
+        error = ARDISCOVERY_ERROR_BAD_PARAMETER;
+    }
+    // No Else: the checking parameters sets error to ARNETWORK_ERROR_BAD_PARAMETER and stop the processing
+
+    memset(networkConfiguration, 0x0, sizeof(*networkConfiguration));
+
+    static ARNETWORK_IOBufferParam_t c2dParams[] = {
+        /* Non-acknowledged commands. */
+        {
+            .ID = ROLLINGSPIDER_CONTROLLER_TO_DEVICE_NONACK_ID,
+            .dataType = ARNETWORKAL_FRAME_TYPE_DATA,
+            .sendingWaitTimeMs = 20,
+            .ackTimeoutMs = ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
+            .numberOfRetry = ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
+            .numberOfCell = 1,
+            .dataCopyMaxSize = 128,
+            .isOverwriting = 1,
+        },
+        /* Acknowledged commands. */
+        {
+            .ID = ROLLINGSPIDER_CONTROLLER_TO_DEVICE_ACK_ID,
+            .dataType = ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK,
+            .sendingWaitTimeMs = 20,
+            .ackTimeoutMs = 150,
+            .numberOfRetry = 5,
+            .numberOfCell = 100,
+            .dataCopyMaxSize = 128,
+            .isOverwriting = 0,
+        },
+    };
+    size_t numC2dParams = sizeof(c2dParams) / sizeof(ARNETWORK_IOBufferParam_t);
+
+    static ARNETWORK_IOBufferParam_t d2cParams[] = {
+        {
+            .ID = ROLLINGSPIDER_DEVICE_TO_CONTROLLER_NAVDATA_ID,
+            .dataType = ARNETWORKAL_FRAME_TYPE_DATA,
+            .sendingWaitTimeMs = 20,
+            .ackTimeoutMs = ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
+            .numberOfRetry = ARNETWORK_IOBUFFERPARAM_INFINITE_NUMBER,
+            .numberOfCell = 20,
+            .dataCopyMaxSize = 128,
+            .isOverwriting = 0,
+        },
+        {
+            .ID = ROLLINGSPIDER_DEVICE_TO_CONTROLLER_EVENT_ID,
+            .dataType = ARNETWORKAL_FRAME_TYPE_DATA_WITH_ACK,
+            .sendingWaitTimeMs = 20,
+            .ackTimeoutMs = 500,
+            .numberOfRetry = 3,
+            .numberOfCell = 20,
+            .dataCopyMaxSize = 128,
+            .isOverwriting = 0,
+        },
+    };
+    size_t numD2cParams = sizeof(d2cParams) / sizeof(ARNETWORK_IOBufferParam_t);
+
+    static int commandBufferIds[] = {
+        ROLLINGSPIDER_DEVICE_TO_CONTROLLER_NAVDATA_ID,
+        ROLLINGSPIDER_DEVICE_TO_CONTROLLER_EVENT_ID,
+    };
+
+    size_t numOfCommandBufferIds = sizeof(commandBufferIds) / sizeof(int);
+
+    if (error == ARDISCOVERY_OK)
+    {
+        networkConfiguration->controllerLoopIntervalMs = 50;
+
+        networkConfiguration->controllerToDeviceNotAckId = ROLLINGSPIDER_CONTROLLER_TO_DEVICE_NONACK_ID;
+        networkConfiguration->controllerToDeviceAckId = ROLLINGSPIDER_CONTROLLER_TO_DEVICE_ACK_ID;
+        networkConfiguration->controllerToDeviceHightPriority = -1;
+        networkConfiguration->controllerToDeviceARStreamAck = -1;
+        networkConfiguration->controllerToDeviceARStreamAudioAck = -1;
+        networkConfiguration->controllerToDeviceARStreamAudioData = -1;
+        networkConfiguration->deviceToControllerNotAckId = ROLLINGSPIDER_DEVICE_TO_CONTROLLER_NAVDATA_ID;
+        networkConfiguration->deviceToControllerAckId = ROLLINGSPIDER_DEVICE_TO_CONTROLLER_NAVDATA_ID;
+        networkConfiguration->deviceToControllerARStreamData = -1;
+        networkConfiguration->deviceToControllerARStreamAudioData = -1;
+        networkConfiguration->deviceToControllerARStreamAudioAck = -1;
+
+        networkConfiguration->hasVideo = 1;
+        networkConfiguration->streamType = ARDISCOVERY_STREAM_STARTSTOP_RTSP;
+        networkConfiguration->rtspAddress = strdup("rtsp://192.168.99.1/media/stream2");
+
+        networkConfiguration->controllerToDeviceParams = c2dParams;
+        networkConfiguration->numberOfControllerToDeviceParam = numC2dParams;
+
+        networkConfiguration->deviceToControllerParams = d2cParams;
+        networkConfiguration->numberOfDeviceToControllerParam = numD2cParams;
+
+        networkConfiguration->pingDelayMs = -1;
+
+        networkConfiguration->numberOfDeviceToControllerCommandsBufferIds = numOfCommandBufferIds;
+        networkConfiguration->deviceToControllerCommandsBufferIds = commandBufferIds;
+    }
+
+    return error;
+}
+
+
+
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitChimeraNetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration)
+{
+    // -- Initilize network Configuration adapted to a Chimera. --
+    // This should be the same as the Bebop to be able to be used by the SkyController
+    return ARDISCOVERY_DEVICE_Wifi_InitBebopNetworkConfiguration(device, networkConfiguration);
+}
+
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitSkyController2NetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration)
 {
     // -- Initilize network Configuration adapted to a SkyControllerNG. --
 
@@ -651,11 +800,16 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitSkyControllerNGNetworkConfigurati
     // check parameters
     if ((device == NULL) ||
         (networkConfiguration == NULL) ||
-        (device->productID != ARDISCOVERY_PRODUCT_SKYCONTROLLER_NG))
+        ((device->productID != ARDISCOVERY_PRODUCT_SKYCONTROLLER_NG) &&
+         (device->productID != ARDISCOVERY_PRODUCT_SKYCONTROLLER_2) &&
+         (device->productID != ARDISCOVERY_PRODUCT_SKYCONTROLLER_2P))
+        )
     {
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;
     }
     // No Else: the checking parameters sets error to ARNETWORK_ERROR_BAD_PARAMETER and stop the processing
+
+    memset(networkConfiguration, 0x0, sizeof(*networkConfiguration));
 
     static ARNETWORK_IOBufferParam_t c2dParams[] = {
         /* Non-acknowledged commands. */
@@ -737,10 +891,14 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitSkyControllerNGNetworkConfigurati
         networkConfiguration->controllerToDeviceARStreamAudioData = -1;
         networkConfiguration->deviceToControllerNotAckId = BEBOP_DEVICE_TO_CONTROLLER_NAVDATA_ID;
         networkConfiguration->deviceToControllerAckId = BEBOP_DEVICE_TO_CONTROLLER_NAVDATA_ID;
-        // Set as -2 make sure that libARController will know that we have a video stream
-        networkConfiguration->deviceToControllerARStreamData = -2;
+        networkConfiguration->deviceToControllerARStreamData = -1;
         networkConfiguration->deviceToControllerARStreamAudioData = -1;
         networkConfiguration->deviceToControllerARStreamAudioAck = -1;
+
+        networkConfiguration->hasVideo = 1;
+        networkConfiguration->streamType = ARDISCOVERY_STREAM_STARTSTOP_ARCOMMANDS;
+        networkConfiguration->startCommand = &BebopStartStreamingGenerator;
+        networkConfiguration->stopCommand = &BebopStopStreamingGenerator;
 
         networkConfiguration->controllerToDeviceParams = c2dParams;
         networkConfiguration->numberOfControllerToDeviceParam = numC2dParams;
@@ -757,6 +915,16 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitSkyControllerNGNetworkConfigurati
     return error;
 }
 
+static eARCOMMANDS_GENERATOR_ERROR JSStartStreamingGenerator(uint8_t *buffer, int32_t buffLen, int32_t *cmdLen)
+{
+    return ARCOMMANDS_Generator_GenerateJumpingSumoMediaStreamingVideoEnable(buffer, buffLen, cmdLen, 1);
+}
+
+static eARCOMMANDS_GENERATOR_ERROR JSStopStreamingGenerator(uint8_t *buffer, int32_t buffLen, int32_t *cmdLen)
+{
+    return ARCOMMANDS_Generator_GenerateJumpingSumoMediaStreamingVideoEnable(buffer, buffLen, cmdLen, 0);
+}
+
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitJumpingSumoNetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration)
 {
     // -- Initilize network Configuration adapted to a Jumping Sumo. --
@@ -771,6 +939,8 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitJumpingSumoNetworkConfiguration (
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;
     }
     // No Else: the checking parameters sets error to ARNETWORK_ERROR_BAD_PARAMETER and stop the processing
+
+    memset(networkConfiguration, 0x0, sizeof(*networkConfiguration));
 
     static ARNETWORK_IOBufferParam_t c2dParams[] = {
         /* Non-acknowledged commands. */
@@ -868,6 +1038,11 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitJumpingSumoNetworkConfiguration (
         networkConfiguration->deviceToControllerARStreamAudioData = -1;
         networkConfiguration->deviceToControllerARStreamAudioAck = -1;
 
+        networkConfiguration->hasVideo = 1;
+        networkConfiguration->streamType = ARDISCOVERY_STREAM_STARTSTOP_ARCOMMANDS;
+        networkConfiguration->startCommand = &JSStartStreamingGenerator;
+        networkConfiguration->stopCommand = &JSStopStreamingGenerator;
+
         networkConfiguration->controllerToDeviceParams = c2dParams;
         networkConfiguration->numberOfControllerToDeviceParam = numC2dParams;
 
@@ -898,6 +1073,8 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitJumpingSumoEvoNetworkConfiguratio
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;
     }
     // No Else: the checking parameters sets error to ARNETWORK_ERROR_BAD_PARAMETER and stop the processing
+
+    memset(networkConfiguration, 0x0, sizeof(*networkConfiguration));
 
     static ARNETWORK_IOBufferParam_t c2dParams[] = {
         /* Non-acknowledged commands. */
@@ -1039,6 +1216,11 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitJumpingSumoEvoNetworkConfiguratio
         networkConfiguration->deviceToControllerARStreamAudioData = JUMPINGSUMO_DEVICE_TO_CONTROLLER_AUDIO_DATA_ID;
         networkConfiguration->deviceToControllerARStreamAudioAck = JUMPINGSUMO_DEVICE_TO_CONTROLLER_AUDIO_ACK_ID;
 
+        networkConfiguration->hasVideo = 1;
+        networkConfiguration->streamType = ARDISCOVERY_STREAM_STARTSTOP_ARCOMMANDS;
+        networkConfiguration->startCommand = &JSStartStreamingGenerator;
+        networkConfiguration->stopCommand = &JSStopStreamingGenerator;
+
         networkConfiguration->controllerToDeviceParams = c2dParams;
         networkConfiguration->numberOfControllerToDeviceParam = numC2dParams;
 
@@ -1052,6 +1234,16 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitJumpingSumoEvoNetworkConfiguratio
     }
 
     return error;
+}
+
+static eARCOMMANDS_GENERATOR_ERROR PowerUpStartStreamingGenerator(uint8_t *buffer, int32_t buffLen, int32_t *cmdLen)
+{
+    return ARCOMMANDS_Generator_GeneratePowerupMediaStreamingVideoEnable(buffer, buffLen, cmdLen, 1);
+}
+
+static eARCOMMANDS_GENERATOR_ERROR PowerUpStopStreamingGenerator(uint8_t *buffer, int32_t buffLen, int32_t *cmdLen)
+{
+    return ARCOMMANDS_Generator_GeneratePowerupMediaStreamingVideoEnable(buffer, buffLen, cmdLen, 0);
 }
 
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitPowerUpNetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration)
@@ -1068,6 +1260,8 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitPowerUpNetworkConfiguration (ARDI
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;
     }
     // No Else: the checking parameters sets error to ARNETWORK_ERROR_BAD_PARAMETER and stop the processing
+
+    memset(networkConfiguration, 0x0, sizeof(*networkConfiguration));
 
     static ARNETWORK_IOBufferParam_t c2dParams[] = {
         /* Non-acknowledged commands. */
@@ -1186,7 +1380,11 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitPowerUpNetworkConfiguration (ARDI
         networkConfiguration->deviceToControllerARStreamData = POWERUP_DEVICE_TO_CONTROLLER_VIDEO_DATA_ID;
         networkConfiguration->deviceToControllerARStreamAudioData = POWERUP_DEVICE_TO_CONTROLLER_AUDIO_DATA_ID;
         networkConfiguration->deviceToControllerARStreamAudioAck = -1;
-	ARSAL_PRINT(ARSAL_PRINT_ERROR, "NBZ", "InitPowerupNetwork");
+
+        networkConfiguration->hasVideo = 1;
+        networkConfiguration->streamType = ARDISCOVERY_STREAM_STARTSTOP_ARCOMMANDS;
+        networkConfiguration->startCommand = &PowerUpStartStreamingGenerator;
+        networkConfiguration->stopCommand = &PowerUpStopStreamingGenerator;
 
         networkConfiguration->controllerToDeviceParams = c2dParams;
         networkConfiguration->numberOfControllerToDeviceParam = numC2dParams;
@@ -1331,6 +1529,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_ReceiveJsonCallback (uint8_t *dataRx,
 
     json_object *jsonObj = NULL;
     json_object *valueJsonObj = NULL;
+    json_bool json_res;
 
 
     if ((dataRx == NULL) ||
@@ -1357,23 +1556,23 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_ReceiveJsonCallback (uint8_t *dataRx,
     if (error == ARDISCOVERY_OK)
     {
         // get ARDISCOVERY_CONNECTION_JSON_C2DPORT_KEY
-        valueJsonObj = json_object_object_get (jsonObj, ARDISCOVERY_CONNECTION_JSON_C2DPORT_KEY);
-        if (valueJsonObj != NULL)
+        json_res = json_object_object_get_ex (jsonObj, ARDISCOVERY_CONNECTION_JSON_C2DPORT_KEY, &valueJsonObj);
+        if (json_res && valueJsonObj != NULL)
         {
             specificWifiParam->controllerToDevicePort = json_object_get_int(valueJsonObj);
         }
 
         // get ARDISCOVERY_CONNECTION_JSON_QOS_MODE_KEY
-        valueJsonObj = json_object_object_get (jsonObj, ARDISCOVERY_CONNECTION_JSON_QOS_MODE_KEY);
-        if (valueJsonObj != NULL)
+        json_object_object_get_ex (jsonObj, ARDISCOVERY_CONNECTION_JSON_QOS_MODE_KEY, &valueJsonObj);
+        if (json_res && valueJsonObj != NULL)
         {
             specificWifiParam->qos_level = json_object_get_int(valueJsonObj);
         }
 
         // get ARDISCOVERY_CONNECTION_JSON_STATUS_KEY
 
-        valueJsonObj = json_object_object_get (jsonObj, ARDISCOVERY_CONNECTION_JSON_STATUS_KEY);
-        if (valueJsonObj != NULL)
+        json_res = json_object_object_get_ex (jsonObj, ARDISCOVERY_CONNECTION_JSON_STATUS_KEY, &valueJsonObj);
+        if (json_res && valueJsonObj != NULL)
         {
             specificWifiParam->connectionStatus = json_object_get_int(valueJsonObj);
         }

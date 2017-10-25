@@ -321,6 +321,17 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitNetworkConfiguration (ARDISCOVERY_Devi
     return error;
 }
 
+eARDISCOVERY_ERROR ARDISCOVERY_Device_DestroyNetworkConfiguration (ARDISCOVERY_Device_t *discoveryDevice, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration)
+{
+    if (!discoveryDevice || ! networkConfiguration)
+        return ARDISCOVERY_ERROR_BAD_PARAMETER;
+
+    free(networkConfiguration->rtspAddress);
+    networkConfiguration->rtspAddress = NULL;
+
+    return ARDISCOVERY_OK;
+}
+
 /***********************
  * -- Wifi part --
  ***********************/
@@ -355,6 +366,12 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitWifi (ARDISCOVERY_Device_t *device, eA
         case ARDISCOVERY_PRODUCT_UNKNOWNPRODUCT_4:
             device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Wifi_InitUnknownproduct_4NetworkConfiguration;
             break;
+        case ARDISCOVERY_PRODUCT_UNKNOWNPRODUCT_5:
+            device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Wifi_InitUnknownproduct_5NetworkConfiguration;
+            break;
+        case ARDISCOVERY_PRODUCT_CHIMERA:
+            device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Wifi_InitChimeraNetworkConfiguration;
+            break;
         case ARDISCOVERY_PRODUCT_JS:
             device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Wifi_InitJumpingSumoNetworkConfiguration;
             break;
@@ -372,17 +389,21 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitWifi (ARDISCOVERY_Device_t *device, eA
             device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Wifi_InitSkyControllerNetworkConfiguration;
             break;
         case ARDISCOVERY_PRODUCT_SKYCONTROLLER_NG:
-            device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Wifi_InitSkyControllerNGNetworkConfiguration;
+        case ARDISCOVERY_PRODUCT_SKYCONTROLLER_2:
+        case ARDISCOVERY_PRODUCT_SKYCONTROLLER_2P:
+            device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Wifi_InitSkyController2NetworkConfiguration;
+            break;
+        case ARDISCOVERY_PRODUCT_MINIDRONE_DELOS3:
+            device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Wifi_InitDelos3NetworkConfiguration;
             break;
 
         case ARDISCOVERY_PRODUCT_MINIDRONE:
         case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT:
         case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_BRICK:
         case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_HYDROFOIL:
-        case ARDISCOVERY_PRODUCT_MINIDRONE_DELOS3:
         case ARDISCOVERY_PRODUCT_MINIDRONE_WINGX:
-        case ARDISCOVERY_PRODUCT_SKYCONTROLLER_2:
         case ARDISCOVERY_PRODUCT_TINOS:
+        case ARDISCOVERY_PRODUCT_SEQUOIA:
         case ARDISCOVERY_PRODUCT_MAX:
             error = ARDISCOVERY_ERROR_BAD_PARAMETER;
             break;
@@ -481,6 +502,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitBLE (ARDISCOVERY_Device_t *device, eAR
 
         case ARDISCOVERY_PRODUCT_SKYCONTROLLER:
         case ARDISCOVERY_PRODUCT_SKYCONTROLLER_2:
+        case ARDISCOVERY_PRODUCT_SKYCONTROLLER_2P:
         case ARDISCOVERY_PRODUCT_ARDRONE:
         case ARDISCOVERY_PRODUCT_BEBOP_2:
         case ARDISCOVERY_PRODUCT_JS:
@@ -489,7 +511,10 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitBLE (ARDISCOVERY_Device_t *device, eAR
         case ARDISCOVERY_PRODUCT_POWER_UP:
         case ARDISCOVERY_PRODUCT_EVINRUDE:
         case ARDISCOVERY_PRODUCT_UNKNOWNPRODUCT_4:
+        case ARDISCOVERY_PRODUCT_UNKNOWNPRODUCT_5:
+        case ARDISCOVERY_PRODUCT_CHIMERA:
         case ARDISCOVERY_PRODUCT_TINOS:
+        case ARDISCOVERY_PRODUCT_SEQUOIA:
         case ARDISCOVERY_PRODUCT_MAX:
             error = ARDISCOVERY_ERROR_BAD_PARAMETER;
             break;
@@ -547,6 +572,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitUSB (ARDISCOVERY_Device_t *device, eAR
 
     switch (product) {
     case ARDISCOVERY_PRODUCT_SKYCONTROLLER_2:
+    case ARDISCOVERY_PRODUCT_SKYCONTROLLER_2P:
     case ARDISCOVERY_PRODUCT_SKYCONTROLLER_NG:
         device->initNetworkConfiguration = ARDISCOVERY_DEVICE_Usb_InitSkyController2NetworkConfiguration;
         break;
@@ -558,6 +584,8 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitUSB (ARDISCOVERY_Device_t *device, eAR
     case ARDISCOVERY_PRODUCT_POWER_UP:
     case ARDISCOVERY_PRODUCT_EVINRUDE:
     case ARDISCOVERY_PRODUCT_UNKNOWNPRODUCT_4:
+    case ARDISCOVERY_PRODUCT_UNKNOWNPRODUCT_5:
+    case ARDISCOVERY_PRODUCT_CHIMERA:
     case ARDISCOVERY_PRODUCT_SKYCONTROLLER:
     case ARDISCOVERY_PRODUCT_MINIDRONE:
     case ARDISCOVERY_PRODUCT_MINIDRONE_EVO_LIGHT:
@@ -566,6 +594,7 @@ eARDISCOVERY_ERROR ARDISCOVERY_Device_InitUSB (ARDISCOVERY_Device_t *device, eAR
     case ARDISCOVERY_PRODUCT_MINIDRONE_DELOS3:
     case ARDISCOVERY_PRODUCT_MINIDRONE_WINGX:
     case ARDISCOVERY_PRODUCT_TINOS:
+    case ARDISCOVERY_PRODUCT_SEQUOIA:
     case ARDISCOVERY_PRODUCT_MAX:
         return ARDISCOVERY_ERROR_BAD_PARAMETER;
         break;

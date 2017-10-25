@@ -59,6 +59,7 @@ public class UsbAccessoryMux {
     private static final String MANUFACTURER_ID = "Parrot";
     private static final String SKYCONTROLLER_NG_MODEL_ID = "Skycontroller";
     private static final String SKYCONTROLLER2_MODEL_ID = "Skycontroller 2";
+    private static final String SKYCONTROLLER2P_MODEL_ID = "Skycontroller 2P";
 
     private static final String TAG = "UsbAccessoryMux";
     private static UsbAccessoryMux sInstance;
@@ -212,7 +213,9 @@ public class UsbAccessoryMux {
     };
 
     private boolean isValidModel(String accessoryModel) {
-        return SKYCONTROLLER2_MODEL_ID.equals(accessoryModel) || SKYCONTROLLER_NG_MODEL_ID.equals(accessoryModel);
+        return SKYCONTROLLER2_MODEL_ID.equals(accessoryModel) ||
+                SKYCONTROLLER_NG_MODEL_ID.equals(accessoryModel) ||
+                SKYCONTROLLER2P_MODEL_ID.equals(accessoryModel);
     }
 
     public Mux getMux() {

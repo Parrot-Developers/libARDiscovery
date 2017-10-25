@@ -293,6 +293,8 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Ble_InitRollingSpiderNetworkConfiguration 
     }
     // No Else: the checking parameters sets error to ARNETWORK_ERROR_BAD_PARAMETER and stop the processing
 
+    memset(networkConfiguration, 0x0, sizeof(*networkConfiguration));
+
     static ARNETWORK_IOBufferParam_t c2dParams[] = {
         /* Non-acknowledged commands. */
         {
@@ -377,6 +379,9 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Ble_InitRollingSpiderNetworkConfiguration 
         networkConfiguration->deviceToControllerARStreamData = -1;
         networkConfiguration->deviceToControllerARStreamAudioData = -1;
         networkConfiguration->deviceToControllerARStreamAudioAck = -1;
+
+        networkConfiguration->hasVideo = 0;
+        networkConfiguration->streamType = ARDISCOVERY_STREAM_STARTSTOP_NONE;
 
         networkConfiguration->controllerToDeviceParams = c2dParams;
         networkConfiguration->numberOfControllerToDeviceParam = numC2dParams;

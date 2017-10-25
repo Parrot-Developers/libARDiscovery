@@ -170,12 +170,36 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitBebop2NetworkConfiguration (ARDIS
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitUnknownproduct_4NetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration);
 
 /**
- * @brief Initilize network Configuration adapted to a SkyControllerNG.
- * @param device The Discovery Device. Must be a SkyControllerNG Device
+ * @brief Initilize network Configuration adapted to an Unknownproduct_5.
+ * @param device The Discovery Device. Must be a Unknownproduct_5 Device
  * @param[out] networkConfiguration The networkConfiguration to Initilize.
  * @return executing error.
  */
-eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitSkyControllerNGNetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration);
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitUnknownproduct_5NetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration);
+
+/**
+ * @brief Initilize network Configuration adapted to a Chimera.
+ * @param device The Discovery Device. Must be a Chimera Device
+ * @param[out] networkConfiguration The networkConfiguration to Initilize.
+ * @return executing error.
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitChimeraNetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration);
+
+/**
+ * @brief Initilize network Configuration adapted to a Mambo FPV.
+ * @param device The Discovery Device. Must be a Mambo FPV Device
+ * @param[out] networkConfiguration The networkConfiguration to Initilize.
+ * @return executing error.
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitDelos3NetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration);
+
+/**
+ * @brief Initilize network Configuration adapted to a SkyController2.
+ * @param device The Discovery Device. Must be a SkyController2/2P/NG Device
+ * @param[out] networkConfiguration The networkConfiguration to Initilize.
+ * @return executing error.
+ */
+eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Wifi_InitSkyController2NetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration);
 
 /**
  * @brief Initilize network Configuration adapted to a Jumping Sumo.

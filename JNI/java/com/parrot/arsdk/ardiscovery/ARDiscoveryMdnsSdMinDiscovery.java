@@ -61,7 +61,10 @@ public class ARDiscoveryMdnsSdMinDiscovery implements ARDiscoveryWifiDiscovery
 
     private static final String TAG = ARDiscoveryMdnsSdMinDiscovery.class.getSimpleName();
     private final MdnsSdMin mdnsSd;
+    private ConnectivityManager mConnectivityManager;
+    private WifiManager mWifiManager;
     private final IntentFilter networkStateChangedFilter;
+    private final IntentFilter wifiStateChangedFilter;
     private final Map<String, ARDiscoveryDeviceService> netDeviceServicesHmap;
     /** Map of device services string to enum */
     private final Map<String, ARDISCOVERY_PRODUCT_ENUM> devicesServices;
@@ -92,9 +95,12 @@ public class ARDiscoveryMdnsSdMinDiscovery implements ARDiscoveryWifiDiscovery
         netDeviceServicesHmap = new HashMap<String, ARDiscoveryDeviceService>();
         mdnsSd = new MdnsSdMin(devicesServices.keySet().toArray(new String[devicesServices.keySet().size()]), mdsnSdListener);
 
-        // create the connectivity change receiver
+        // create filter for connectivity change receiver
         networkStateChangedFilter = new IntentFilter();
         networkStateChangedFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        // create filter for WiFi state change receiver
+        wifiStateChangedFilter = new IntentFilter();
+        wifiStateChangedFilter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
     }
 
     public synchronized void open(ARDiscoveryService broadcaster, Context c)
@@ -102,9 +108,10 @@ public class ARDiscoveryMdnsSdMinDiscovery implements ARDiscoveryWifiDiscovery
         ARSALPrint.d(TAG, "Opening MdsnSd based ARDiscovery");
         this.broadcaster = broadcaster;
         this.context = c;
+        mConnectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        mWifiManager = (WifiManager) context.getSystemService(android.content.Context.WIFI_SERVICE);
         // create a multicast lock
-        WifiManager wifi =  (WifiManager) context.getSystemService(android.content.Context.WIFI_SERVICE);
-        multicastLock = wifi.createMulticastLock("ARDiscovery");
+        multicastLock = mWifiManager.createMulticastLock("ARDiscovery");
     }
 
     public synchronized void close()
@@ -130,6 +137,7 @@ public class ARDiscoveryMdnsSdMinDiscovery implements ARDiscoveryWifiDiscovery
             }
             // this is sticky intent, receiver will be called asap
             context.registerReceiver(networkStateIntentReceiver, networkStateChangedFilter);
+            context.registerReceiver(wifiStateIntentReceiver, wifiStateChangedFilter);
             started = true;
         }
     }
@@ -145,6 +153,7 @@ public class ARDiscoveryMdnsSdMinDiscovery implements ARDiscoveryWifiDiscovery
                 multicastLock.release();
             }
             context.unregisterReceiver(networkStateIntentReceiver);
+            context.unregisterReceiver(wifiStateIntentReceiver);
             mdnsSd.stop();
             netDeviceServicesHmap.clear();
             broadcaster.broadcastDeviceServiceArrayUpdated();
@@ -154,17 +163,11 @@ public class ARDiscoveryMdnsSdMinDiscovery implements ARDiscoveryWifiDiscovery
     @Override
     public void wifiAvailable(boolean wifiAvailable)
     {
+        ARSALPrint.d(TAG, "wifiAvailable " + wifiAvailable);
         if (mWifiAvailable != wifiAvailable)
         {
             mWifiAvailable = wifiAvailable;
-            if (mWifiAvailable)
-            {
-                startWifi();
-            }
-            else
-            {
-                stopWifi();
-            }
+            startOrStopDiscovery();
         }
     }
 
@@ -173,6 +176,27 @@ public class ARDiscoveryMdnsSdMinDiscovery implements ARDiscoveryWifiDiscovery
     {
         return new ArrayList<ARDiscoveryDeviceService>(netDeviceServicesHmap.values());
     }
+
+    private final BroadcastReceiver wifiStateIntentReceiver = new BroadcastReceiver()
+    {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(WifiManager.NETWORK_STATE_CHANGED_ACTION))
+            {
+                Bundle extras = intent.getExtras();
+                NetworkInfo networkInfo = (NetworkInfo)extras.get(WifiManager.EXTRA_NETWORK_INFO);
+                if (networkInfo != null)
+                {
+                    NetworkInfo.State state = networkInfo.getState();
+                    ARSALPrint.d(TAG, "Receive NETWORK_STATE_CHANGED_ACTION intent, state: " + state);
+                    if ((state == NetworkInfo.State.CONNECTED)
+                            || ((state == NetworkInfo.State.DISCONNECTED))) {
+                        startOrStopDiscovery();
+                    }
+                }
+            }
+        }
+    };
 
     private final BroadcastReceiver networkStateIntentReceiver = new BroadcastReceiver()
     {
@@ -187,83 +211,63 @@ public class ARDiscoveryMdnsSdMinDiscovery implements ARDiscoveryWifiDiscovery
                     ARSALPrint.d(TAG, "Key : " + key + ", value = " + (extras.get(key) != null ? extras.get(key).toString() : "NULL"));
                 }
                 ARSALPrint.d(TAG, "End of extras");
-
-                boolean needFlush = extras.getBoolean(ConnectivityManager.EXTRA_NO_CONNECTIVITY, false);
-                if (needFlush)
-                {
-                    ARSALPrint.d(TAG, "Extra " + ConnectivityManager.EXTRA_NO_CONNECTIVITY + " set to true, need flush");
-                }
-                NetworkInfo netInfos = (NetworkInfo)extras.get(ConnectivityManager.EXTRA_NETWORK_INFO);
-                if (netInfos != null)
-                {
-                    NetworkInfo.State state = netInfos.getState();
-                    if (state.equals(NetworkInfo.State.DISCONNECTED))
-                    {
-                        ARSALPrint.d(TAG, "NetworkInfo.State is DISCONNECTED, need flush");
-                        needFlush = true;
-                    }
-                }
-
-                if (needFlush)
-                {
-                    stopWifi();
-                }
-                else
-                {
-                    mdnsSd.stop();
-                    startWifi();
-                }
+                startOrStopDiscovery();
             }
         }
     };
 
-    private void startWifi()
+    private void startOrStopDiscovery()
     {
-        ConnectivityManager connManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-        NetworkInfo mEth = connManager.getNetworkInfo(ConnectivityManager.TYPE_ETHERNET);
+        if ((mConnectivityManager == null)
+                || (mWifiManager == null)) {
+            // Invalid state
+            return;
+        }
 
+        NetworkInfo wifi = mConnectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+        NetworkInfo eth = mConnectivityManager.getNetworkInfo(ConnectivityManager.TYPE_ETHERNET);
         NetworkInterface netInterface = null;
+
         // search the network interface with the ip address returned by the wifi manager
-        if ((mWifi != null) && (mWifiAvailable || mWifi.isConnected()))
+        if (mWifiAvailable || ((wifi != null) && wifi.isConnected()))
         {
-            WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-            if (wifiManager != null) {
-                WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-                int ipAddressInt = wifiInfo.getIpAddress();
-                String  ipAddress = String.format(Locale.US, "%d.%d.%d.%d",
-                        (ipAddressInt & 0xff), (ipAddressInt >> 8 & 0xff),
-                        (ipAddressInt >> 16 & 0xff), (ipAddressInt >> 24 & 0xff));
-                try
+            WifiInfo wifiInfo = mWifiManager.getConnectionInfo();
+            int ipAddressInt = wifiInfo.getIpAddress();
+            String  ipAddress = String.format(Locale.US, "%d.%d.%d.%d",
+                    (ipAddressInt & 0xff), (ipAddressInt >> 8 & 0xff),
+                    (ipAddressInt >> 16 & 0xff), (ipAddressInt >> 24 & 0xff));
+            try
+            {
+                InetAddress addr = InetAddress.getByName(ipAddress);
+                Enumeration<NetworkInterface> intfs = NetworkInterface.getNetworkInterfaces();
+                while (netInterface == null && intfs.hasMoreElements())
                 {
-                    InetAddress addr = InetAddress.getByName(ipAddress);
-                    Enumeration<NetworkInterface> intfs = NetworkInterface.getNetworkInterfaces();
-                    while (netInterface == null && intfs.hasMoreElements())
+                    NetworkInterface intf = intfs.nextElement();
+                    Enumeration<InetAddress> interfaceAddresses = intf.getInetAddresses();
+                    while (netInterface == null && interfaceAddresses.hasMoreElements())
                     {
-                        NetworkInterface intf = intfs.nextElement();
-                        Enumeration<InetAddress> interfaceAddresses = intf.getInetAddresses();
-                        while (netInterface == null && interfaceAddresses.hasMoreElements())
+                        InetAddress interfaceAddr =  interfaceAddresses.nextElement();
+                        if (interfaceAddr.equals(addr))
                         {
-                            InetAddress interfaceAddr =  interfaceAddresses.nextElement();
-                            if (interfaceAddr.equals(addr))
-                            {
-                                netInterface = intf;
-                            }
+                            netInterface = intf;
                         }
                     }
                 }
-                catch (Exception e)
-                {
-                    ARSALPrint.e(TAG, "Unable to get the wifi network interface", e);
-                }
+            }
+            catch (Exception e)
+            {
+                ARSALPrint.e(TAG, "Unable to get the wifi network interface", e);
             }
         }
 
         // for ethernet, it's not possible to find the correct netInterface. Assume there is
         // a default route don't specify the netinterface
-        if (((mWifi != null) && (mWifiAvailable || mWifi.isConnected())) || ((mEth != null) && (mEth.isConnected())))
+        if (mWifiAvailable
+                || ((wifi != null) && wifi.isConnected())
+                || ((eth != null) && eth.isConnected()))
         {
             ARSALPrint.d(TAG, "Restaring MdsnSd");
+            mdnsSd.stop();
             mdnsSd.start(netInterface);
         }
         else

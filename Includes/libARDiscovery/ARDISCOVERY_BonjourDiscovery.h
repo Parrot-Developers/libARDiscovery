@@ -97,6 +97,7 @@
  * If Connected, this device will probably refuse any new connection.
  */
 @property (nonatomic, assign) eARDISCOVERY_CONNECTION_STATE connectionState;
+@property (nonatomic, assign) BOOL hasMinicam;
 @end
 
 @interface ARUSBService : NSObject
