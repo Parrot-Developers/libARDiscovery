@@ -376,6 +376,16 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Usb_DeleteARNetworkAL (ARDISCOVERY_Device_
 #endif
 }
 
+static eARCOMMANDS_GENERATOR_ERROR SkyController2StartStreamingGenerator(uint8_t *buffer, int32_t buffLen, int32_t *cmdLen)
+{
+    return ARCOMMANDS_Generator_GenerateARDrone3MediaStreamingVideoEnable(buffer, buffLen, cmdLen, 1);
+}
+
+static eARCOMMANDS_GENERATOR_ERROR SkyController2StopStreamingGenerator(uint8_t *buffer, int32_t buffLen, int32_t *cmdLen)
+{
+    return ARCOMMANDS_Generator_GenerateARDrone3MediaStreamingVideoEnable(buffer, buffLen, cmdLen, 0);
+}
+
 eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Usb_InitSkyController2NetworkConfiguration (ARDISCOVERY_Device_t *device, ARDISCOVERY_NetworkConfiguration_t *networkConfiguration)
 {
 #ifdef BUILD_LIBMUX
@@ -393,6 +403,8 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Usb_InitSkyController2NetworkConfiguration
         error = ARDISCOVERY_ERROR_BAD_PARAMETER;
     }
     // No Else: the checking parameters sets error to ARNETWORK_ERROR_BAD_PARAMETER and stop the processing
+
+    memset(networkConfiguration, 0x0, sizeof(*networkConfiguration));
 
     static ARNETWORK_IOBufferParam_t c2dParams[] = {
         /* Non-acknowledged commands. */
@@ -477,6 +489,11 @@ eARDISCOVERY_ERROR ARDISCOVERY_DEVICE_Usb_InitSkyController2NetworkConfiguration
         networkConfiguration->deviceToControllerARStreamData = MPP_DEVICE_TO_CONTROLLER_VIDEO_DATA_ID;
         networkConfiguration->deviceToControllerARStreamAudioData = -1;
         networkConfiguration->deviceToControllerARStreamAudioAck = -1;
+
+        networkConfiguration->hasVideo = 1;
+        networkConfiguration->streamType = ARDISCOVERY_STREAM_STARTSTOP_ARCOMMANDS;
+        networkConfiguration->startCommand = &SkyController2StartStreamingGenerator;
+        networkConfiguration->stopCommand = &SkyController2StopStreamingGenerator;
 
         networkConfiguration->controllerToDeviceParams = c2dParams;
         networkConfiguration->numberOfControllerToDeviceParam = numC2dParams;
