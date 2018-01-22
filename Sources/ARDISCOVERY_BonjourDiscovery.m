@@ -911,6 +911,7 @@ exit:
             {
                 NSData *manufacturerData = [advertisementData valueForKey:CBAdvertisementDataManufacturerDataKey];
                 uint16_t *ids = (uint16_t *) manufacturerData.bytes;
+                uint8_t *ids8 = (uint8_t *) manufacturerData.bytes;
 
                 ARService *aService = [self.devicesServicesList objectForKey:[peripheral.identifier UUIDString]];
                 if(aService == nil)
@@ -929,7 +930,11 @@ exit:
                         bleService.centralManager = self.centralManager;
                         bleService.peripheral = peripheral;
                         bleService.connectionState = [self connectionStateForValue:(ids[3] & 0x03)];
-                        bleService.hasMinicam = !!((ids[3] >> 8) & 0x01);
+                        if (manufacturerData.length > 8) {
+                            bleService.hasMinicam = ((ids8[8]) & 0x01);
+                        } else {
+                            bleService.hasMinicam = NO;
+                        }
 
                         aService = [[ARService alloc] init];
                         aService.service = bleService;
@@ -958,8 +963,12 @@ exit:
                         sendNotification = YES;
                     }
 
-                    eARDISCOVERY_CONNECTION_STATE connectionState = [self connectionStateForValue:(ids[3] & 0x0ff)];
-                    BOOL hasMinicam = !!((ids[3] >> 8) & 0x01);
+                    eARDISCOVERY_CONNECTION_STATE connectionState = [self connectionStateForValue:(ids[3] & 0x03)];
+                    BOOL hasMinicam = NO;
+                    if (manufacturerData.length > 8) {
+                        hasMinicam = ((ids8[8]) & 0x01);
+                    }
+
                     ARBLEService *bleService = aService.service;
                     if (bleService.connectionState != connectionState ||
                         bleService.hasMinicam != hasMinicam) {

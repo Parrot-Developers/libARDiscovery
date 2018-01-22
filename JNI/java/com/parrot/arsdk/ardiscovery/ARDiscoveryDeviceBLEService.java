@@ -113,8 +113,11 @@ public class ARDiscoveryDeviceBLEService implements Parcelable
             /* check */
             ARDiscoveryDeviceBLEService otherDevice = (ARDiscoveryDeviceBLEService) other;
 
-            if (!this.bluetoothDevice.getAddress().equals(otherDevice.bluetoothDevice.getAddress()))
-            {
+            if (!this.bluetoothDevice.getAddress().equals(otherDevice.bluetoothDevice.getAddress())) {
+                isEqual = false;
+            } else if (this.hasMinicam() != otherDevice.hasMinicam()) {
+                isEqual = false;
+            } else if (this.getConnectionState() != otherDevice.getConnectionState()) {
                 isEqual = false;
             }
         }

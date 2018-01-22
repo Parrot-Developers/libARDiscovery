@@ -420,7 +420,7 @@ public class ARDiscoveryBLEDiscoveryImpl implements ARDiscoveryBLEDiscovery
              * AD Struct 2 : (manufacturerData)
              * - length = 0x09
              * - AD Type = 0xFF
-             * - AD data : | BTVendorID (2 oct) | USBVendorID (2 oct) | USBProductID (2 oct) | ConnectionState (2 oct) |
+             * - AD data : | BTVendorID (2 oct) | USBVendorID (2 oct) | USBProductID (2 oct) | ConnectionState (2 oct) | minicam (1 oct)
              */
 
             int parrotProductID = 0;
@@ -531,9 +531,11 @@ public class ARDiscoveryBLEDiscoveryImpl implements ARDiscoveryBLEDiscovery
                 /* check if it is the AD Type expected */
                 if (adType == ARDISCOVERY_BLE_MANUFACTURER_DATA_ADTYPE)
                 {
-                    // connection state is taken from the first bit of byte 8
-                    int has_camera = (data[8] & 0x01);
-                    res = has_camera == 0x01;
+                    // cam information is taken from the first bit of byte 9
+                    if (data.length > 9) {
+                        int has_camera = (data[9] & 0x01);
+                        res = has_camera == 0x01;
+                    }
                 }
             }
 
